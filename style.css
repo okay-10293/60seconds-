@@ -1,0 +1,61 @@
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+  background: #1a1a1a;
+  color: #eee;
+  padding: 20px;
+}
+#app { max-width: 900px; margin: 0 auto; }
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #444;
+  padding-bottom: 10px;
+  margin-bottom: 16px;
+}
+.timer { font-size: 1.4em; color: #ff5555; font-weight: bold; }
+.resources { font-size: 1.2em; }
+
+.rooms-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+.room { background: #262626; border-radius: 8px; padding: 10px; }
+.room h3 { margin: 0 0 8px; color: #ffcc66; }
+.room-items { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.item-btn, .choice-btn, #finishBtn, #nextDayBtn, #restartBtn {
+  background: #3a3a3a;
+  color: #eee;
+  border: 1px solid #555;
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 0.95em;
+}
+.item-btn:hover:not(:disabled), .choice-btn:hover:not(:disabled) { background: #4a4a4a; }
+.item-btn:disabled { opacity: 0.3; text-decoration: line-through; cursor: default; }
+
+.collected { margin: 12px 0; }
+
+.characters-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.char-card { background: #262626; border-radius: 8px; padding: 10px; min-width: 140px; border-left: 4px solid #4caf50; }
+.char-card.sick { border-left-color: #ffb300; }
+.char-card.injured { border-left-color: #ff7043; }
+.char-card.dead { border-left-color: #555; opacity: 0.5; }
+.char-name { font-weight: bold; margin-bottom: 4px; }
+
+.inventory-row { margin-bottom: 12px; }
+.inv-chip { background: #333; padding: 4px 8px; border-radius: 12px; margin-right: 6px; font-size: 0.9em; }
+
+.event-box { background: #2c2c40; border: 1px solid #55558a; border-radius: 8px; padding: 16px; margin: 12px 0; }
+.choices { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+#outcomeText { margin-top: 10px; color: #ffcc66; }
+
+.log-box { margin-top: 16px; font-size: 0.85em; color: #999; border-top: 1px solid #333; padding-top: 8px; }
+
+.gameover { text-align: center; padding: 60px 0; }
