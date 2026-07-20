@@ -43,9 +43,20 @@ function collectItem(scavengeState, itemId) {
   scavengeState.collected.push(itemId);
 }
 
-// 타이머 종료 -> 주운 아이템들을 실제 게임 상태 인벤토리로 반영
+// 타이머 종료 -> 주운 아이템들을 실제 게임 상태 인벤토리/자원으로 반영
 function finishScavenge(state, scavengeState) {
-  scavengeState.collected.forEach((itemId) => window.GameState.addItem(state, itemId, 1));
+  scavengeState.collected.forEach((itemId) => {
+    const item = window.ItemsAPI.getItem(itemId);
+    // 식량/물 카테고리는 매일 소비되는 resources 풀로 적립
+    if (item && item.category === 'food') {
+      state.resources.food += 1;
+    } else if (item && item.category === 'water') {
+      state.resources.water += 1;
+    } else {
+      // 나머지(도구/무기/특수 아이템 등)는 인벤토리에 개별 보관
+      window.GameState.addItem(state, itemId, 1);
+    }
+  });
   window.GameState.addLog(state, `탈출하며 ${scavengeState.collected.length}개의 아이템을 챙겼다.`);
   state.phase = 'shelter';
 }
