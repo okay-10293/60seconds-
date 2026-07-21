@@ -159,4 +159,328 @@ window.EVENTS = [
       },
     ],
   },
+
+  {
+    id: 'rat_infestation',
+    title: '쥐가 들끓는다',
+    description: '식량 창고에서 부스럭거리는 소리가 들린다. 쥐가 식량을 갉아먹고 있는 것 같다.',
+    minDay: 2,
+    once: false,
+    choices: [
+      {
+        text: '야구 배트로 쫓아낸다',
+        requires: { items: [{ id: 'baseball_bat', count: 1 }] },
+        outcomes: [
+          { weight: 100, resultText: '쥐들을 몰아냈다. 식량은 무사하다.', effects: [] },
+        ],
+      },
+      {
+        text: '직접 몸으로 막아본다',
+        outcomes: [
+          {
+            weight: 50,
+            resultText: '겨우 쫓아냈지만 일부는 이미 갉아먹혔다.',
+            effects: [{ type: 'resource', key: 'food', delta: -1 }],
+          },
+          {
+            weight: 50,
+            resultText: '결국 식량 일부를 빼앗겼다.',
+            effects: [{ type: 'resource', key: 'food', delta: -2 }],
+          },
+        ],
+      },
+    ],
+  },
+
+  {
+    id: 'nightmare',
+    title: '악몽',
+    description: '가족 중 한 명이 식은땀을 흘리며 잠에서 깬다. 밖의 상황이 꿈에서도 떠나지 않는 모양이다.',
+    minDay: 2,
+    once: false,
+    choices: [
+      {
+        text: '곁에서 위로해준다',
+        outcomes: [
+          {
+            weight: 100,
+            resultText: '한참을 이야기하다 다시 잠들었다.',
+            effects: [{ type: 'character', target: 'random', field: 'sanity', delta: 8 }],
+          },
+        ],
+      },
+      {
+        text: '그냥 다시 자게 둔다',
+        outcomes: [
+          {
+            weight: 100,
+            resultText: '혼자 뒤척이다 겨우 잠들었다.',
+            effects: [{ type: 'character', target: 'random', field: 'sanity', delta: -5 }],
+          },
+        ],
+      },
+    ],
+  },
+
+  {
+    id: 'trade_offer',
+    title: '라디오로 들려온 거래 제안',
+    description: '다른 생존자 무리가 라디오로 물물교환을 제안한다. "위스키 있으면 식량이랑 바꿔줄게요."',
+    minDay: 4,
+    once: true,
+    conditions: { requiredItems: [{ id: 'radio', count: 1 }] },
+    choices: [
+      {
+        text: '위스키를 넘기고 식량을 받는다',
+        requires: { items: [{ id: 'whiskey', count: 1 }] },
+        outcomes: [
+          {
+            weight: 80,
+            resultText: '약속대로 식량을 보내왔다.',
+            effects: [
+              { type: 'item', itemId: 'whiskey', delta: -1 },
+              { type: 'resource', key: 'food', delta: 3 },
+            ],
+          },
+          {
+            weight: 20,
+            resultText: '사기였다. 위스키만 뺏겼다.',
+            effects: [{ type: 'item', itemId: 'whiskey', delta: -1 }],
+          },
+        ],
+      },
+      {
+        text: '거절한다',
+        outcomes: [{ weight: 100, resultText: '별다른 일 없이 지나갔다.', effects: [] }],
+      },
+    ],
+  },
+
+  {
+    id: 'gas_leak',
+    title: '가스 냄새',
+    description: '어디선가 희미하게 가스 냄새가 풍긴다. 배관이 손상된 것 같다.',
+    minDay: 3,
+    once: true,
+    choices: [
+      {
+        text: '방독면을 쓰고 점검한다',
+        requires: { items: [{ id: 'gas_mask', count: 1 }] },
+        outcomes: [
+          { weight: 100, resultText: '무사히 밸브를 잠갔다. 위험을 피했다.', effects: [] },
+        ],
+      },
+      {
+        text: '공구함으로 대충 틀어막는다',
+        requires: { items: [{ id: 'toolbox', count: 1 }] },
+        outcomes: [
+          {
+            weight: 70,
+            resultText: '임시로 막는 데 성공했다.',
+            effects: [],
+          },
+          {
+            weight: 30,
+            resultText: '작업 중 냄새를 많이 들이마셨다.',
+            effects: [{ type: 'character', target: 'random', field: 'health', value: 'sick' }],
+          },
+        ],
+      },
+      {
+        text: '일단 환기만 시킨다',
+        outcomes: [
+          {
+            weight: 50,
+            resultText: '다행히 냄새가 옅어졌다.',
+            effects: [{ type: 'character', target: 'all', field: 'sanity', delta: -3 }],
+          },
+          {
+            weight: 50,
+            resultText: '가스를 마셔 몸이 좋지 않다.',
+            effects: [{ type: 'character', target: 'random', field: 'health', value: 'sick' }],
+          },
+        ],
+      },
+    ],
+  },
+
+  {
+    id: 'family_argument',
+    title: '가족 간의 다툼',
+    description: '좁은 공간에 오래 갇혀있다 보니 사소한 일로 언성이 높아진다.',
+    minDay: 5,
+    once: false,
+    conditions: { minCharacters: 2 },
+    choices: [
+      {
+        text: '보드게임으로 분위기를 풀어본다',
+        requires: { items: [{ id: 'board_game', count: 1 }] },
+        outcomes: [
+          {
+            weight: 100,
+            resultText: '게임을 하다 보니 다들 웃음을 되찾았다.',
+            effects: [{ type: 'character', target: 'all', field: 'sanity', delta: 6 }],
+          },
+        ],
+      },
+      {
+        text: '기타를 연주해준다',
+        requires: { items: [{ id: 'guitar', count: 1 }] },
+        outcomes: [
+          {
+            weight: 100,
+            resultText: '어색한 연주였지만 다들 진정했다.',
+            effects: [{ type: 'character', target: 'all', field: 'sanity', delta: 5 }],
+          },
+        ],
+      },
+      {
+        text: '그냥 각자 진정할 때까지 둔다',
+        outcomes: [
+          {
+            weight: 100,
+            resultText: '냉랭한 분위기가 며칠 갈 것 같다.',
+            effects: [{ type: 'character', target: 'all', field: 'sanity', delta: -6 }],
+          },
+        ],
+      },
+    ],
+  },
+
+  {
+    id: 'flu_outbreak',
+    title: '독감 기운',
+    description: '한 명이 콜록거리기 시작한다. 좁은 대피소에서 옮으면 큰일이다.',
+    minDay: 6,
+    once: false,
+    choices: [
+      {
+        text: '구급상자로 즉시 치료한다',
+        requires: { items: [{ id: 'first_aid', count: 1 }] },
+        outcomes: [
+          {
+            weight: 100,
+            resultText: '초기에 잡아서 퍼지지 않았다.',
+            effects: [{ type: 'item', itemId: 'first_aid', delta: -1 }],
+          },
+        ],
+      },
+      {
+        text: '격리시키고 지켜본다',
+        outcomes: [
+          {
+            weight: 60,
+            resultText: '다행히 다른 사람에게는 옮지 않았다.',
+            effects: [{ type: 'character', target: 'random', field: 'health', value: 'sick' }],
+          },
+          {
+            weight: 40,
+            resultText: '결국 대피소 전체로 퍼졌다.',
+            effects: [{ type: 'character', target: 'all', field: 'sanity', delta: -8 }],
+          },
+        ],
+      },
+    ],
+  },
+
+  {
+    id: 'stray_dog',
+    title: '문 밖의 개',
+    description: '문 틈으로 마르고 지친 개 한 마리가 보인다. 낑낑거리며 안으로 들어오려 한다.',
+    minDay: 3,
+    once: true,
+    choices: [
+      {
+        text: '개 사료를 주며 받아들인다',
+        requires: { items: [{ id: 'dog_food', count: 1 }] },
+        outcomes: [
+          {
+            weight: 100,
+            resultText: '개는 금세 대피소의 든든한 가족이 되었다.',
+            effects: [
+              { type: 'item', itemId: 'dog_food', delta: -1 },
+              { type: 'flag', key: 'dogJoined', value: true },
+              { type: 'character', target: 'all', field: 'sanity', delta: 5 },
+            ],
+          },
+        ],
+      },
+      {
+        text: '먹을 게 없지만 일단 들인다',
+        outcomes: [
+          {
+            weight: 100,
+            resultText: '식량은 부족해졌지만, 다들 개를 보며 조금은 웃었다.',
+            effects: [
+              { type: 'resource', key: 'food', delta: -1 },
+              { type: 'flag', key: 'dogJoined', value: true },
+              { type: 'character', target: 'all', field: 'sanity', delta: 3 },
+            ],
+          },
+        ],
+      },
+      {
+        text: '문을 열어주지 않는다',
+        outcomes: [
+          {
+            weight: 100,
+            resultText: '낑낑거리는 소리가 한참 이어지다 조용해졌다.',
+            effects: [{ type: 'character', target: 'all', field: 'sanity', delta: -4 }],
+          },
+        ],
+      },
+    ],
+  },
+
+  {
+    id: 'looters_at_the_door',
+    title: '약탈자들',
+    description: '무장한 무리가 대피소 물자를 노리고 접근하고 있다.',
+    minDay: 7,
+    once: false,
+    choices: [
+      {
+        text: '엽총으로 맞선다',
+        requires: { items: [{ id: 'rifle', count: 1 }] },
+        outcomes: [
+          { weight: 80, resultText: '위협적인 태세에 약탈자들이 물러났다.', effects: [] },
+          {
+            weight: 20,
+            resultText: '충돌이 벌어져 한 명이 다쳤다.',
+            effects: [{ type: 'character', target: 'random', field: 'health', value: 'injured' }],
+          },
+        ],
+      },
+      {
+        text: '야구 배트로 맞선다',
+        requires: { items: [{ id: 'baseball_bat', count: 1 }] },
+        outcomes: [
+          { weight: 50, resultText: '몸싸움 끝에 겨우 쫓아냈다.', effects: [] },
+          {
+            weight: 50,
+            resultText: '싸우다 다쳤지만 물자는 지켰다.',
+            effects: [{ type: 'character', target: 'random', field: 'health', value: 'injured' }],
+          },
+        ],
+      },
+      {
+        text: '조용히 숨는다',
+        outcomes: [
+          {
+            weight: 50,
+            resultText: '들키지 않고 지나갔다.',
+            effects: [{ type: 'character', target: 'all', field: 'sanity', delta: -5 }],
+          },
+          {
+            weight: 50,
+            resultText: '결국 발각되어 물자를 일부 빼앗겼다.',
+            effects: [
+              { type: 'resource', key: 'food', delta: -2 },
+              { type: 'resource', key: 'water', delta: -2 },
+            ],
+          },
+        ],
+      },
+    ],
+  },
 ];

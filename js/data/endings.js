@@ -22,6 +22,13 @@
 
 window.ENDINGS = [
   {
+    id: 'perfect_with_dog',
+    title: '완벽한 생존 (+개 한 마리)',
+    description:
+      '가족 모두가, 그리고 그날 문을 두드렸던 개까지 함께 살아남았다. 더 바랄 게 없는 결말이다.',
+    condition: (ctx) => ctx.originalFamilyAllInShelter && ctx.avgSanity >= 60 && !!ctx.state.flags.dogJoined,
+  },
+  {
     id: 'perfect',
     title: '완벽한 생존',
     description:

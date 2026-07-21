@@ -15,6 +15,12 @@ window.ITEMS = [
   { id: 'water_purifier', name: '정수기', icon: '🧪', category: 'tool', tags: ['canPurify'] },
   { id: 'playing_cards', name: '카드', icon: '🃏', category: 'special', tags: ['boostSanity'] },
   { id: 'family_photo', name: '가족사진', icon: '🖼️', category: 'special', tags: ['boostSanity'] },
+  { id: 'baseball_bat', name: '야구 배트', icon: '🏏', category: 'weapon', tags: ['canDefend'] },
+  { id: 'whiskey', name: '위스키', icon: '🥃', category: 'special', tags: ['boostSanity', 'canTrade'] },
+  { id: 'gas_mask', name: '방독면', icon: '😷', category: 'tool', tags: ['canFilterAir'] },
+  { id: 'toolbox', name: '공구함', icon: '🧰', category: 'tool', tags: ['canRepair'] },
+  { id: 'guitar', name: '기타', icon: '🎸', category: 'special', tags: ['boostSanity'] },
+  { id: 'dog_food', name: '개 사료', icon: '🦴', category: 'special', tags: ['canFeedDog'] },
 ];
 
 function getItem(itemId) {

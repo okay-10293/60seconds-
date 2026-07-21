@@ -131,4 +131,77 @@ window.EXPEDITIONS = [
       },
     ],
   },
+  {
+    id: 'hospital',
+    name: '병원',
+    description: '의약품이 풍부하지만 감염 위험이 있는 곳.',
+    duration: 2,
+    outcomes: [
+      {
+        weight: 30,
+        type: 'success',
+        resultText: '의약품 창고를 통째로 발견했다.',
+        loot: [{ itemId: 'first_aid', min: 2, max: 4 }],
+      },
+      {
+        weight: 30,
+        type: 'injured',
+        resultText: '감염된 시신들을 헤치다 상처를 입었다.',
+        loot: [{ itemId: 'first_aid', min: 0, max: 2 }],
+      },
+      {
+        weight: 20,
+        type: 'empty',
+        resultText: '이미 깨끗이 털린 상태였다.',
+        loot: [],
+      },
+      {
+        weight: 15,
+        type: 'missing',
+        resultText: '병원 안에서 실종되었다.',
+        loot: [],
+      },
+      {
+        weight: 5,
+        type: 'dead',
+        resultText: '감염병에 걸려 결국 돌아오지 못했다.',
+        loot: [],
+      },
+    ],
+  },
+  {
+    id: 'farm',
+    name: '외곽 농장',
+    description: '멀지만 상대적으로 안전하고 식량이 풍부하다.',
+    duration: 3,
+    outcomes: [
+      {
+        weight: 50,
+        type: 'success',
+        resultText: '창고 가득 식량을 챙겨왔다.',
+        loot: [
+          { key: 'food', min: 4, max: 8 },
+          { key: 'water', min: 1, max: 3 },
+        ],
+      },
+      {
+        weight: 20,
+        type: 'injured',
+        resultText: '들짐승에게 공격당했지만 식량은 지켰다.',
+        loot: [{ key: 'food', min: 2, max: 4 }],
+      },
+      {
+        weight: 20,
+        type: 'empty',
+        resultText: '가뭄으로 농장이 이미 황폐해져 있었다.',
+        loot: [],
+      },
+      {
+        weight: 10,
+        type: 'missing',
+        resultText: '돌아오는 길에 실종되었다.',
+        loot: [],
+      },
+    ],
+  },
 ];
