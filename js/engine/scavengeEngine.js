@@ -16,25 +16,25 @@ window.SCAVENGE_ROOMS = [
   {
     id: 'kitchen',
     name: '주방',
-    spawns: ['canned_food', 'canned_food', 'water_bottle', 'water_bottle', 'first_aid'],
+    spawns: ['canned_food', 'canned_food', 'canned_food', 'water_bottle', 'water_bottle', 'water_bottle', 'first_aid'],
     familySpawns: [],
   },
   {
     id: 'living_room',
     name: '거실',
-    spawns: ['radio', 'board_game', 'playing_cards', 'family_photo'],
+    spawns: ['radio', 'board_game', 'playing_cards', 'family_photo', 'canned_food'],
     familySpawns: ['mom'],
   },
   {
     id: 'bedroom',
     name: '침실',
-    spawns: ['flashlight', 'first_aid', 'family_photo'],
+    spawns: ['flashlight', 'first_aid', 'family_photo', 'water_bottle'],
     familySpawns: ['son', 'daughter'],
   },
   {
     id: 'garage',
     name: '차고',
-    spawns: ['rifle', 'water_purifier', 'flashlight'],
+    spawns: ['rifle', 'water_purifier', 'flashlight', 'canned_food'],
     familySpawns: [],
   },
 ];

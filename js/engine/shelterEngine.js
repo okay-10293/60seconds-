@@ -18,8 +18,16 @@ function advanceDay(state) {
 
   const ration = window.RationsAPI.getRationLevel(state.rationLevel);
   const people = window.GameState.shelterCharacters(state);
-  const foodNeeded = Math.ceil(people.length * ration.consumeMultiplier);
-  const waterNeeded = Math.ceil(people.length * ration.consumeMultiplier);
+  // 절약형(배율 < 1)은 내림, 표준/확대형(배율 >= 1)은 올림으로 계산해야
+  // '반절 배급'이 실제로 소모를 줄여주는 효과가 남는다.
+  const roundConsumption = ration.consumeMultiplier < 1 ? Math.floor : Math.ceil;
+  const foodNeeded = roundConsumption(people.length * ration.consumeMultiplier);
+  const waterNeeded = roundConsumption(people.length * ration.consumeMultiplier);
+
+  // 정수기를 갖고 있으면 매일 물이 소량 자동으로 생성된다.
+  if (window.GameState.hasItem(state, 'water_purifier', 1)) {
+    state.resources.water += 1;
+  }
 
   const hadFood = state.resources.food >= foodNeeded;
   const hadWater = state.resources.water >= waterNeeded;
