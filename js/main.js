@@ -6,6 +6,82 @@ let state = window.GameState.createInitialState();
 let scavengeState = null;
 let scavengeTimerId = null;
 
+function faceFeatures(health) {
+  if (health === 'dead') {
+    return {
+      eyes: `<path d="M25,35 L33,43 M33,35 L25,43" stroke="var(--ink)" stroke-width="2.4" stroke-linecap="round"/>
+             <path d="M47,35 L55,43 M55,35 L47,43" stroke="var(--ink)" stroke-width="2.4" stroke-linecap="round"/>`,
+      mouth: `<path d="M28,58 Q40,54 52,58" stroke="var(--ink)" stroke-width="2.2" fill="none" stroke-linecap="round"/>`,
+      tint: `<circle cx="40" cy="42" r="30" fill="#6f6f6f" opacity="0.32"/>`,
+      extra: '',
+    };
+  }
+  if (health === 'sick') {
+    return {
+      eyes: `<ellipse cx="29" cy="38" rx="3" ry="4" fill="var(--ink)"/><ellipse cx="51" cy="38" rx="3" ry="4" fill="var(--ink)"/>`,
+      mouth: `<path d="M28,58 Q34,62 40,58 Q46,62 52,58" stroke="var(--ink)" stroke-width="2.2" fill="none" stroke-linecap="round"/>`,
+      tint: `<circle cx="40" cy="42" r="30" fill="var(--ok)" opacity="0.25"/>`,
+      extra: `<path d="M57,28 Q60,32 57,36 Q54,32 57,28 Z" fill="#7fc4e0"/>`,
+    };
+  }
+  if (health === 'injured') {
+    return {
+      eyes: `<ellipse cx="29" cy="38" rx="3.2" ry="3.2" fill="var(--ink)"/><ellipse cx="51" cy="38" rx="3.2" ry="3.2" fill="var(--ink)"/>`,
+      mouth: `<path d="M30,59 Q40,55 50,59" stroke="var(--ink)" stroke-width="2.2" fill="none" stroke-linecap="round"/>`,
+      tint: '',
+      extra: `<rect x="18" y="27" width="32" height="8" rx="3" fill="var(--paper)" stroke="var(--ink-soft)" stroke-width="1" transform="rotate(-10 34 31)"/>
+              <circle cx="47" cy="26" r="2.2" fill="var(--danger)"/>`,
+    };
+  }
+  return {
+    eyes: `<ellipse cx="29" cy="38" rx="3.2" ry="3.2" fill="var(--ink)"/><ellipse cx="51" cy="38" rx="3.2" ry="3.2" fill="var(--ink)"/>`,
+    mouth: `<path d="M28,56 Q40,64 52,56" stroke="var(--ink)" stroke-width="2.2" fill="none" stroke-linecap="round"/>`,
+    tint: '',
+    extra: '',
+  };
+}
+
+function hairAccessory(characterId) {
+  switch (characterId) {
+    case 'dad':
+      return `
+        <path d="M13,32 Q15,6 40,6 Q65,6 67,32 Q67,19 40,17 Q13,19 13,32 Z" fill="var(--ink-soft)"/>
+        <rect x="30" y="50" width="20" height="4.5" rx="2.2" fill="var(--ink-soft)"/>`;
+    case 'mom':
+      return `
+        <path d="M12,34 Q9,8 40,6 Q71,8 68,34 Q68,45 61,47 Q66,29 40,26 Q14,29 19,47 Q12,45 12,34 Z" fill="#5a3a24"/>
+        <circle cx="16" cy="43" r="2.4" fill="var(--warn)"/>
+        <circle cx="64" cy="43" r="2.4" fill="var(--warn)"/>`;
+    case 'son':
+      return `
+        <path d="M10,25 Q40,3 70,25 L70,19 Q40,-3 10,19 Z" fill="var(--metal)"/>
+        <path d="M14,29 Q40,20 66,29 L66,23 Q40,16 14,23 Z" fill="var(--ink-soft)"/>`;
+    case 'daughter':
+      return `
+        <path d="M13,32 Q11,8 40,7 Q69,8 67,32 Q67,21 40,19 Q13,21 13,32 Z" fill="#6b3f22"/>
+        <circle cx="9" cy="41" r="6.5" fill="#6b3f22"/>
+        <circle cx="71" cy="41" r="6.5" fill="#6b3f22"/>
+        <circle cx="9" cy="34" r="2.2" fill="var(--danger)"/>
+        <circle cx="71" cy="34" r="2.2" fill="var(--danger)"/>`;
+    default:
+      return '';
+  }
+}
+
+function portraitSVG(characterId, health) {
+  const f = faceFeatures(health);
+  return `
+    <svg viewBox="0 0 80 80" class="portrait-svg" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <circle cx="40" cy="40" r="38" fill="var(--bg-panel-2)" stroke="var(--line)" stroke-width="1.5" />
+      <ellipse cx="40" cy="45" rx="22" ry="24" fill="#d9a066" />
+      ${hairAccessory(characterId)}
+      ${f.eyes}
+      ${f.mouth}
+      ${f.extra}
+      ${f.tint}
+    </svg>`;
+}
+
 const app = document.getElementById('app');
 
 // ---------------- 공용 장식 요소 ----------------
@@ -158,8 +234,13 @@ function renderShelter(eventOverride) {
       return `
     <div class="char-card ${c.health}">
       <div class="char-tag">${c.isChild ? '아이' : '성인'}</div>
-      <div class="char-name">${c.name}</div>
-      <div class="char-status">${healthLabel[c.health] || c.health}</div>
+      <div class="char-top">
+        <div class="portrait-frame">${portraitSVG(c.id, c.health)}</div>
+        <div class="char-id">
+          <div class="char-name">${c.name}</div>
+          <div class="char-status">${healthLabel[c.health] || c.health}</div>
+        </div>
+      </div>
       <div class="stat-row">
         <span class="stat-label">배고픔</span>
         <div class="gauge"><div class="gauge-fill hunger" style="width:${hungerPct}%"></div></div>
