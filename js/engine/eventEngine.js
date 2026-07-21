@@ -118,5 +118,6 @@ window.EventEngine = {
   isEventEligible,
   isChoiceEligible,
   pickEventForToday,
+  pickWeightedOutcome,
   resolveChoice,
 };

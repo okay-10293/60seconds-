@@ -59,3 +59,23 @@ body {
 .log-box { margin-top: 16px; font-size: 0.85em; color: #999; border-top: 1px solid #333; padding-top: 8px; }
 
 .gameover { text-align: center; padding: 60px 0; }
+.gameover.ending h1 { color: #ffcc66; }
+
+.family-btn { border-color: #66bb6a; color: #b7f5bb; }
+.family-btn:hover:not(:disabled) { background: #2e5a30; }
+
+.ration-panel, .expedition-panel {
+  background: #1f1f2e;
+  border: 1px solid #3a3a55;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+.ration-panel h3, .expedition-panel h3 { margin: 0 0 8px; color: #ffcc66; font-size: 1em; }
+.ration-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+.ration-btn { background: #3a3a3a; color: #eee; border: 1px solid #555; border-radius: 6px; padding: 8px 12px; cursor: pointer; }
+.ration-btn.active { border-color: #66bb6a; background: #2e5a30; }
+
+.expedition-panel select { background: #2a2a2a; color: #eee; border: 1px solid #555; border-radius: 6px; padding: 6px; margin-right: 6px; }
+.expedition-panel #sendExpeditionBtn { background: #3a3a3a; color: #eee; border: 1px solid #555; border-radius: 6px; padding: 8px 12px; cursor: pointer; }
+.expedition-panel #sendExpeditionBtn:hover { background: #4a4a4a; }
