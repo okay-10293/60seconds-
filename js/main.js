@@ -56,13 +56,22 @@ function renderScavenge() {
     .join('');
 
   app.innerHTML = `
-    <div class="topbar">
-      <h1>탈출: 60초 안에 챙겨라</h1>
-      <div class="timer">⏱ ${scavengeState.timeLeft}s</div>
+    <div class="topbar scavenge-bar">
+      <div class="topbar-title">
+        <span class="eyebrow">EVACUATION PROTOCOL</span>
+        <h1>탈출: 60초 안에 챙겨라</h1>
+      </div>
+      <div class="timer-unit">
+        <span class="timer-label">남은 시간</span>
+        <div class="timer ${scavengeState.timeLeft <= 10 ? 'critical' : ''}">${scavengeState.timeLeft}</div>
+      </div>
     </div>
     <div class="rooms-grid">${roomsHtml}</div>
-    <div class="collected">챙긴 아이템: ${scavengeState.collected.length}개 &nbsp;|&nbsp; 찾은 가족: ${scavengeState.foundFamily.length}명</div>
-    <button id="finishBtn">지금 대피소로 (${scavengeState.collected.length}개 들고)</button>
+    <div class="collected">
+      <span>📦 챙긴 아이템 ${scavengeState.collected.length}개</span>
+      <span>🧍 찾은 가족 ${scavengeState.foundFamily.length}명</span>
+    </div>
+    <button id="finishBtn">지금 대피소로 (${scavengeState.collected.length}개 들고) →</button>
   `;
 
   scavengeState.takenKeys = scavengeState.takenKeys || new Set();
@@ -110,18 +119,31 @@ function endScavenge() {
 // ---------------- 대피소 파트 ----------------
 
 function renderShelter(eventOverride) {
+  const healthLabel = { healthy: '건강함', injured: '부상', sick: '병약', dead: '사망' };
   const people = window.GameState.shelterCharacters(state);
   const peopleHtml = people
-    .map(
-      (c) => `
+    .map((c) => {
+      const hungerPct = Math.round((c.hunger / 3) * 100);
+      const thirstPct = Math.round((c.thirst / 3) * 100);
+      return `
     <div class="char-card ${c.health}">
-      <div class="char-name">${c.name} ${c.isChild ? '(아이)' : ''}</div>
-      <div>건강: ${c.health}</div>
-      <div>배고픔: ${'🍽️'.repeat(c.hunger)}${'　'.repeat(3 - c.hunger)}</div>
-      <div>목마름: ${'💧'.repeat(c.thirst)}${'　'.repeat(3 - c.thirst)}</div>
-      <div>정신력: ${c.sanity}</div>
-    </div>`
-    )
+      <div class="char-tag">${c.isChild ? '아이' : '성인'}</div>
+      <div class="char-name">${c.name}</div>
+      <div class="char-status">${healthLabel[c.health] || c.health}</div>
+      <div class="stat-row">
+        <span class="stat-label">배고픔</span>
+        <div class="gauge"><div class="gauge-fill hunger" style="width:${hungerPct}%"></div></div>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">목마름</span>
+        <div class="gauge"><div class="gauge-fill thirst" style="width:${thirstPct}%"></div></div>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">정신력</span>
+        <div class="gauge"><div class="gauge-fill sanity" style="width:${c.sanity}%"></div></div>
+      </div>
+    </div>`;
+    })
     .join('');
 
   const inventoryHtml = Object.entries(state.inventory)
@@ -152,21 +174,38 @@ function renderShelter(eventOverride) {
     .map((c) => `<span class="inv-chip">🚶 ${c.name} (Day ${c.expedition ? c.expedition.returnDay : '?'} 복귀 예정)</span>`)
     .join('');
 
+  const dayPct = Math.min(100, Math.round((state.day / window.GAME_CONFIG.goalDay) * 100));
+
   app.innerHTML = `
     <div class="topbar">
-      <h1>대피소 — Day ${state.day} / 목표 ${window.GAME_CONFIG.goalDay}일</h1>
-      <div class="resources">🥫 ${state.resources.food} &nbsp; 💧 ${state.resources.water}</div>
+      <div class="topbar-title">
+        <span class="eyebrow">대피소 로그</span>
+        <h1>Day ${state.day} <span class="goal">/ 목표 ${window.GAME_CONFIG.goalDay}일</span></h1>
+      </div>
+      <div class="resources">
+        <span class="res-chip food">🥫 ${state.resources.food}</span>
+        <span class="res-chip water">💧 ${state.resources.water}</span>
+      </div>
     </div>
-    <div class="characters-row">${peopleHtml}</div>
-    <div class="inventory-row">${inventoryHtml || '(인벤토리 없음)'}</div>
+    <div class="day-progress"><div class="day-progress-fill" style="width:${dayPct}%"></div></div>
+
+    <div class="panel-section">
+      <h2 class="section-label">생존자</h2>
+      <div class="characters-row">${peopleHtml}</div>
+    </div>
+
+    <div class="panel-section">
+      <h2 class="section-label">보급품</h2>
+      <div class="inventory-row">${inventoryHtml || '(인벤토리 없음)'}</div>
+    </div>
 
     <div class="ration-panel">
-      <h3>배급량 조절</h3>
+      <h3>배급 통제</h3>
       <div class="ration-buttons">${rationHtml}</div>
     </div>
 
     <div class="expedition-panel">
-      <h3>원정 보내기</h3>
+      <h3>원정 파견</h3>
       ${
         expeditionCandidates.length > 0
           ? `<select id="expeditionCharSelect">${expeditionCharOptionsHtml}</select>
@@ -178,8 +217,11 @@ function renderShelter(eventOverride) {
     </div>
 
     <div id="eventArea"></div>
-    <button id="nextDayBtn">다음 날로</button>
-    <div class="log-box">${state.log.slice(-6).map((l) => `<div>${l.text}</div>`).join('')}</div>
+    <button id="nextDayBtn">다음 날로 →</button>
+    <div class="log-box">
+      <div class="section-label" style="margin-bottom:6px;">무전 기록</div>
+      ${state.log.slice(-6).map((l) => `<div>Day ${l.day} — ${l.text}</div>`).join('') || '<div>(기록 없음)</div>'}
+    </div>
   `;
 
   document.getElementById('nextDayBtn').addEventListener('click', onNextDay);
