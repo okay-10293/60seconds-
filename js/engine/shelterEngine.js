@@ -21,16 +21,16 @@ function advanceDay(state) {
   // 절약형(배율 < 1)은 내림, 표준/확대형(배율 >= 1)은 올림으로 계산해야
   // '반절 배급'이 실제로 소모를 줄여주는 효과가 남는다.
   const roundConsumption = ration.consumeMultiplier < 1 ? Math.floor : Math.ceil;
-  const foodNeeded = roundConsumption(people.length * ration.consumeMultiplier);
-  const waterNeeded = roundConsumption(people.length * ration.consumeMultiplier);
+  const foodNeeded = ration.alwaysInsufficient ? 0 : roundConsumption(people.length * ration.consumeMultiplier);
+  const waterNeeded = ration.alwaysInsufficient ? 0 : roundConsumption(people.length * ration.consumeMultiplier);
 
   // 정수기를 갖고 있으면 매일 물이 소량 자동으로 생성된다.
   if (window.GameState.hasItem(state, 'water_purifier', 1)) {
     state.resources.water += 1;
   }
 
-  const hadFood = state.resources.food >= foodNeeded;
-  const hadWater = state.resources.water >= waterNeeded;
+  const hadFood = !ration.alwaysInsufficient && state.resources.food >= foodNeeded;
+  const hadWater = !ration.alwaysInsufficient && state.resources.water >= waterNeeded;
 
   state.resources.food = Math.max(0, state.resources.food - foodNeeded);
   state.resources.water = Math.max(0, state.resources.water - waterNeeded);
@@ -46,7 +46,8 @@ function advanceDay(state) {
     } else {
       c.thirst = Math.min(HUNGER_THIRST_MAX, c.thirst + 1);
     }
-    if (hadFood && hadWater && ration.sanityDelta) {
+    // '전혀 안 먹음'은 자원 유무와 무관하게 항상 심리적 페널티 적용
+    if (ration.sanityDelta && (ration.alwaysInsufficient || (hadFood && hadWater))) {
       c.sanity = Math.max(0, Math.min(100, c.sanity + ration.sanityDelta));
     }
 

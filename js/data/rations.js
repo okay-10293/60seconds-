@@ -10,6 +10,17 @@
 
 window.RATION_LEVELS = [
   {
+    id: 'none',
+    name: '전혀 안 먹음',
+    icon: '🚫',
+    description: '자원을 전혀 소모하지 않지만, 배고픔과 갈증이 항상 심해진다. 오래 버티면 위험하다.',
+    consumeMultiplier: 0,
+    hungerDelta: 0,
+    thirstDelta: 0,
+    sanityDelta: -3,
+    alwaysInsufficient: true, // 자원 보유량과 무관하게 항상 '못 먹은 것'으로 처리
+  },
+  {
     id: 'half',
     name: '반절 배급',
     icon: '🍽️½',
@@ -42,7 +53,7 @@ window.RATION_LEVELS = [
 ];
 
 function getRationLevel(id) {
-  return window.RATION_LEVELS.find((r) => r.id === id) || window.RATION_LEVELS[1];
+  return window.RATION_LEVELS.find((r) => r.id === id) || window.RATION_LEVELS.find((r) => r.id === 'normal');
 }
 
 window.RationsAPI = { getRationLevel };
