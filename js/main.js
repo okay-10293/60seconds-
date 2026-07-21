@@ -8,6 +8,33 @@ let scavengeTimerId = null;
 
 const app = document.getElementById('app');
 
+// ---------------- 공용 장식 요소 ----------------
+
+function cdBadge() {
+  return `
+    <div class="cd-badge" aria-hidden="true">
+      <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="20" cy="20" r="17" fill="none" stroke="var(--warn)" stroke-width="2" />
+        <polygon points="20,7 33,30 7,30" fill="none" stroke="var(--warn)" stroke-width="2" />
+        <polygon points="20,15 26.5,27 13.5,27" fill="var(--warn)" />
+      </svg>
+    </div>`;
+}
+
+function tallyMarks(day) {
+  const n = Math.max(0, day - 1);
+  if (n <= 0) return '<span class="tally-label">생존 일수 기록 없음</span>';
+  const groups = [];
+  let remaining = n;
+  while (remaining > 0) {
+    const size = Math.min(5, remaining);
+    const bars = Array.from({ length: size }, () => '<span></span>').join('');
+    groups.push(`<div class="tally-group ${size === 5 ? 'full' : ''}">${bars}</div>`);
+    remaining -= size;
+  }
+  return `<span class="tally-label">생존 ${n}일째 (벙커 벽 기록)</span>${groups.join('')}`;
+}
+
 function render() {
   if (state.phase === 'scavenge') renderScavenge();
   else if (state.phase === 'shelter') renderShelter();
@@ -58,8 +85,11 @@ function renderScavenge() {
   app.innerHTML = `
     <div class="topbar scavenge-bar">
       <div class="topbar-title">
-        <span class="eyebrow">EVACUATION PROTOCOL</span>
-        <h1>탈출: 60초 안에 챙겨라</h1>
+        ${cdBadge()}
+        <div class="title-text">
+          <span class="eyebrow">EVACUATION PROTOCOL</span>
+          <h1>탈출: 60초 안에 챙겨라</h1>
+        </div>
       </div>
       <div class="timer-unit">
         <span class="timer-label">남은 시간</span>
@@ -179,8 +209,11 @@ function renderShelter(eventOverride) {
   app.innerHTML = `
     <div class="topbar">
       <div class="topbar-title">
-        <span class="eyebrow">대피소 로그</span>
-        <h1>Day ${state.day} <span class="goal">/ 목표 ${window.GAME_CONFIG.goalDay}일</span></h1>
+        ${cdBadge()}
+        <div class="title-text">
+          <span class="eyebrow">대피소 로그</span>
+          <h1>Day ${state.day} <span class="goal">/ 목표 ${window.GAME_CONFIG.goalDay}일</span></h1>
+        </div>
       </div>
       <div class="resources">
         <span class="res-chip food">🥫 ${state.resources.food}</span>
@@ -188,6 +221,7 @@ function renderShelter(eventOverride) {
       </div>
     </div>
     <div class="day-progress"><div class="day-progress-fill" style="width:${dayPct}%"></div></div>
+    <div class="tally-wall">${tallyMarks(state.day)}</div>
 
     <div class="panel-section">
       <h2 class="section-label">생존자</h2>
@@ -290,6 +324,7 @@ function showEvent(event) {
 function renderGameOver() {
   app.innerHTML = `
     <div class="gameover">
+      <div class="gameover-badge">${cdBadge()}</div>
       <h1>GAME OVER</h1>
       <p>사유: ${state.gameOverReason}</p>
       <p>생존 일수: Day ${state.day}</p>
@@ -313,6 +348,7 @@ function renderEnding() {
 
   app.innerHTML = `
     <div class="gameover ending">
+      <div class="gameover-badge">${cdBadge()}</div>
       <h1>ENDING: ${ending.title}</h1>
       <p>${ending.description}</p>
       <p>생존 일수: Day ${state.day - 1} (목표 ${window.GAME_CONFIG.goalDay}일 달성)</p>
