@@ -82,6 +82,46 @@ function portraitSVG(characterId, health) {
     </svg>`;
 }
 
+function itemIcon(itemId) {
+  const attrs = `viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"`;
+  const icons = {
+    canned_food: `<rect x="6" y="6" width="12" height="14" rx="1"/><ellipse cx="12" cy="6" rx="6" ry="1.8"/><ellipse cx="12" cy="20" rx="6" ry="1.8"/><line x1="6" y1="12" x2="18" y2="12"/>`,
+    water_bottle: `<path d="M10 3h4v3l1.5 2v13a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1V8L10 6z"/><line x1="9" y1="12" x2="15" y2="12"/>`,
+    first_aid: `<rect x="3" y="6" width="18" height="14" rx="2"/><line x1="12" y1="9" x2="12" y2="17"/><line x1="8" y1="13" x2="16" y2="13"/>`,
+    rifle: `<path d="M2 18 L16 6 M12 10 l3 3 M16 6 l3 1 -1 3 M4 18 h4"/>`,
+    radio: `<rect x="3" y="9" width="18" height="11" rx="1.5"/><circle cx="8" cy="14.5" r="2.2"/><line x1="13" y1="12.5" x2="18" y2="12.5"/><line x1="13" y1="16" x2="18" y2="16"/><path d="M8 9 L6 3 M14 9 L17 4"/>`,
+    flashlight: `<rect x="9" y="9" width="6" height="12" rx="1"/><path d="M9 9 L7 5 h10 l-2 4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="7" y1="3" x2="8.5" y2="4.5"/><line x1="17" y1="3" x2="15.5" y2="4.5"/>`,
+    board_game: `<rect x="3" y="3" width="18" height="18" rx="1.5"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/>`,
+    water_purifier: `<path d="M6 4 h12 l-4 8 v8 h-4 v-8 z"/><line x1="9" y1="17" x2="9" y2="19"/><line x1="15" y1="17" x2="15" y2="19"/>`,
+    playing_cards: `<rect x="3" y="5" width="12" height="16" rx="1.5" transform="rotate(-8 9 13)"/><rect x="8" y="4" width="12" height="16" rx="1.5"/><circle cx="14" cy="10" r="1.4"/>`,
+    family_photo: `<rect x="3" y="4" width="18" height="16" rx="1.5"/><circle cx="9" cy="10" r="2"/><path d="M4 18 l5-5 4 4 3-3 4 4"/>`,
+    baseball_bat: `<path d="M4 20 L15 9 a2.4 2.4 0 0 0 3.4-3.4 2.4 2.4 0 0 0-3.4 3.4z"/><line x1="4" y1="20" x2="6" y2="22"/>`,
+    whiskey: `<path d="M7 3 h10 l-2 9 v8 h-6 v-8z"/><line x1="6.4" y1="12" x2="17.6" y2="12"/>`,
+    gas_mask: `<circle cx="12" cy="11" r="7"/><circle cx="9" cy="10" r="1.6"/><circle cx="15" cy="10" r="1.6"/><rect x="10" y="15" width="4" height="3" rx="1"/><rect x="10.5" y="18" width="3" height="4" rx="1"/>`,
+    toolbox: `<rect x="3" y="9" width="18" height="10" rx="1.5"/><path d="M8 9 V6 a2 2 0 0 1 2-2 h4 a2 2 0 0 1 2 2 v3"/><line x1="3" y1="13.5" x2="21" y2="13.5"/>`,
+    guitar: `<circle cx="9" cy="16" r="5"/><circle cx="9" cy="16" r="2"/><path d="M11 12 L18 3"/><line x1="14.5" y1="8.5" x2="16.5" y2="10"/>`,
+    dog_food: `<ellipse cx="12" cy="16" rx="8" ry="4"/><path d="M4 16 v-2 a8 3 0 0 1 16 0 v2"/><path d="M9 6 q1.5-3 3 0 q1.5-3 3 0"/>`,
+  };
+  return `<svg ${attrs}>${icons[itemId] || '<circle cx="12" cy="12" r="8"/>'}</svg>`;
+}
+
+function roomIcon(roomId) {
+  const attrs = `viewBox="0 0 32 32" width="22" height="22" fill="none" stroke="var(--warn)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"`;
+  const icons = {
+    kitchen: `<rect x="5" y="14" width="22" height="12" rx="1"/><circle cx="11" cy="10" r="2.2"/><circle cx="17" cy="10" r="2.2"/><circle cx="23" cy="10" r="2.2"/><line x1="5" y1="20" x2="27" y2="20"/>`,
+    living_room: `<path d="M6 18 v-4 a3 3 0 0 1 3-3 h14 a3 3 0 0 1 3 3 v4"/><rect x="4" y="18" width="24" height="7" rx="1.5"/><line x1="6" y1="25" x2="6" y2="27"/><line x1="26" y1="25" x2="26" y2="27"/>`,
+    bedroom: `<rect x="4" y="16" width="24" height="9" rx="1.5"/><path d="M4 16 v-4 h9 v4"/><line x1="4" y1="25" x2="4" y2="27"/><line x1="28" y1="25" x2="28" y2="27"/>`,
+    garage: `<path d="M4 26 V14 L16 6 L28 14 V26"/><line x1="4" y1="18" x2="28" y2="18"/><line x1="4" y1="22" x2="28" y2="22"/>`,
+    basement: `<path d="M6 6 h20 v20 h-20 z"/><path d="M6 10 h14 M6 15 h14 M6 20 h14"/><path d="M20 10 l6 -4 M20 15 l6 -4 M20 20 l6 -4 M20 25 l6-4"/>`,
+    bathroom: `<path d="M5 16 h22 v4 a6 6 0 0 1-6 6 h-10 a6 6 0 0 1-6-6 z"/><path d="M9 16 v-6 a3 3 0 0 1 5-2.2"/>`,
+  };
+  return `<svg ${attrs}>${icons[roomId] || '<rect x="6" y="6" width="20" height="20"/>'}</svg>`;
+}
+
+function personSearchIcon() {
+  return `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--danger)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="7" r="3.2"/><path d="M5 21 v-2 a7 7 0 0 1 14 0 v2"/></svg>`;
+}
+
 const app = document.getElementById('app');
 
 // ---------------- 공용 장식 요소 ----------------
@@ -130,7 +170,7 @@ function renderScavenge() {
     .map(
       (room) => `
     <div class="room">
-      <h3>${room.name}</h3>
+      <h3><span class="room-icon">${roomIcon(room.id)}</span>${room.name}</h3>
       <div class="room-items">
         ${room.spawns
           .map((itemId, idx) => {
@@ -138,7 +178,7 @@ function renderScavenge() {
             const key = `${room.id}_${idx}`;
             const taken = scavengeState.takenKeys && scavengeState.takenKeys.has(key);
             return `<button class="item-btn" ${taken ? 'disabled' : ''} data-key="${key}" data-item="${itemId}">
-              ${item.icon} ${item.name}
+              <span class="item-icon">${itemIcon(item.id)}</span><span class="item-label">${item.name}</span>
             </button>`;
           })
           .join('')}
@@ -149,7 +189,7 @@ function renderScavenge() {
             const key = `family_${characterId}`;
             const found = scavengeState.foundFamily.includes(characterId);
             return `<button class="item-btn family-btn" ${found ? 'disabled' : ''} data-key="${key}" data-character="${characterId}">
-              🧍 ${c.name} 찾기!
+              <span class="item-icon">${personSearchIcon()}</span><span class="item-label">${c.name} 찾기!</span>
             </button>`;
           })
           .join('')}
@@ -261,7 +301,7 @@ function renderShelter(eventOverride) {
     .filter(([, count]) => count > 0)
     .map(([itemId, count]) => {
       const item = window.ItemsAPI.getItem(itemId);
-      return `<span class="inv-chip">${item.icon} ${item.name} x${count}</span>`;
+      return `<span class="inv-chip"><span class="item-icon small">${itemIcon(item.id)}</span>${item.name} x${count}</span>`;
     })
     .join('');
 

@@ -211,7 +211,13 @@ button { font-family: var(--font-display); letter-spacing: 0.03em; }
 
 .rooms-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 16px; }
 .room { background: linear-gradient(180deg, var(--bg-raised), var(--bg-panel)); border: 1px solid var(--line); border-left: 4px solid var(--ink-soft); border-radius: 4px; padding: 12px; }
-.room h3 { margin: 0 0 10px; font-family: var(--font-display); letter-spacing: 0.04em; color: var(--warn); font-size: 1.05em; border-bottom: 1px dashed var(--line); padding-bottom: 6px; }
+.room h3 { margin: 0 0 10px; display: flex; align-items: center; gap: 8px; font-family: var(--font-display); letter-spacing: 0.04em; color: var(--warn); font-size: 1.05em; border-bottom: 1px dashed var(--line); padding-bottom: 6px; }
+.room-icon { flex: none; display: inline-flex; opacity: 0.9; filter: drop-shadow(0 1px 0 rgba(0,0,0,0.4)); }
+.item-btn { display: inline-flex !important; align-items: center; gap: 6px; }
+.item-icon { flex: none; display: inline-flex; }
+.item-icon svg { display: block; }
+.item-icon.small svg { width: 15px; height: 15px; vertical-align: -3px; margin-right: 2px; }
+.item-btn:disabled .item-icon svg { opacity: 0.5; }
 .room-items { display: flex; flex-wrap: wrap; gap: 6px; }
 
 .item-btn, .choice-btn, #finishBtn, #nextDayBtn, #restartBtn, .ration-btn, .expedition-panel #sendExpeditionBtn {
