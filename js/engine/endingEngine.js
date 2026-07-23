@@ -21,12 +21,16 @@ function buildEndingContext(state) {
     ? shelterChars.reduce((sum, c) => sum + c.sanity, 0) / shelterChars.length
     : 0;
 
+  const minSanity = shelterChars.length ? Math.min(...shelterChars.map((c) => c.sanity)) : 0;
+
   return {
     state,
     shelterCount: shelterChars.length,
     lostOrDeadCount: lostOrDead.length,
     originalFamilyAllInShelter,
     avgSanity,
+    minSanity,
+    militaryRescueConfirmed: !!state.flags.militaryRescueConfirmed,
   };
 }
 

@@ -19,8 +19,17 @@
 //   lostOrDeadCount              - (원가족 중) 실종되거나 사망한 인원 수
 //   originalFamilyAllInShelter  - 아빠/엄마/아들/딸 전원이 대피소에 생존해 있는지
 //   avgSanity                    - 대피소 인원 평균 정신력
+//   minSanity                    - 대피소 인원 중 최저 정신력
+//   militaryRescueConfirmed      - 라디오 구조 이벤트 체인을 완료했는지
 
 window.ENDINGS = [
+  {
+    id: 'military_rescue',
+    title: '구조대 도착',
+    description:
+      '헬기 프로펠러 소리와 함께 방공호 문이 열린다. 며칠 전 보낸 구조 신호가 통했다. 밖은 여전히 위험하지만, 이제 혼자가 아니다.',
+    condition: (ctx) => ctx.militaryRescueConfirmed && ctx.shelterCount >= 1,
+  },
   {
     id: 'perfect_with_dog',
     title: '완벽한 생존 (+개 한 마리)',
@@ -34,6 +43,13 @@ window.ENDINGS = [
     description:
       '가족 모두가 무사히 살아남았다. 힘든 나날이었지만, 함께였기에 견딜 수 있었다.',
     condition: (ctx) => ctx.originalFamilyAllInShelter && ctx.avgSanity >= 60,
+  },
+  {
+    id: 'mental_breakdown',
+    title: '무너진 방공호',
+    description:
+      '몸은 버텼지만 마음은 그러지 못했다. 좁은 공간, 끝없는 불안 속에서 가족 모두가 서서히 무너져 내렸다. 살아남았다고 말하기엔, 남은 게 너무 없다.',
+    condition: (ctx) => ctx.shelterCount >= 2 && ctx.minSanity <= 15,
   },
   {
     id: 'empty_shelter',

@@ -468,4 +468,77 @@ window.EVENTS = [
       },
     ],
   },
+
+  {
+    id: 'distress_signal',
+    title: '라디오 주파수 속 목소리',
+    description: '라디오 잡음 사이로 희미하게 신호가 잡힌다. "...생존자가 있다면... 응답하라..." 군 통신인 것 같다.',
+    minDay: 5,
+    once: true,
+    conditions: { requiredItems: [{ id: 'radio', count: 1 }] },
+    choices: [
+      {
+        text: '구조 신호를 보낸다',
+        outcomes: [
+          {
+            weight: 100,
+            resultText: '위치와 상태를 알렸다. 응답이 올지는 알 수 없지만, 기다려보기로 했다.',
+            effects: [
+              { type: 'flag', key: 'distressSignalSent', value: true },
+              { type: 'log', text: '군 통신에 구조 신호를 보냈다.' },
+            ],
+          },
+        ],
+      },
+      {
+        text: '섣불리 위치를 알리지 않는다',
+        outcomes: [
+          {
+            weight: 100,
+            resultText: '누군지 모를 상대에게 위치를 알리는 건 위험하다고 판단했다.',
+            effects: [],
+          },
+        ],
+      },
+    ],
+  },
+
+  {
+    id: 'rescue_convoy',
+    title: '다가오는 엔진 소리',
+    description: '멀리서 차량 엔진 소리가 점점 가까워진다. 며칠 전 보냈던 구조 신호에 대한 응답일지도 모른다.',
+    minDay: 9,
+    once: true,
+    conditions: { requiredFlags: { distressSignalSent: true } },
+    choices: [
+      {
+        text: '문을 열고 신호를 보낸다',
+        outcomes: [
+          {
+            weight: 75,
+            resultText: '군 구조대였다. 곧 데리러 오겠다는 약속을 받았다.',
+            effects: [
+              { type: 'flag', key: 'militaryRescueConfirmed', value: true },
+              { type: 'log', text: '구조대와 접선에 성공했다.' },
+            ],
+          },
+          {
+            weight: 25,
+            resultText: '아쉽게도 그냥 지나가는 차량이었다.',
+            effects: [{ type: 'character', target: 'all', field: 'sanity', delta: -4 }],
+          },
+        ],
+      },
+      {
+        text: '만약을 대비해 숨죽이고 지켜본다',
+        outcomes: [
+          {
+            weight: 100,
+            resultText: '차량은 별다른 반응 없이 지나갔다.',
+            effects: [{ type: 'character', target: 'all', field: 'sanity', delta: -3 }],
+          },
+        ],
+      },
+    ],
+  },
 ];
