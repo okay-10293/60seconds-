@@ -267,11 +267,23 @@ function endScavenge() {
 
 function renderShelter(eventOverride) {
   const healthLabel = { healthy: '건강함', injured: '부상', sick: '병약', dead: '사망' };
+  const WATER_LABEL = { normal: null, thirsty: '목마름', dehydrated: '탈수' };
+  const FOOD_LABEL = { normal: null, hungry: '배고픔', starving: '굶주림' };
   const people = window.GameState.shelterCharacters(state);
   const peopleHtml = people
     .map((c) => {
-      const hungerPct = Math.round((c.hunger / 3) * 100);
-      const thirstPct = Math.round((c.thirst / 3) * 100);
+      const waterStatus = window.ShelterEngine.getWaterStatus(c.waterDays);
+      const foodStatus = window.ShelterEngine.getFoodStatus(c.foodDays);
+      const waterLabel = WATER_LABEL[waterStatus];
+      const foodLabel = FOOD_LABEL[foodStatus];
+      const sanityLabel = c.sanity >= 70 ? null : c.sanity >= 40 ? '불안' : c.sanity >= 15 ? '불안정' : '정신 붕괴 직전';
+      const badges = [
+        waterLabel ? `<span class="ailment-badge ${waterStatus}">${waterLabel}</span>` : '',
+        foodLabel ? `<span class="ailment-badge ${foodStatus}">${foodLabel}</span>` : '',
+        sanityLabel ? `<span class="ailment-badge sanity-${c.sanity < 15 ? 'critical' : 'low'}">${sanityLabel}</span>` : '',
+      ]
+        .filter(Boolean)
+        .join('');
       return `
     <div class="char-card ${c.health}">
       <div class="char-tag">${c.isChild ? '아이' : '성인'}</div>
@@ -282,18 +294,7 @@ function renderShelter(eventOverride) {
           <div class="char-status">${healthLabel[c.health] || c.health}</div>
         </div>
       </div>
-      <div class="stat-row">
-        <span class="stat-label">배고픔</span>
-        <div class="gauge"><div class="gauge-fill hunger" style="width:${hungerPct}%"></div></div>
-      </div>
-      <div class="stat-row">
-        <span class="stat-label">목마름</span>
-        <div class="gauge"><div class="gauge-fill thirst" style="width:${thirstPct}%"></div></div>
-      </div>
-      <div class="stat-row">
-        <span class="stat-label">정신력</span>
-        <div class="gauge"><div class="gauge-fill sanity" style="width:${c.sanity}%"></div></div>
-      </div>
+      <div class="ailment-row">${badges || '<span class="ailment-badge normal">정상</span>'}</div>
     </div>`;
     })
     .join('');

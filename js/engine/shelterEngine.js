@@ -2,7 +2,23 @@
 // shelterEngine.js — 대피소 하루 루프
 // ============================================================
 
-const HUNGER_THIRST_MAX = 3;
+// 원작 60 Seconds! 위키 기준 상태이상 단계 (물을 못 마신/식량을 못 먹은 연속 일수 기준)
+//   물: 1~3일째 '목마름' → 4~5일째 '탈수' → 6일째 성인 사망 / 아이 가출
+//   식량: 물보다 훨씬 여유가 있어 1~6일째 '배고픔' → 7~8일째 '굶주림' → 9일째 성인 사망 / 아이 가출
+const WATER_STAGE = { THIRSTY: 1, DEHYDRATED: 4, FATAL: 6 };
+const FOOD_STAGE = { HUNGRY: 1, STARVING: 7, FATAL: 9 };
+
+function getWaterStatus(days) {
+  if (days >= WATER_STAGE.DEHYDRATED) return 'dehydrated';
+  if (days >= WATER_STAGE.THIRSTY) return 'thirsty';
+  return 'normal';
+}
+
+function getFoodStatus(days) {
+  if (days >= FOOD_STAGE.STARVING) return 'starving';
+  if (days >= FOOD_STAGE.HUNGRY) return 'hungry';
+  return 'normal';
+}
 
 // 배급량 단계 설정 (UI에서 호출)
 function setRation(state, rationId) {
@@ -31,25 +47,34 @@ function advanceDay(state) {
   state.resources.water = Math.max(0, state.resources.water - waterNeeded);
 
   people.forEach((c) => {
-    if (hadFood) {
-      c.hunger = Math.max(0, Math.min(HUNGER_THIRST_MAX, c.hunger + ration.hungerDelta));
+    // 배급 단계의 delta가 음수(회복 효과)이고 실제로 자원도 충분했을 때만
+    // '제대로 먹었다'고 보고 연속일수를 리셋한다. (반절/무배급은 항상 카운트 증가)
+    if (hadFood && ration.hungerDelta < 0) {
+      c.foodDays = 0;
     } else {
-      c.hunger = Math.min(HUNGER_THIRST_MAX, c.hunger + 1);
+      c.foodDays += 1;
     }
-    if (hadWater) {
-      c.thirst = Math.max(0, Math.min(HUNGER_THIRST_MAX, c.thirst + ration.thirstDelta));
+    if (hadWater && ration.thirstDelta < 0) {
+      c.waterDays = 0;
     } else {
-      c.thirst = Math.min(HUNGER_THIRST_MAX, c.thirst + 1);
+      c.waterDays += 1;
     }
     // '전혀 안 먹음'은 자원 유무와 무관하게 항상 심리적 페널티 적용
     if (ration.sanityDelta && (ration.alwaysInsufficient || (hadFood && hadWater))) {
       c.sanity = Math.max(0, Math.min(100, c.sanity + ration.sanityDelta));
     }
 
-    if (c.hunger >= HUNGER_THIRST_MAX || c.thirst >= HUNGER_THIRST_MAX) {
-      c.health = 'dead';
-      c.location = 'dead';
-      window.GameState.addLog(state, `[Day ${state.day}] ${c.name}이(가) ${c.thirst >= HUNGER_THIRST_MAX ? '갈증' : '굶주림'}으로 사망했다.`);
+    // 원작처럼: 물/식량을 끝까지 못 챙기면 아이는 가출, 어른은 사망
+    if (c.waterDays >= WATER_STAGE.FATAL || c.foodDays >= FOOD_STAGE.FATAL) {
+      const cause = c.waterDays >= WATER_STAGE.FATAL ? '탈수' : '아사';
+      if (c.isChild) {
+        c.location = 'missing';
+        window.GameState.addLog(state, `[Day ${state.day}] ${c.name}이(가) ${cause} 끝에 결국 대피소를 뛰쳐나갔다.`);
+      } else {
+        c.health = 'dead';
+        c.location = 'dead';
+        window.GameState.addLog(state, `[Day ${state.day}] ${c.name}이(가) ${cause}(으)로 사망했다.`);
+      }
     }
   });
 
@@ -83,4 +108,12 @@ function checkGameOver(state) {
   }
 }
 
-window.ShelterEngine = { advanceDay, checkGameOver, setRation, HUNGER_THIRST_MAX };
+window.ShelterEngine = {
+  advanceDay,
+  checkGameOver,
+  setRation,
+  getWaterStatus,
+  getFoodStatus,
+  WATER_STAGE,
+  FOOD_STAGE,
+};

@@ -18,8 +18,8 @@ function createCharacter({ id, name, age, isChild = false, startLocation = 'shel
     isChild,
     health: 'healthy',
     location: startLocation,
-    hunger: 0,     // 0~3, 높을수록 배고픔 (3이면 굶어죽기 직전)
-    thirst: 0,     // 0~3
+    waterDays: 0,  // 물을 못 마신 연속 일수 (원작처럼 단계적 상태이상으로 이어짐)
+    foodDays: 0,   // 식량을 못 먹은 연속 일수
     sanity: 100,   // 정신력, 이벤트/일수 경과로 감소
     expedition: null, // 원정 나간 경우 { id, returnDay }
   };
