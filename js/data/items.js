@@ -5,22 +5,23 @@
 // tags: 이벤트 선택지 조건에서 참조하는 태그 (예: 'canPurify', 'canDefend')
 
 window.ITEMS = [
-  { id: 'canned_food', name: '통조림', icon: '🥫', category: 'food', tags: [] },
-  { id: 'water_bottle', name: '생수병', icon: '💧', category: 'water', tags: [] },
-  { id: 'first_aid', name: '구급상자', icon: '🩹', category: 'medicine', tags: ['canHeal'] },
-  { id: 'rifle', name: '엽총', icon: '🔫', category: 'weapon', tags: ['canDefend'] },
+  { id: 'canned_food', name: '수프 통조림', icon: '🥫', category: 'food', tags: [] },
+  { id: 'water_bottle', name: '물', icon: '💧', category: 'water', tags: [] },
+  { id: 'map', name: '지도', icon: '🗺️', category: 'tool', tags: ['canLocate'] },
   { id: 'radio', name: '라디오', icon: '📻', category: 'tool', tags: ['canReceiveNews'] },
-  { id: 'flashlight', name: '손전등', icon: '🔦', category: 'tool', tags: ['canLight'] },
-  { id: 'board_game', name: '보드게임', icon: '🎲', category: 'special', tags: ['boostSanity'] },
-  { id: 'water_purifier', name: '정수기', icon: '🧪', category: 'tool', tags: ['canPurify'] },
-  { id: 'playing_cards', name: '카드', icon: '🃏', category: 'special', tags: ['boostSanity'] },
-  { id: 'family_photo', name: '가족사진', icon: '🖼️', category: 'special', tags: ['boostSanity'] },
-  { id: 'baseball_bat', name: '야구 배트', icon: '🏏', category: 'weapon', tags: ['canDefend'] },
-  { id: 'whiskey', name: '위스키', icon: '🥃', category: 'special', tags: ['boostSanity', 'canTrade'] },
   { id: 'gas_mask', name: '방독면', icon: '😷', category: 'tool', tags: ['canFilterAir'] },
-  { id: 'toolbox', name: '공구함', icon: '🧰', category: 'tool', tags: ['canRepair'] },
-  { id: 'guitar', name: '기타', icon: '🎸', category: 'special', tags: ['boostSanity'] },
-  { id: 'dog_food', name: '개 사료', icon: '🦴', category: 'special', tags: ['canFeedDog'] },
+  { id: 'axe', name: '도끼', icon: '🪓', category: 'weapon', tags: ['canDefend'] },
+  { id: 'rifle', name: '소총', icon: '🔫', category: 'weapon', tags: ['canDefend'] },
+  { id: 'ammo', name: '탄약', icon: '🧨', category: 'weapon', tags: ['boostDefend'] },
+  { id: 'flashlight', name: '손전등', icon: '🔦', category: 'tool', tags: ['canLight'] },
+  { id: 'survival_book', name: '생존 안내서', icon: '📗', category: 'tool', tags: ['canRepair'] },
+  { id: 'first_aid', name: '구급상자', icon: '🩹', category: 'medicine', tags: ['canHeal'] },
+  { id: 'pesticide', name: '살충제', icon: '🧴', category: 'medicine', tags: ['canExterminate'] },
+  { id: 'board_game', name: '체커', icon: '🎲', category: 'special', tags: ['boostSanity'] },
+  { id: 'playing_cards', name: '카드', icon: '🃏', category: 'special', tags: ['boostSanity'] },
+  { id: 'suitcase', name: '여행가방', icon: '🧳', category: 'special', tags: ['extraSlot'] },
+  { id: 'lock', name: '자물쇠', icon: '🔒', category: 'special', tags: ['canTrade'] },
+  { id: 'harmonica', name: '하모니카', icon: '🎵', category: 'special', tags: ['canDefend', 'boostSanity'] },
 ];
 
 function getItem(itemId) {

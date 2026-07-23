@@ -16,37 +16,37 @@ window.SCAVENGE_ROOMS = [
   {
     id: 'kitchen',
     name: '주방',
-    spawns: ['canned_food', 'canned_food', 'canned_food', 'water_bottle', 'water_bottle', 'water_bottle', 'first_aid', 'whiskey'],
+    spawns: ['canned_food', 'canned_food', 'canned_food', 'water_bottle', 'water_bottle', 'water_bottle', 'first_aid', 'pesticide'],
     familySpawns: [],
   },
   {
     id: 'living_room',
     name: '거실',
-    spawns: ['radio', 'board_game', 'playing_cards', 'family_photo', 'canned_food', 'guitar'],
+    spawns: ['radio', 'board_game', 'playing_cards', 'map', 'canned_food', 'harmonica'],
     familySpawns: ['mom'],
   },
   {
     id: 'bedroom',
     name: '침실',
-    spawns: ['flashlight', 'first_aid', 'family_photo', 'water_bottle', 'baseball_bat'],
+    spawns: ['flashlight', 'first_aid', 'survival_book', 'water_bottle', 'axe'],
     familySpawns: ['son', 'daughter'],
   },
   {
     id: 'garage',
     name: '차고',
-    spawns: ['rifle', 'water_purifier', 'flashlight', 'canned_food', 'toolbox', 'gas_mask'],
+    spawns: ['rifle', 'ammo', 'flashlight', 'canned_food', 'survival_book', 'gas_mask'],
     familySpawns: [],
   },
   {
     id: 'basement',
     name: '지하실',
-    spawns: ['gas_mask', 'toolbox', 'canned_food', 'water_bottle', 'dog_food'],
+    spawns: ['gas_mask', 'suitcase', 'canned_food', 'water_bottle', 'lock'],
     familySpawns: [],
   },
   {
     id: 'bathroom',
     name: '화장실',
-    spawns: ['first_aid', 'water_bottle', 'flashlight'],
+    spawns: ['first_aid', 'water_bottle', 'flashlight', 'lock'],
     familySpawns: [],
   },
 ];

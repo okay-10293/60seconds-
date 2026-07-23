@@ -24,11 +24,6 @@ function advanceDay(state) {
   const foodNeeded = ration.alwaysInsufficient ? 0 : roundConsumption(people.length * ration.consumeMultiplier);
   const waterNeeded = ration.alwaysInsufficient ? 0 : roundConsumption(people.length * ration.consumeMultiplier);
 
-  // 정수기를 갖고 있으면 매일 물이 소량 자동으로 생성된다.
-  if (window.GameState.hasItem(state, 'water_purifier', 1)) {
-    state.resources.water += 1;
-  }
-
   const hadFood = !ration.alwaysInsufficient && state.resources.food >= foodNeeded;
   const hadWater = !ration.alwaysInsufficient && state.resources.water >= waterNeeded;
 

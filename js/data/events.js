@@ -168,8 +168,8 @@ window.EVENTS = [
     once: false,
     choices: [
       {
-        text: '야구 배트로 쫓아낸다',
-        requires: { items: [{ id: 'baseball_bat', count: 1 }] },
+        text: '도끼로 쫓아낸다',
+        requires: { items: [{ id: 'axe', count: 1 }] },
         outcomes: [
           { weight: 100, resultText: '쥐들을 몰아냈다. 식량은 무사하다.', effects: [] },
         ],
@@ -225,27 +225,27 @@ window.EVENTS = [
   {
     id: 'trade_offer',
     title: '라디오로 들려온 거래 제안',
-    description: '다른 생존자 무리가 라디오로 물물교환을 제안한다. "위스키 있으면 식량이랑 바꿔줄게요."',
+    description: '다른 생존자 무리가 라디오로 물물교환을 제안한다. "자물쇠 있으면 식량이랑 바꿔줄게요."',
     minDay: 4,
     once: true,
     conditions: { requiredItems: [{ id: 'radio', count: 1 }] },
     choices: [
       {
-        text: '위스키를 넘기고 식량을 받는다',
-        requires: { items: [{ id: 'whiskey', count: 1 }] },
+        text: '자물쇠를 넘기고 식량을 받는다',
+        requires: { items: [{ id: 'lock', count: 1 }] },
         outcomes: [
           {
             weight: 80,
             resultText: '약속대로 식량을 보내왔다.',
             effects: [
-              { type: 'item', itemId: 'whiskey', delta: -1 },
+              { type: 'item', itemId: 'lock', delta: -1 },
               { type: 'resource', key: 'food', delta: 3 },
             ],
           },
           {
             weight: 20,
-            resultText: '사기였다. 위스키만 뺏겼다.',
-            effects: [{ type: 'item', itemId: 'whiskey', delta: -1 }],
+            resultText: '사기였다. 자물쇠만 뺏겼다.',
+            effects: [{ type: 'item', itemId: 'lock', delta: -1 }],
           },
         ],
       },
@@ -271,8 +271,8 @@ window.EVENTS = [
         ],
       },
       {
-        text: '공구함으로 대충 틀어막는다',
-        requires: { items: [{ id: 'toolbox', count: 1 }] },
+        text: '생존 안내서를 참고해 임시로 틀어막는다',
+        requires: { items: [{ id: 'survival_book', count: 1 }] },
         outcomes: [
           {
             weight: 70,
@@ -324,8 +324,8 @@ window.EVENTS = [
         ],
       },
       {
-        text: '기타를 연주해준다',
-        requires: { items: [{ id: 'guitar', count: 1 }] },
+        text: '하모니카를 연주해준다',
+        requires: { items: [{ id: 'harmonica', count: 1 }] },
         outcomes: [
           {
             weight: 100,
@@ -391,21 +391,6 @@ window.EVENTS = [
     once: true,
     choices: [
       {
-        text: '개 사료를 주며 받아들인다',
-        requires: { items: [{ id: 'dog_food', count: 1 }] },
-        outcomes: [
-          {
-            weight: 100,
-            resultText: '개는 금세 대피소의 든든한 가족이 되었다.',
-            effects: [
-              { type: 'item', itemId: 'dog_food', delta: -1 },
-              { type: 'flag', key: 'dogJoined', value: true },
-              { type: 'character', target: 'all', field: 'sanity', delta: 5 },
-            ],
-          },
-        ],
-      },
-      {
         text: '먹을 게 없지만 일단 들인다',
         outcomes: [
           {
@@ -452,8 +437,8 @@ window.EVENTS = [
         ],
       },
       {
-        text: '야구 배트로 맞선다',
-        requires: { items: [{ id: 'baseball_bat', count: 1 }] },
+        text: '도끼로 맞선다',
+        requires: { items: [{ id: 'axe', count: 1 }] },
         outcomes: [
           { weight: 50, resultText: '몸싸움 끝에 겨우 쫓아냈다.', effects: [] },
           {

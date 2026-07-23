@@ -92,15 +92,16 @@ function itemIcon(itemId) {
     radio: `<rect x="3" y="9" width="18" height="11" rx="1.5"/><circle cx="8" cy="14.5" r="2.2"/><line x1="13" y1="12.5" x2="18" y2="12.5"/><line x1="13" y1="16" x2="18" y2="16"/><path d="M8 9 L6 3 M14 9 L17 4"/>`,
     flashlight: `<rect x="9" y="9" width="6" height="12" rx="1"/><path d="M9 9 L7 5 h10 l-2 4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="7" y1="3" x2="8.5" y2="4.5"/><line x1="17" y1="3" x2="15.5" y2="4.5"/>`,
     board_game: `<rect x="3" y="3" width="18" height="18" rx="1.5"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/>`,
-    water_purifier: `<path d="M6 4 h12 l-4 8 v8 h-4 v-8 z"/><line x1="9" y1="17" x2="9" y2="19"/><line x1="15" y1="17" x2="15" y2="19"/>`,
     playing_cards: `<rect x="3" y="5" width="12" height="16" rx="1.5" transform="rotate(-8 9 13)"/><rect x="8" y="4" width="12" height="16" rx="1.5"/><circle cx="14" cy="10" r="1.4"/>`,
-    family_photo: `<rect x="3" y="4" width="18" height="16" rx="1.5"/><circle cx="9" cy="10" r="2"/><path d="M4 18 l5-5 4 4 3-3 4 4"/>`,
-    baseball_bat: `<path d="M4 20 L15 9 a2.4 2.4 0 0 0 3.4-3.4 2.4 2.4 0 0 0-3.4 3.4z"/><line x1="4" y1="20" x2="6" y2="22"/>`,
-    whiskey: `<path d="M7 3 h10 l-2 9 v8 h-6 v-8z"/><line x1="6.4" y1="12" x2="17.6" y2="12"/>`,
     gas_mask: `<circle cx="12" cy="11" r="7"/><circle cx="9" cy="10" r="1.6"/><circle cx="15" cy="10" r="1.6"/><rect x="10" y="15" width="4" height="3" rx="1"/><rect x="10.5" y="18" width="3" height="4" rx="1"/>`,
-    toolbox: `<rect x="3" y="9" width="18" height="10" rx="1.5"/><path d="M8 9 V6 a2 2 0 0 1 2-2 h4 a2 2 0 0 1 2 2 v3"/><line x1="3" y1="13.5" x2="21" y2="13.5"/>`,
-    guitar: `<circle cx="9" cy="16" r="5"/><circle cx="9" cy="16" r="2"/><path d="M11 12 L18 3"/><line x1="14.5" y1="8.5" x2="16.5" y2="10"/>`,
-    dog_food: `<ellipse cx="12" cy="16" rx="8" ry="4"/><path d="M4 16 v-2 a8 3 0 0 1 16 0 v2"/><path d="M9 6 q1.5-3 3 0 q1.5-3 3 0"/>`,
+    map: `<path d="M4 5 L9 3 L15 5 L20 3 V19 L15 21 L9 19 L4 21 Z"/><line x1="9" y1="3" x2="9" y2="19"/><line x1="15" y1="5" x2="15" y2="21"/>`,
+    axe: `<path d="M13 21 L4 12" /><path d="M12 3 a5 5 0 0 1 5 5 a5 5 0 0 1-5 3 z"/>`,
+    ammo: `<rect x="9" y="3" width="6" height="8" rx="2.5"/><path d="M9 11 h6 v10 h-6 z"/><line x1="9" y1="15" x2="15" y2="15"/>`,
+    survival_book: `<path d="M4 4 h13 a2 2 0 0 1 2 2 v14 a2 2 0 0 0-2-2 H4 z"/><line x1="4" y1="4" x2="4" y2="18"/><line x1="8" y1="8" x2="15" y2="8"/><line x1="8" y1="12" x2="15" y2="12"/>`,
+    pesticide: `<rect x="9" y="9" width="6" height="12" rx="1.5"/><path d="M11 9 V5 h2 v4"/><line x1="9.5" y1="4" x2="9.5" y2="6"/><path d="M16 11 q3 1 3 4"/>`,
+    suitcase: `<rect x="3" y="8" width="18" height="12" rx="1.5"/><path d="M9 8 V6 a2 2 0 0 1 2-2 h2 a2 2 0 0 1 2 2 v2"/><line x1="3" y1="13" x2="21" y2="13"/>`,
+    lock: `<rect x="5" y="11" width="14" height="10" rx="1.5"/><path d="M8 11 V7 a4 4 0 0 1 8 0 v4"/><circle cx="12" cy="16" r="1.6"/>`,
+    harmonica: `<rect x="3" y="9" width="18" height="6" rx="1"/><line x1="6" y1="9" x2="6" y2="15"/><line x1="9" y1="9" x2="9" y2="15"/><line x1="12" y1="9" x2="12" y2="15"/><line x1="15" y1="9" x2="15" y2="15"/><line x1="18" y1="9" x2="18" y2="15"/>`,
   };
   return `<svg ${attrs}>${icons[itemId] || '<circle cx="12" cy="12" r="8"/>'}</svg>`;
 }
