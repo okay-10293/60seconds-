@@ -31,11 +31,26 @@ window.ENDINGS = [
     condition: (ctx) => ctx.militaryRescueConfirmed && ctx.shelterCount >= 1,
   },
   {
+    id: 'perfect_with_dog_and_cat',
+    title: '완벽한 생존 (+동물 두 마리)',
+    description:
+      '가족 모두가, 그리고 그날 이후 식구가 된 개와 고양이까지 함께 살아남았다. 이보다 더 좋을 수 없는 결말이다.',
+    condition: (ctx) =>
+      ctx.originalFamilyAllInShelter && ctx.avgSanity >= 60 && !!ctx.state.flags.dogJoined && !!ctx.state.flags.catJoined,
+  },
+  {
     id: 'perfect_with_dog',
     title: '완벽한 생존 (+개 한 마리)',
     description:
       '가족 모두가, 그리고 그날 문을 두드렸던 개까지 함께 살아남았다. 더 바랄 게 없는 결말이다.',
     condition: (ctx) => ctx.originalFamilyAllInShelter && ctx.avgSanity >= 60 && !!ctx.state.flags.dogJoined,
+  },
+  {
+    id: 'perfect_with_cat',
+    title: '완벽한 생존 (+고양이 한 마리)',
+    description:
+      '가족 모두가, 그리고 창고에 숨어들었던 고양이까지 함께 살아남았다. 도도한 표정마저 사랑스러운 결말이다.',
+    condition: (ctx) => ctx.originalFamilyAllInShelter && ctx.avgSanity >= 60 && !!ctx.state.flags.catJoined,
   },
   {
     id: 'perfect',

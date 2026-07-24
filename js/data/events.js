@@ -418,6 +418,45 @@ window.EVENTS = [
   },
 
   {
+    id: 'stray_cat',
+    title: '창고에 숨어든 고양이',
+    description: '식량 창고 쪽에서 부스럭거리는 소리가 난다. 살펴보니 비쩍 마른 고양이 한 마리가 구석에 웅크리고 있다.',
+    minDay: 5,
+    once: true,
+    choices: [
+      {
+        text: '조심스럽게 물을 나눠준다',
+        outcomes: [
+          {
+            weight: 100,
+            resultText: '경계하던 고양이가 어느새 발치에 와서 몸을 비볐다.',
+            effects: [
+              { type: 'resource', key: 'water', delta: -1 },
+              { type: 'flag', key: 'catJoined', value: true },
+              { type: 'character', target: 'all', field: 'sanity', delta: 3 },
+            ],
+          },
+        ],
+      },
+      {
+        text: '그냥 내버려 둔다',
+        outcomes: [
+          {
+            weight: 50,
+            resultText: '고양이는 알아서 어딘가로 사라졌다.',
+            effects: [],
+          },
+          {
+            weight: 50,
+            resultText: '밤새 창고를 뒤지고 다녔는지 식량이 조금 상해 있었다.',
+            effects: [{ type: 'resource', key: 'food', delta: -1 }],
+          },
+        ],
+      },
+    ],
+  },
+
+  {
     id: 'looters_at_the_door',
     title: '약탈자들',
     description: '무장한 무리가 대피소 물자를 노리고 접근하고 있다.',
