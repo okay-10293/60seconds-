@@ -20,49 +20,71 @@ function getFoodStatus(days) {
   return 'normal';
 }
 
-// 배급량 단계 설정 (UI에서 호출)
-function setRation(state, rationId) {
-  const level = window.RationsAPI.getRationLevel(rationId);
-  state.rationLevel = level.id;
-  window.GameState.addLog(state, `배급량을 '${level.name}'(으)로 조절했다.`);
+const QUARTER = 0.25;
+
+// 밥/물은 원작처럼 1인당 1/4씩 개별로 준다 (하루에 한 사람당 한 번씩)
+function giveFood(state, characterId) {
+  const c = window.GameState.getCharacter(state, characterId);
+  if (!c || c.location !== 'shelter') return { ok: false, reason: 'not_in_shelter' };
+  if (c.fedFoodToday) return { ok: false, reason: 'already_fed' };
+  if (state.resources.food < QUARTER) return { ok: false, reason: 'insufficient' };
+  state.resources.food = Math.round((state.resources.food - QUARTER) * 100) / 100;
+  c.foodDays = 0;
+  c.fedFoodToday = true;
+  return { ok: true };
 }
 
-// 하루 경과: 배급 소모 → 배고픔/목마름/정신력 갱신 → 사망 체크
+function giveWater(state, characterId) {
+  const c = window.GameState.getCharacter(state, characterId);
+  if (!c || c.location !== 'shelter') return { ok: false, reason: 'not_in_shelter' };
+  if (c.fedWaterToday) return { ok: false, reason: 'already_fed' };
+  if (state.resources.water < QUARTER) return { ok: false, reason: 'insufficient' };
+  state.resources.water = Math.round((state.resources.water - QUARTER) * 100) / 100;
+  c.waterDays = 0;
+  c.fedWaterToday = true;
+  return { ok: true };
+}
+
+// 구급상자: 부상/병약 상태를 즉시 회복시킨다 (1개 소모)
+function useFirstAid(state, characterId) {
+  const c = window.GameState.getCharacter(state, characterId);
+  if (!c || c.location !== 'shelter') return { ok: false, reason: 'not_in_shelter' };
+  if (c.health !== 'injured' && c.health !== 'sick') return { ok: false, reason: 'not_needed' };
+  if (!window.GameState.hasItem(state, 'first_aid', 1)) return { ok: false, reason: 'no_item' };
+  const before = c.health;
+  window.GameState.removeItem(state, 'first_aid', 1);
+  c.health = 'healthy';
+  window.GameState.addLog(
+    state,
+    `[Day ${state.day}] ${c.name}에게 구급상자를 사용했다. (${before === 'injured' ? '부상' : '병약'} → 회복)`
+  );
+  return { ok: true };
+}
+
+// 하루 경과: 배급 결과 반영 → 배고픔/목마름/정신력 갱신 → 사망 체크
 //          → 원정 복귀 처리 → 목표일수 도달 시 엔딩 → 아니면 오늘의 이벤트 뽑기
 function advanceDay(state) {
   if (state.phase !== 'shelter') return { event: null };
 
-  const ration = window.RationsAPI.getRationLevel(state.rationLevel);
   const people = window.GameState.shelterCharacters(state);
-  // 절약형(배율 < 1)은 내림, 표준/확대형(배율 >= 1)은 올림으로 계산해야
-  // '반절 배급'이 실제로 소모를 줄여주는 효과가 남는다.
-  const roundConsumption = ration.consumeMultiplier < 1 ? Math.floor : Math.ceil;
-  const foodNeeded = ration.alwaysInsufficient ? 0 : roundConsumption(people.length * ration.consumeMultiplier);
-  const waterNeeded = ration.alwaysInsufficient ? 0 : roundConsumption(people.length * ration.consumeMultiplier);
-
-  const hadFood = !ration.alwaysInsufficient && state.resources.food >= foodNeeded;
-  const hadWater = !ration.alwaysInsufficient && state.resources.water >= waterNeeded;
-
-  state.resources.food = Math.max(0, state.resources.food - foodNeeded);
-  state.resources.water = Math.max(0, state.resources.water - waterNeeded);
 
   people.forEach((c) => {
-    // 배급 단계의 delta가 음수(회복 효과)이고 실제로 자원도 충분했을 때만
-    // '제대로 먹었다'고 보고 연속일수를 리셋한다. (반절/무배급은 항상 카운트 증가)
-    if (hadFood && ration.hungerDelta < 0) {
+    if (c.fedFoodToday) {
       c.foodDays = 0;
     } else {
       c.foodDays += 1;
     }
-    if (hadWater && ration.thirstDelta < 0) {
+    if (c.fedWaterToday) {
       c.waterDays = 0;
     } else {
       c.waterDays += 1;
     }
-    // '전혀 안 먹음'은 자원 유무와 무관하게 항상 심리적 페널티 적용
-    if (ration.sanityDelta && (ration.alwaysInsufficient || (hadFood && hadWater))) {
-      c.sanity = Math.max(0, Math.min(100, c.sanity + ration.sanityDelta));
-    }
+    c.fedFoodToday = false;
+    c.fedWaterToday = false;
+
+    // 목마르거나 배고픈 상태가 지속되면 정신력도 함께 깎인다.
+    if (getWaterStatus(c.waterDays) !== 'normal') c.sanity = Math.max(0, c.sanity - 2);
+    if (getFoodStatus(c.foodDays) !== 'normal') c.sanity = Math.max(0, c.sanity - 2);
 
     // 원작처럼: 물/식량을 끝까지 못 챙기면 아이는 가출, 어른은 사망
     if (c.waterDays >= WATER_STAGE.FATAL || c.foodDays >= FOOD_STAGE.FATAL) {
@@ -111,7 +133,9 @@ function checkGameOver(state) {
 window.ShelterEngine = {
   advanceDay,
   checkGameOver,
-  setRation,
+  giveFood,
+  giveWater,
+  useFirstAid,
   getWaterStatus,
   getFoodStatus,
   WATER_STAGE,

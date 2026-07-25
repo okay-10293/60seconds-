@@ -6,6 +6,11 @@ let state = window.GameState.createInitialState();
 let scavengeState = null;
 let scavengeTimerId = null;
 
+// 대피소 하루 루프: 'diary' → 'rations' → 'expedition' → 'event' 순으로 페이지를 넘긴다.
+let shelterStep = 'diary';
+let dayOutcomeText = null; // 어제 있었던 이벤트의 결과 텍스트 (일기 페이지에 표시)
+let pendingEvent = null;   // advanceDay로 뽑힌 오늘의 이벤트 (event 페이지에서 사용)
+
 function faceFeatures(health) {
   if (health === 'dead') {
     return {
@@ -152,6 +157,20 @@ function tallyMarks(day) {
   return `<span class="tally-label">생존 ${n}일째 (벙커 벽 기록)</span>${groups.join('')}`;
 }
 
+function diaryStatusLine(c) {
+  const waterStatus = window.ShelterEngine.getWaterStatus(c.waterDays);
+  const foodStatus = window.ShelterEngine.getFoodStatus(c.foodDays);
+  if (waterStatus === 'dehydrated') return `${c.name}: 입술이 다 갈라졌다. "물... 물 좀 줘..." 심각한 탈수 상태다.`;
+  if (foodStatus === 'starving') return `${c.name}: 며칠째 아무것도 못 먹어 정신이 혼미하다고 한다.`;
+  if (waterStatus === 'thirsty') return `${c.name}: "목말라 죽겠어..." 라며 계속 투덜거린다.`;
+  if (foodStatus === 'hungry') return `${c.name}: 배가 고파 죽겠다고 칭얼댄다.`;
+  if (c.health === 'injured') return `${c.name}: 다친 곳이 욱신거리는지 얼굴을 찌푸리고 있다.`;
+  if (c.health === 'sick') return `${c.name}: 열이 나는지 식은땀을 흘리고 있다.`;
+  if (c.sanity < 30) return `${c.name}: 초점 없는 눈으로 벽만 바라보고 있다.`;
+  if (c.sanity < 60) return `${c.name}: 표정이 어둡다. 슬슬 지쳐가는 것 같다.`;
+  return `${c.name}: 별다른 이상 없이 지내고 있다.`;
+}
+
 function render() {
   if (state.phase === 'scavenge') renderScavenge();
   else if (state.phase === 'shelter') renderShelter();
@@ -265,11 +284,12 @@ function endScavenge() {
 
 // ---------------- 대피소 파트 ----------------
 
-function renderShelter(eventOverride) {
+function renderShelter() {
   const healthLabel = { healthy: '건강함', injured: '부상', sick: '병약', dead: '사망' };
   const WATER_LABEL = { normal: null, thirsty: '목마름', dehydrated: '탈수' };
   const FOOD_LABEL = { normal: null, hungry: '배고픔', starving: '굶주림' };
   const people = window.GameState.shelterCharacters(state);
+
   const peopleHtml = people
     .map((c) => {
       const waterStatus = window.ShelterEngine.getWaterStatus(c.waterDays);
@@ -307,27 +327,17 @@ function renderShelter(eventOverride) {
     })
     .join('');
 
-  const rationHtml = window.RATION_LEVELS
-    .map(
-      (r) => `<button class="ration-btn ${r.id === state.rationLevel ? 'active' : ''}" data-ration="${r.id}" title="${r.description}">
-        ${r.icon} ${r.name}
-      </button>`
-    )
-    .join('');
-
-  const expeditionCandidates = people.filter((c) => window.ExpeditionEngine.canSendExpedition(state, c.id));
-  const outOnExpedition = state.characters.filter((c) => c.location === 'scavenging');
-  const expeditionOptionsHtml = window.EXPEDITIONS
-    .map((e) => `<option value="${e.id}">${e.name} (${e.duration}일 소요) — ${e.description}</option>`)
-    .join('');
-  const expeditionCharOptionsHtml = expeditionCandidates
-    .map((c) => `<option value="${c.id}">${c.name}</option>`)
-    .join('');
-  const outOnExpeditionHtml = outOnExpedition
-    .map((c) => `<span class="inv-chip">🚶 ${c.name} (Day ${c.expedition ? c.expedition.returnDay : '?'} 복귀 예정)</span>`)
-    .join('');
-
   const dayPct = Math.min(100, Math.round((state.day / window.GAME_CONFIG.goalDay) * 100));
+
+  const steps = [
+    { id: 'diary', label: '일기' },
+    { id: 'rations', label: '배급' },
+    { id: 'expedition', label: '원정' },
+    { id: 'event', label: '오늘' },
+  ];
+  const stepDotsHtml = steps
+    .map((s) => `<span class="step-dot ${s.id === shelterStep ? 'active' : ''}">${s.label}</span>`)
+    .join('<span class="step-sep">·</span>');
 
   app.innerHTML = `
     <div class="topbar">
@@ -356,93 +366,193 @@ function renderShelter(eventOverride) {
       <div class="inventory-row">${inventoryHtml || '(인벤토리 없음)'}</div>
     </div>
 
-    <div class="ration-panel">
-      <h3>배급 통제</h3>
-      <div class="ration-buttons">${rationHtml}</div>
-    </div>
+    <div class="step-dots">${stepDotsHtml}</div>
+    <div id="stepArea"></div>
 
-    <div class="expedition-panel">
-      <h3>원정 파견</h3>
-      ${
-        expeditionCandidates.length > 0
-          ? `<select id="expeditionCharSelect">${expeditionCharOptionsHtml}</select>
-             <select id="expeditionSelect">${expeditionOptionsHtml}</select>
-             <button id="sendExpeditionBtn">원정 출발</button>`
-          : `<div>보낼 수 있는 인원이 없다.</div>`
-      }
-      <div class="inventory-row">${outOnExpeditionHtml}</div>
-    </div>
-
-    <div id="eventArea"></div>
-    <button id="nextDayBtn">다음 날로 →</button>
     <div class="log-box">
       <div class="section-label" style="margin-bottom:6px;">무전 기록</div>
       ${state.log.slice(-6).map((l) => `<div>Day ${l.day} — ${l.text}</div>`).join('') || '<div>(기록 없음)</div>'}
     </div>
   `;
 
-  document.getElementById('nextDayBtn').addEventListener('click', onNextDay);
-
-  app.querySelectorAll('.ration-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      window.ShelterEngine.setRation(state, btn.dataset.ration);
-      renderShelter(eventOverride);
-    });
-  });
-
-  const sendBtn = document.getElementById('sendExpeditionBtn');
-  if (sendBtn) {
-    sendBtn.addEventListener('click', () => {
-      const characterId = document.getElementById('expeditionCharSelect').value;
-      const expeditionId = document.getElementById('expeditionSelect').value;
-      window.ExpeditionEngine.sendExpedition(state, characterId, expeditionId);
-      renderShelter(eventOverride);
-    });
-  }
-
-  if (eventOverride) showEvent(eventOverride);
+  renderStepArea(people);
 }
 
-function onNextDay() {
-  const { event } = window.ShelterEngine.advanceDay(state);
+// 현재 shelterStep에 맞는 패널(일기/배급/원정/이벤트)을 그려넣는다.
+function renderStepArea(people) {
+  const area = document.getElementById('stepArea');
+
+  if (shelterStep === 'diary') {
+    area.innerHTML = `
+      <div class="panel-section diary-panel">
+        <h2 class="section-label">📔 일기 — Day ${state.day}</h2>
+        <p class="diary-outcome">${dayOutcomeText || '특별한 일 없이 하루를 시작한다.'}</p>
+        <div class="diary-status-list">
+          ${people.map((c) => `<div class="diary-line">${diaryStatusLine(c)}</div>`).join('') || '<div class="diary-line">대피소에 아무도 없다.</div>'}
+        </div>
+        <button class="step-next-btn" id="toRationsBtn">다음 페이지 →</button>
+      </div>`;
+    document.getElementById('toRationsBtn').addEventListener('click', () => goToStep('rations'));
+    return;
+  }
+
+  if (shelterStep === 'rations') {
+    const rows = people
+      .map((c) => {
+        const foodDisabled = c.fedFoodToday || state.resources.food < 0.25;
+        const waterDisabled = c.fedWaterToday || state.resources.water < 0.25;
+        const needsAid = c.health === 'injured' || c.health === 'sick';
+        const hasAidItem = window.GameState.hasItem(state, 'first_aid', 1);
+        return `
+        <div class="ration-row">
+          <div class="ration-name">${c.name}</div>
+          <button class="ration-give-btn ${c.fedFoodToday ? 'given' : ''}" data-give="food" data-character="${c.id}" ${foodDisabled ? 'disabled' : ''}>
+            ${itemIcon('canned_food')} <span>${c.fedFoodToday ? '급식 완료' : '1/4 주기'}</span>
+          </button>
+          <button class="ration-give-btn ${c.fedWaterToday ? 'given' : ''}" data-give="water" data-character="${c.id}" ${waterDisabled ? 'disabled' : ''}>
+            ${itemIcon('water_bottle')} <span>${c.fedWaterToday ? '급수 완료' : '1/4 주기'}</span>
+          </button>
+          ${
+            needsAid
+              ? `<button class="aid-btn" data-aid="${c.id}" ${hasAidItem ? '' : 'disabled'}>
+                  ${itemIcon('first_aid')} <span>${hasAidItem ? '구급상자 사용' : '구급상자 없음'}</span>
+                </button>`
+              : ''
+          }
+        </div>`;
+      })
+      .join('');
+
+    area.innerHTML = `
+      <div class="panel-section rations-panel">
+        <h2 class="section-label">🥫 배급</h2>
+        <p class="panel-hint">밥과 물은 1인당 하루 1/4씩만 줄 수 있다. 부상·병약 상태는 구급상자로 즉시 치료할 수 있다.</p>
+        <div class="ration-list">${rows || '<div class="diary-line">대피소에 아무도 없다.</div>'}</div>
+        <button class="step-next-btn" id="toExpeditionBtn">다음 페이지 →</button>
+      </div>`;
+
+    area.querySelectorAll('[data-give]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const characterId = btn.dataset.character;
+        if (btn.dataset.give === 'food') window.ShelterEngine.giveFood(state, characterId);
+        else window.ShelterEngine.giveWater(state, characterId);
+        renderShelter();
+      });
+    });
+    area.querySelectorAll('[data-aid]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        window.ShelterEngine.useFirstAid(state, btn.dataset.aid);
+        renderShelter();
+      });
+    });
+    document.getElementById('toExpeditionBtn').addEventListener('click', () => goToStep('expedition'));
+    return;
+  }
+
+  if (shelterStep === 'expedition') {
+    const expeditionCandidates = people.filter((c) => window.ExpeditionEngine.canSendExpedition(state, c.id));
+    const outOnExpedition = state.characters.filter((c) => c.location === 'scavenging');
+    const expeditionOptionsHtml = window.EXPEDITIONS
+      .map((e) => `<option value="${e.id}">${e.name} (${e.duration}일 소요) — ${e.description}</option>`)
+      .join('');
+    const expeditionCharOptionsHtml = expeditionCandidates.map((c) => `<option value="${c.id}">${c.name}</option>`).join('');
+    const outOnExpeditionHtml = outOnExpedition
+      .map((c) => `<span class="inv-chip">🚶 ${c.name} (Day ${c.expedition ? c.expedition.returnDay : '?'} 복귀 예정)</span>`)
+      .join('');
+
+    area.innerHTML = `
+      <div class="panel-section expedition-panel">
+        <h2 class="section-label">🚶 원정 파견</h2>
+        ${
+          expeditionCandidates.length > 0
+            ? `<select id="expeditionCharSelect">${expeditionCharOptionsHtml}</select>
+               <select id="expeditionSelect">${expeditionOptionsHtml}</select>
+               <button id="sendExpeditionBtn">원정 출발</button>`
+            : `<div class="panel-hint">보낼 수 있는 인원이 없다.</div>`
+        }
+        <div class="inventory-row">${outOnExpeditionHtml}</div>
+        <button class="step-next-btn advance-day" id="advanceDayBtn">다음 날로 진행 →</button>
+      </div>`;
+
+    const sendBtn = document.getElementById('sendExpeditionBtn');
+    if (sendBtn) {
+      sendBtn.addEventListener('click', () => {
+        const characterId = document.getElementById('expeditionCharSelect').value;
+        const expeditionId = document.getElementById('expeditionSelect').value;
+        window.ExpeditionEngine.sendExpedition(state, characterId, expeditionId);
+        renderShelter();
+      });
+    }
+    document.getElementById('advanceDayBtn').addEventListener('click', handleAdvanceDay);
+    return;
+  }
+
+  if (shelterStep === 'event') {
+    if (!pendingEvent) {
+      // 안전장치: 이벤트 없이 event 단계로 온 경우 바로 다음 날 일기로.
+      goToStep('diary');
+      return;
+    }
+    const choicesHtml = pendingEvent.choices
+      .map((choice, idx) => {
+        const eligible = window.EventEngine.isChoiceEligible(state, choice);
+        return `<button class="choice-btn" ${eligible ? '' : 'disabled'} data-idx="${idx}">${choice.text}</button>`;
+      })
+      .join('');
+
+    area.innerHTML = `
+      <div class="panel-section event-panel-step">
+        <h2 class="section-label">☎ 오늘 있었던 일</h2>
+        <div class="event-box">
+          <h2>${pendingEvent.title}</h2>
+          <p>${pendingEvent.description}</p>
+          <div class="choices">${choicesHtml}</div>
+          <div id="outcomeText"></div>
+        </div>
+      </div>`;
+
+    area.querySelectorAll('.choice-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const idx = Number(btn.dataset.idx);
+        const outcome = window.EventEngine.resolveChoice(state, pendingEvent, idx);
+        document.getElementById('outcomeText').innerHTML = `
+          <p class="event-outcome-text">${outcome.resultText}</p>
+          <button class="step-next-btn" id="toNextDiaryBtn">다음 날로 →</button>`;
+        area.querySelectorAll('.choice-btn').forEach((b) => (b.disabled = true));
+        document.getElementById('toNextDiaryBtn').addEventListener('click', () => {
+          dayOutcomeText = outcome.resultText;
+          pendingEvent = null;
+          goToStep('diary');
+        });
+      });
+    });
+  }
+}
+
+function goToStep(step) {
+  shelterStep = step;
+  renderShelter();
+}
+
+function handleAdvanceDay() {
+  const result = window.ShelterEngine.advanceDay(state);
   if (state.phase === 'gameover' || state.phase === 'ending') {
     render();
     return;
   }
-  renderShelter(event);
-}
-
-function showEvent(event) {
-  if (!event) return;
-  const area = document.getElementById('eventArea');
-  const choicesHtml = event.choices
-    .map((choice, idx) => {
-      const eligible = window.EventEngine.isChoiceEligible(state, choice);
-      return `<button class="choice-btn" ${eligible ? '' : 'disabled'} data-idx="${idx}">${choice.text}</button>`;
-    })
-    .join('');
-
-  area.innerHTML = `
-    <div class="event-box">
-      <h2>${event.title}</h2>
-      <p>${event.description}</p>
-      <div class="choices">${choicesHtml}</div>
-      <div id="outcomeText"></div>
-    </div>
-  `;
-
-  area.querySelectorAll('.choice-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const idx = Number(btn.dataset.idx);
-      const outcome = window.EventEngine.resolveChoice(state, event, idx);
-      document.getElementById('outcomeText').textContent = outcome.resultText;
-      area.querySelectorAll('.choice-btn').forEach((b) => (b.disabled = true));
-      setTimeout(() => renderShelter(), 1200);
-    });
-  });
+  if (result.event) {
+    pendingEvent = result.event;
+    shelterStep = 'event';
+  } else {
+    pendingEvent = null;
+    dayOutcomeText = '오늘은 특별한 일 없이 하루가 지나갔다.';
+    shelterStep = 'diary';
+  }
+  renderShelter();
 }
 
 // ---------------- 게임오버 ----------------
+
 
 function renderGameOver() {
   app.innerHTML = `

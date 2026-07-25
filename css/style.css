@@ -220,7 +220,7 @@ button { font-family: var(--font-display); letter-spacing: 0.03em; }
 .item-btn:disabled .item-icon svg { opacity: 0.5; }
 .room-items { display: flex; flex-wrap: wrap; gap: 6px; }
 
-.item-btn, .choice-btn, #finishBtn, #nextDayBtn, #restartBtn, .ration-btn, .expedition-panel #sendExpeditionBtn {
+.item-btn, .choice-btn, #finishBtn, #restartBtn, .step-next-btn, .ration-give-btn, .aid-btn, .expedition-panel #sendExpeditionBtn {
   background: var(--bg-raised);
   color: var(--paper);
   border: 1px solid var(--line);
@@ -313,14 +313,37 @@ button { font-family: var(--font-display); letter-spacing: 0.03em; }
 .inventory-row { display: flex; flex-wrap: wrap; gap: 6px; }
 .inv-chip { background: var(--bg-raised); border: 1px solid var(--line); padding: 4px 9px; border-radius: 3px; font-size: 0.85em; font-family: var(--font-mono); }
 
-.ration-panel, .expedition-panel { background: var(--bg-panel); border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; margin-top: 4px; }
-.ration-panel h3, .expedition-panel h3 { margin: 0 0 10px; font-family: var(--font-display); letter-spacing: 0.1em; color: var(--warn); font-size: 1em; text-transform: uppercase; }
-.ration-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
-.ration-btn.active { border-color: var(--ok); background: linear-gradient(180deg, #3a5024, var(--bg-raised)); box-shadow: inset 0 0 0 1px var(--ok); }
+.diary-panel, .rations-panel, .expedition-panel, .event-panel-step { background: var(--bg-panel); border: 1px solid var(--line); border-radius: 4px; padding: 14px 16px; margin-top: 4px; }
+.diary-panel h2, .rations-panel h2, .expedition-panel h2 { margin: 0 0 10px; }
+
+.diary-outcome { font-family: var(--font-body); font-style: italic; color: var(--paper-dim); border-left: 3px solid var(--warn); padding-left: 10px; margin: 0 0 12px; line-height: 1.5; }
+.diary-status-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.diary-line { font-family: var(--font-mono); font-size: 0.88em; background: var(--bg-panel-2); border: 1px solid var(--line); border-radius: 3px; padding: 7px 10px; }
+
+.panel-hint { font-size: 0.82em; color: var(--paper-dim); margin: 0 0 12px; font-family: var(--font-mono); }
+
+.ration-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+.ration-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: var(--bg-panel-2); border: 1px solid var(--line); border-radius: 3px; padding: 8px 10px; }
+.ration-name { font-family: var(--font-display); letter-spacing: 0.03em; width: 72px; flex: none; }
+.ration-give-btn, .aid-btn { display: inline-flex; align-items: center; gap: 5px; }
+.ration-give-btn svg, .aid-btn svg { width: 16px; height: 16px; }
+.ration-give-btn.given { border-color: var(--ok); color: var(--ok); }
+.aid-btn { border-color: var(--danger); color: var(--paper); background: var(--danger); }
+.aid-btn:hover:not(:disabled) { background: var(--danger-glow); }
+.aid-btn:disabled { background: var(--bg-raised); color: var(--paper-dim); border-color: var(--line); opacity: 0.5; }
+
+.step-dots { display: flex; gap: 6px; align-items: center; justify-content: center; margin: 4px 0 10px; font-family: var(--font-mono); font-size: 0.78em; letter-spacing: 0.08em; color: var(--paper-dim); }
+.step-dot { padding: 2px 4px; }
+.step-dot.active { color: var(--warn); font-weight: 700; }
+.step-sep { opacity: 0.4; }
+
+.step-next-btn { display: block; margin: 4px 0 0 auto; }
+.step-next-btn.advance-day { background: var(--danger); border-color: var(--danger-glow); color: var(--paper); font-family: var(--font-display); letter-spacing: 0.05em; }
+.step-next-btn.advance-day:hover { background: var(--danger-glow); }
 
 .expedition-panel select { background: var(--bg-raised); color: var(--paper); border: 1px solid var(--line); border-radius: 3px; padding: 7px; margin: 0 6px 6px 0; font-family: var(--font-mono); }
 .expedition-panel #sendExpeditionBtn { margin-top: 2px; }
-.expedition-panel .inventory-row { margin-top: 10px; }
+.expedition-panel .inventory-row { margin-top: 10px; margin-bottom: 12px; }
 
 .event-box {
   background: var(--paper);
@@ -337,7 +360,8 @@ button { font-family: var(--font-display); letter-spacing: 0.03em; }
 .choice-btn { background: var(--paper-dim); color: var(--ink); border: 1px solid var(--ink-soft); text-align: left; font-family: var(--font-mono); font-size: 0.9em; }
 .choice-btn:hover:not(:disabled) { background: #c3af7c; }
 .choice-btn:disabled { opacity: 0.4; }
-#outcomeText { margin-top: 10px; font-family: var(--font-body); color: var(--danger); }
+.event-outcome-text { margin-top: 10px; font-family: var(--font-body); color: var(--danger); }
+#outcomeText .step-next-btn { margin-top: 10px; }
 
 .log-box {
   margin-top: 18px;

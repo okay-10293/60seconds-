@@ -20,6 +20,8 @@ function createCharacter({ id, name, age, isChild = false, startLocation = 'shel
     location: startLocation,
     waterDays: 0,  // 물을 못 마신 연속 일수 (원작처럼 단계적 상태이상으로 이어짐)
     foodDays: 0,   // 식량을 못 먹은 연속 일수
+    fedFoodToday: false,   // 오늘 이미 밥을 줬는지 (배급 패널에서 1인당 1회, 1/4씩)
+    fedWaterToday: false,  // 오늘 이미 물을 줬는지
     sanity: 100,   // 정신력, 이벤트/일수 경과로 감소
     expedition: null, // 원정 나간 경우 { id, returnDay }
   };
@@ -29,7 +31,6 @@ function createInitialState() {
   return {
     day: 1,
     phase: 'scavenge', // 'scavenge' | 'shelter' | 'gameover' | 'ending'
-    rationLevel: 'normal', // 'half' | 'normal' | 'double'
     resources: {
       food: 0,
       water: 0,
