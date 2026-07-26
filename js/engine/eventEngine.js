@@ -83,6 +83,9 @@ function applyEffect(state, effect) {
         else if (effect.delta !== undefined) {
           c[effect.field] = (c[effect.field] || 0) + effect.delta;
         }
+        if (effect.field === 'sanity') {
+          c.sanity = Math.max(0, Math.min(100, c.sanity));
+        }
       });
       break;
     }

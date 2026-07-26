@@ -395,11 +395,11 @@ window.EVENTS = [
         outcomes: [
           {
             weight: 100,
-            resultText: '식량은 부족해졌지만, 다들 개를 보며 조금은 웃었다.',
+            resultText: '식량은 부족해졌지만, 개를 보자 다들 거짓말처럼 마음이 놓였다.',
             effects: [
               { type: 'resource', key: 'food', delta: -1 },
               { type: 'flag', key: 'dogJoined', value: true },
-              { type: 'character', target: 'all', field: 'sanity', delta: 3 },
+              { type: 'character', target: 'all', field: 'sanity', delta: 20 },
             ],
           },
         ],
@@ -429,11 +429,11 @@ window.EVENTS = [
         outcomes: [
           {
             weight: 100,
-            resultText: '경계하던 고양이가 어느새 발치에 와서 몸을 비볐다.',
+            resultText: '경계하던 고양이가 발치에 와서 몸을 비비자, 다들 거짓말처럼 마음이 놓였다.',
             effects: [
               { type: 'resource', key: 'water', delta: -1 },
               { type: 'flag', key: 'catJoined', value: true },
-              { type: 'character', target: 'all', field: 'sanity', delta: 3 },
+              { type: 'character', target: 'all', field: 'sanity', delta: 20 },
             ],
           },
         ],

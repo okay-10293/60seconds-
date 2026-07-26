@@ -86,6 +86,9 @@ function advanceDay(state) {
     if (getWaterStatus(c.waterDays) !== 'normal') c.sanity = Math.max(0, c.sanity - 2);
     if (getFoodStatus(c.foodDays) !== 'normal') c.sanity = Math.max(0, c.sanity - 2);
 
+    // 원작처럼: 가족을 다 잃고 혼자 남으면 하루 만에 정신이 무너진다.
+    if (people.length === 1) c.sanity = Math.min(c.sanity, 10);
+
     // 원작처럼: 물/식량을 끝까지 못 챙기면 아이는 가출, 어른은 사망
     if (c.waterDays >= WATER_STAGE.FATAL || c.foodDays >= FOOD_STAGE.FATAL) {
       const cause = c.waterDays >= WATER_STAGE.FATAL ? '탈수' : '아사';
