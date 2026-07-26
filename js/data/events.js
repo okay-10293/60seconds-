@@ -464,6 +464,17 @@ window.EVENTS = [
     once: false,
     choices: [
       {
+        text: '자물쇠로 문을 걸어 잠근다',
+        requires: { items: [{ id: 'lock', count: 1 }] },
+        outcomes: [
+          {
+            weight: 100,
+            resultText: '단단히 잠긴 문 앞에서 약탈자들은 헛수고만 하다 돌아갔다.',
+            effects: [{ type: 'item', itemId: 'lock', delta: -1 }],
+          },
+        ],
+      },
+      {
         text: '엽총으로 맞선다',
         requires: { items: [{ id: 'rifle', count: 1 }] },
         outcomes: [
