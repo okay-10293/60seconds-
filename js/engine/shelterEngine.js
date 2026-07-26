@@ -68,11 +68,6 @@ function advanceDay(state) {
 
   const people = window.GameState.shelterCharacters(state);
 
-  // 원작처럼: 고양이가 있으면 하루에 수프 한 캔씩 축낸다.
-  if (state.flags.catJoined) {
-    state.resources.food = Math.max(0, state.resources.food - 1);
-  }
-
   people.forEach((c) => {
     if (c.fedFoodToday) {
       c.foodDays = 0;
