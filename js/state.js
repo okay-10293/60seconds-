@@ -39,10 +39,10 @@ function createInitialState() {
     inventory: {}, // { itemId: count }
     characters: [
       // 아빠(플레이어 시점 인물)만 처음부터 대피소에 있음. 나머지는 짐싸기에서 "찾아야" 함.
-      createCharacter({ id: 'dad', name: '아빠', age: 42, startLocation: 'shelter' }),
-      createCharacter({ id: 'mom', name: '엄마', age: 40, startLocation: 'missing' }),
-      createCharacter({ id: 'son', name: '아들', age: 14, isChild: true, startLocation: 'missing' }),
-      createCharacter({ id: 'daughter', name: '딸', age: 10, isChild: true, startLocation: 'missing' }),
+      createCharacter({ id: 'dad', name: '테드', age: 42, startLocation: 'shelter' }),
+      createCharacter({ id: 'mom', name: '돌로레스', age: 40, startLocation: 'missing' }),
+      createCharacter({ id: 'son', name: '티미', age: 14, isChild: true, startLocation: 'missing' }),
+      createCharacter({ id: 'daughter', name: '메리 제인', age: 10, isChild: true, startLocation: 'missing' }),
     ],
     log: [],       // 이벤트/선택 히스토리 { day, text }
     flags: {},     // 이벤트 조건용 임의 플래그 저장소 { flagName: true/값 }

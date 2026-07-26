@@ -17,11 +17,11 @@
 //   state                       - 게임 전역 상태
 //   shelterCount                - 현재 대피소에 남아있는 인원 수
 //   lostOrDeadCount              - (원가족 중) 실종되거나 사망한 인원 수
-//   originalFamilyAllInShelter  - 아빠/엄마/아들/딸 전원이 대피소에 생존해 있는지
+//   originalFamilyAllInShelter  - 테드/돌로레스/티미/메리 제인 전원이 대피소에 생존해 있는지
 //   avgSanity                    - 대피소 인원 평균 정신력
 //   minSanity                    - 대피소 인원 중 최저 정신력
 //   militaryRescueConfirmed      - 라디오 구조 이벤트 체인을 완료했는지
-//   parentsInShelter             - 아빠/엄마 중 한 명이라도 대피소에 남아있는지
+//   parentsInShelter             - 테드/돌로레스 중 한 명이라도 대피소에 남아있는지
 //                                   (원작 규칙: 생존 판정은 부모만 따진다 — 아이/개/고양이는 무관)
 
 window.ENDINGS = [
