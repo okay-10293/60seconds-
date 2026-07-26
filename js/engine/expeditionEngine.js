@@ -6,7 +6,7 @@
 // 대피소원을 원정 보낼 수 있는지 체크
 function canSendExpedition(state, characterId) {
   const c = window.GameState.getCharacter(state, characterId);
-  return !!c && c.location === 'shelter' && c.health !== 'dead';
+  return !!c && c.location === 'shelter' && c.health !== 'dead' && !c.exhausted;
 }
 
 // 원정 시 지참 가능한 장비 카테고리 (무기/도구/의약품 — 위스키·카드 같은 기호품은 제외)

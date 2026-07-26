@@ -617,9 +617,14 @@ window.EVENTS = [
         text: '그냥 무시한다',
         outcomes: [
           {
-            weight: 100,
+            weight: 60,
             resultText: '악취와 소음을 참고 넘어갔다. 다들 신경이 곤두선 채로 하루를 보냈다.',
             effects: [{ type: 'character', target: 'all', field: 'sanity', delta: -6 }],
+          },
+          {
+            weight: 40,
+            resultText: '뒤척이다 뜬눈으로 밤을 보낸 사람이 생겼다. 완전히 탈진해버렸다.',
+            effects: [{ type: 'character', target: 'random', field: 'exhausted', value: true }],
           },
         ],
       },

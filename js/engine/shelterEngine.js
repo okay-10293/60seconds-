@@ -68,6 +68,11 @@ function advanceDay(state) {
 
   const people = window.GameState.shelterCharacters(state);
 
+  // 원작처럼: 고양이가 있으면 하루에 수프 한 캔씩 축낸다.
+  if (state.flags.catJoined) {
+    state.resources.food = Math.max(0, state.resources.food - 1);
+  }
+
   people.forEach((c) => {
     if (c.fedFoodToday) {
       c.foodDays = 0;
@@ -85,6 +90,18 @@ function advanceDay(state) {
     // 목마르거나 배고픈 상태가 지속되면 정신력도 함께 깎인다.
     if (getWaterStatus(c.waterDays) !== 'normal') c.sanity = Math.max(0, c.sanity - 2);
     if (getFoodStatus(c.foodDays) !== 'normal') c.sanity = Math.max(0, c.sanity - 2);
+
+    // 원작처럼: 굶주림 상태면 별다른 이벤트 없이도 확률적으로 병에 걸린다.
+    if (getFoodStatus(c.foodDays) === 'starving' && c.health === 'healthy' && Math.random() < 0.12) {
+      c.health = 'sick';
+      window.GameState.addLog(state, `[Day ${state.day}] 굶주린 ${c.name}이(가) 결국 병을 얻었다.`);
+    }
+
+    // 원작처럼: 탈진 상태는 며칠 지나면 랜덤하게 자연 치유된다.
+    if (c.exhausted && Math.random() < 0.4) {
+      c.exhausted = false;
+      window.GameState.addLog(state, `[Day ${state.day}] ${c.name}의 탈진 상태가 풀렸다.`);
+    }
 
     // 원작처럼: 가족을 다 잃고 혼자 남으면 하루 만에 정신이 무너진다.
     if (people.length === 1) c.sanity = Math.min(c.sanity, 10);

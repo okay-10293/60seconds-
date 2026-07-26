@@ -301,6 +301,7 @@ function renderShelter() {
         waterLabel ? `<span class="ailment-badge ${waterStatus}">${waterLabel}</span>` : '',
         foodLabel ? `<span class="ailment-badge ${foodStatus}">${foodLabel}</span>` : '',
         sanityLabel ? `<span class="ailment-badge sanity-${c.sanity < 15 ? 'critical' : 'low'}">${sanityLabel}</span>` : '',
+        c.exhausted ? `<span class="ailment-badge dehydrated">탈진 (원정 불가)</span>` : '',
       ]
         .filter(Boolean)
         .join('');
