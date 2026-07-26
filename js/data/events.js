@@ -580,4 +580,49 @@ window.EVENTS = [
       },
     ],
   },
+
+  {
+    id: 'strange_noise_vent',
+    title: '환기구에서 나는 소리',
+    description: '환기구 쪽에서 계속 부스럭거리는 소리와 악취가 올라온다. 누군가 가서 확인해봐야 할 것 같다.',
+    minDay: 3,
+    once: false,
+    choices: [
+      {
+        text: '가서 확인해본다',
+        outcomes: [
+          {
+            weight: 45,
+            resultText: '환기구 안에서 벌레떼가 쏟아져 나왔다. 정신없이 쫓아내다 다쳤다.',
+            effects: [
+              { type: 'character', target: 'random', field: 'health', value: 'injured' },
+            ],
+          },
+          {
+            weight: 35,
+            resultText: '막혀 있던 이물질을 치우자 숨겨진 공간에서 물자를 발견했다.',
+            effects: [
+              { type: 'resource', key: 'food', delta: 1 },
+              { type: 'resource', key: 'water', delta: 1 },
+            ],
+          },
+          {
+            weight: 20,
+            resultText: '별다른 이상은 없었다. 헛걸음이었다.',
+            effects: [],
+          },
+        ],
+      },
+      {
+        text: '그냥 무시한다',
+        outcomes: [
+          {
+            weight: 100,
+            resultText: '악취와 소음을 참고 넘어갔다. 다들 신경이 곤두선 채로 하루를 보냈다.',
+            effects: [{ type: 'character', target: 'all', field: 'sanity', delta: -6 }],
+          },
+        ],
+      },
+    ],
+  },
 ];
