@@ -297,10 +297,15 @@ function renderShelter() {
       const waterLabel = WATER_LABEL[waterStatus];
       const foodLabel = FOOD_LABEL[foodStatus];
       const sanityLabel = c.sanity >= 70 ? null : c.sanity >= 40 ? '불안' : c.sanity >= 15 ? '불안정' : '정신 붕괴 직전';
+      const unwellWarning =
+        c.isChild && (c.health === 'injured' || c.health === 'sick') && c.unwellDays >= 2
+          ? `치료 시급 (${c.unwellDays}/${window.ShelterEngine.UNWELL_RUNAWAY_DAYS}일째)`
+          : null;
       const badges = [
         waterLabel ? `<span class="ailment-badge ${waterStatus}">${waterLabel}</span>` : '',
         foodLabel ? `<span class="ailment-badge ${foodStatus}">${foodLabel}</span>` : '',
         sanityLabel ? `<span class="ailment-badge sanity-${c.sanity < 15 ? 'critical' : 'low'}">${sanityLabel}</span>` : '',
+        unwellWarning ? `<span class="ailment-badge dehydrated">${unwellWarning}</span>` : '',
       ]
         .filter(Boolean)
         .join('');

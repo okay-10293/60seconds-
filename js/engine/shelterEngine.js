@@ -7,6 +7,8 @@
 //   식량: 물보다 훨씬 여유가 있어 1~6일째 '배고픔' → 7~8일째 '굶주림' → 9일째 성인 사망 / 아이 가출
 const WATER_STAGE = { THIRSTY: 1, DEHYDRATED: 4, FATAL: 6 };
 const FOOD_STAGE = { HUNGRY: 1, STARVING: 7, FATAL: 9 };
+// 부상/병약 상태를 이만큼 연속으로 치료받지 못하면 아이는 가출한다.
+const UNWELL_RUNAWAY_DAYS = 4;
 
 function getWaterStatus(days) {
   if (days >= WATER_STAGE.DEHYDRATED) return 'dehydrated';
@@ -66,9 +68,32 @@ function useFirstAid(state, characterId) {
 function advanceDay(state) {
   if (state.phase !== 'shelter') return { event: null };
 
-  const people = window.GameState.shelterCharacters(state);
+  let people = window.GameState.shelterCharacters(state);
+
+  // 원작처럼: 대피소에 보호자(성인)가 한 명도 없으면, 남은 아이는 불안해서 뛰쳐나간다.
+  const parentsPresent = people.some((c) => !c.isChild);
+  if (!parentsPresent) {
+    people
+      .filter((c) => c.isChild)
+      .forEach((c) => {
+        c.location = 'missing';
+        window.GameState.addLog(state, `[Day ${state.day}] 곁에 보호자가 없어 ${c.name}이(가) 불안해하다 대피소를 나가버렸다.`);
+      });
+    people = window.GameState.shelterCharacters(state); // 가출 반영해서 다시 계산
+  }
 
   people.forEach((c) => {
+    // 부상/병약을 오래 방치하면 아이는 참지 못하고 가출한다.
+    if (c.health === 'injured' || c.health === 'sick') {
+      c.unwellDays += 1;
+    } else {
+      c.unwellDays = 0;
+    }
+    if (c.isChild && c.unwellDays >= UNWELL_RUNAWAY_DAYS) {
+      c.location = 'missing';
+      window.GameState.addLog(state, `[Day ${state.day}] 아무도 치료해주지 않자 ${c.name}이(가) 결국 대피소를 나가버렸다.`);
+      return; // 이미 나갔으니 아래 배고픔/목마름 처리는 건너뜀
+    }
     if (c.fedFoodToday) {
       c.foodDays = 0;
     } else {
@@ -140,4 +165,5 @@ window.ShelterEngine = {
   getFoodStatus,
   WATER_STAGE,
   FOOD_STAGE,
+  UNWELL_RUNAWAY_DAYS,
 };
