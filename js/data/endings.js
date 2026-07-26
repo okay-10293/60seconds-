@@ -21,8 +21,17 @@
 //   avgSanity                    - 대피소 인원 평균 정신력
 //   minSanity                    - 대피소 인원 중 최저 정신력
 //   militaryRescueConfirmed      - 라디오 구조 이벤트 체인을 완료했는지
+//   parentsInShelter             - 아빠/엄마 중 한 명이라도 대피소에 남아있는지
+//                                   (원작 규칙: 생존 판정은 부모만 따진다 — 아이/개/고양이는 무관)
 
 window.ENDINGS = [
+  {
+    id: 'parents_lost',
+    title: '생존 실패',
+    description:
+      '부모가 대피소에 남아있지 않다. 사망이든, 원정 중 실종이든 — 이유가 무엇이든 결과는 같다. 남은 가족이 어떻게 됐는지는 이제 아무도 알 수 없다.',
+    condition: (ctx) => !ctx.parentsInShelter,
+  },
   {
     id: 'military_rescue',
     title: '구조대 도착',
@@ -65,13 +74,6 @@ window.ENDINGS = [
     description:
       '몸은 버텼지만 마음은 그러지 못했다. 좁은 공간, 끝없는 불안 속에서 가족 모두가 서서히 무너져 내렸다. 살아남았다고 말하기엔, 남은 게 너무 없다.',
     condition: (ctx) => ctx.shelterCount >= 2 && ctx.minSanity <= 15,
-  },
-  {
-    id: 'empty_shelter',
-    title: '텅 빈 승리',
-    description:
-      '목표한 날짜는 채웠다. 하지만 대피소 문을 열어도 반겨줄 사람이 아무도 없다.',
-    condition: (ctx) => ctx.shelterCount === 0,
   },
   {
     id: 'sole_survivor',

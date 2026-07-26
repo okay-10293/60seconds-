@@ -23,6 +23,8 @@ function buildEndingContext(state) {
 
   const minSanity = shelterChars.length ? Math.min(...shelterChars.map((c) => c.sanity)) : 0;
 
+  const parentsInShelter = shelterChars.some((c) => !c.isChild);
+
   return {
     state,
     shelterCount: shelterChars.length,
@@ -31,6 +33,7 @@ function buildEndingContext(state) {
     avgSanity,
     minSanity,
     militaryRescueConfirmed: !!state.flags.militaryRescueConfirmed,
+    parentsInShelter,
   };
 }
 
