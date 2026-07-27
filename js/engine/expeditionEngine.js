@@ -19,11 +19,13 @@ function getEquippableItems(state) {
     .filter((item) => item && EQUIPPABLE_CATEGORIES.includes(item.category));
 }
 
-// 원정 시작 (UI에서 캐릭터 + 원정지 + (선택) 지참 아이템 선택 후 호출)
-function sendExpedition(state, characterId, expeditionId, equippedItemId) {
+// 원정 시작 (UI에서 캐릭터 + (선택) 지참 아이템만 선택하면 목적지는 원작처럼 랜덤으로 정해진다)
+function sendExpedition(state, characterId, equippedItemId) {
   const character = window.GameState.getCharacter(state, characterId);
-  const expedition = window.EXPEDITIONS.find((e) => e.id === expeditionId);
-  if (!character || !expedition || !canSendExpedition(state, characterId)) return null;
+  if (!character || !canSendExpedition(state, characterId)) return null;
+
+  // 원작처럼: 누구를 보내든 목적지는 랜덤으로 결정된다. 플레이어는 고를 수 없다.
+  const expedition = window.EXPEDITIONS[Math.floor(Math.random() * window.EXPEDITIONS.length)];
 
   let equippedItem = null;
   if (equippedItemId && window.GameState.hasItem(state, equippedItemId, 1)) {
@@ -40,7 +42,7 @@ function sendExpedition(state, characterId, expeditionId, equippedItemId) {
   const itemName = equippedItem ? window.ItemsAPI.getItem(equippedItem).name : null;
   window.GameState.addLog(
     state,
-    `${character.name}이(가) '${expedition.name}'(으)로 원정을 떠났다.${itemName ? ` (${itemName} 지참)` : ''}`
+    `${character.name}이(가) 원정을 떠났다. 어디로 향했는지는 돌아와야 알 수 있다.${itemName ? ` (${itemName} 지참)` : ''}`
   );
   return character;
 }

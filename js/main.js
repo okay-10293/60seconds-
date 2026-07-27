@@ -377,9 +377,6 @@ function renderStepArea(people) {
     const expeditionCandidates = people.filter((c) => window.ExpeditionEngine.canSendExpedition(state, c.id));
     const outOnExpedition = state.characters.filter((c) => c.location === 'scavenging');
     const equippableItems = window.ExpeditionEngine.getEquippableItems(state);
-    const expeditionOptionsHtml = window.EXPEDITIONS
-      .map((e) => `<option value="${e.id}">${e.name} (${e.duration}일 소요) — ${e.description}</option>`)
-      .join('');
     const expeditionCharOptionsHtml = expeditionCandidates.map((c) => `<option value="${c.id}">${c.name}</option>`).join('');
     const equipOptionsHtml =
       `<option value="">장비 없음</option>` +
@@ -387,7 +384,7 @@ function renderStepArea(people) {
     const outOnExpeditionHtml = outOnExpedition
       .map((c) => {
         const equipped = c.expedition && c.expedition.equippedItem ? window.ItemsAPI.getItem(c.expedition.equippedItem) : null;
-        return `<span class="inv-chip">🚶 ${c.name} (Day ${c.expedition ? c.expedition.returnDay : '?'} 복귀 예정)${equipped ? ` · ${equipped.name} 지참` : ''}</span>`;
+        return `<span class="inv-chip">🚶 ${c.name} (Day ${c.expedition ? c.expedition.returnDay : '?'} 복귀 예정, 목적지 미상)${equipped ? ` · ${equipped.name} 지참` : ''}</span>`;
       })
       .join('');
 
@@ -397,10 +394,9 @@ function renderStepArea(people) {
         ${
           expeditionCandidates.length > 0
             ? `<select id="expeditionCharSelect">${expeditionCharOptionsHtml}</select>
-               <select id="expeditionSelect">${expeditionOptionsHtml}</select>
                <select id="expeditionEquipSelect" title="장비를 지참하면 생존·성공 확률이 올라간다 (실종/사망 시 함께 유실)">${equipOptionsHtml}</select>
                <button id="sendExpeditionBtn">원정 출발</button>
-               <p class="panel-hint">장비를 지참하면 생존·성공 확률이 오르지만, 실종·사망 시 장비도 함께 잃는다.</p>`
+               <p class="panel-hint">어디로 가게 될지는 보내봐야 안다. 장비를 지참하면 생존·성공 확률이 오르지만, 실종·사망 시 장비도 함께 잃는다.</p>`
             : `<div class="panel-hint">보낼 수 있는 인원이 없다.</div>`
         }
         <div class="inventory-row">${outOnExpeditionHtml}</div>
@@ -411,9 +407,8 @@ function renderStepArea(people) {
     if (sendBtn) {
       sendBtn.addEventListener('click', () => {
         const characterId = document.getElementById('expeditionCharSelect').value;
-        const expeditionId = document.getElementById('expeditionSelect').value;
         const equipItemId = document.getElementById('expeditionEquipSelect').value || null;
-        window.ExpeditionEngine.sendExpedition(state, characterId, expeditionId, equipItemId);
+        window.ExpeditionEngine.sendExpedition(state, characterId, equipItemId);
         renderShelter();
       });
     }
