@@ -641,4 +641,54 @@ window.EVENTS = [
       },
     ],
   },
+
+  {
+    id: 'triple_disaster',
+    title: '동시다발 재해',
+    description:
+      '화재, 지진, 침수가 한꺼번에 대피소를 덮쳤다. 도저히 전부 지킬 수 없다 — 딱 한 종류의 물자만 지킬 수 있다.',
+    minDay: 2,
+    once: true,
+    choices: [
+      {
+        text: '무기류를 지킨다',
+        outcomes: [
+          {
+            weight: 100,
+            resultText: '무기는 지켰지만, 나머지 물자는 무너진 잔해에 깔려버렸다.',
+            effects: [
+              { type: 'destroyCategory', category: 'tool' },
+              { type: 'destroyCategory', category: 'medicine' },
+            ],
+          },
+        ],
+      },
+      {
+        text: '생존 도구를 지킨다',
+        outcomes: [
+          {
+            weight: 100,
+            resultText: '도구는 지켰지만, 나머지 물자는 무너진 잔해에 깔려버렸다.',
+            effects: [
+              { type: 'destroyCategory', category: 'weapon' },
+              { type: 'destroyCategory', category: 'medicine' },
+            ],
+          },
+        ],
+      },
+      {
+        text: '의약품을 지킨다',
+        outcomes: [
+          {
+            weight: 100,
+            resultText: '의약품은 지켰지만, 나머지 물자는 무너진 잔해에 깔려버렸다.',
+            effects: [
+              { type: 'destroyCategory', category: 'weapon' },
+              { type: 'destroyCategory', category: 'tool' },
+            ],
+          },
+        ],
+      },
+    ],
+  },
 ];

@@ -97,6 +97,16 @@ function applyEffect(state, effect) {
       window.GameState.addLog(state, effect.text);
       break;
     }
+    case 'destroyCategory': {
+      // 해당 카테고리에 속한 인벤토리 아이템을 전부 잃는다 (재해로 파괴됨)
+      Object.keys(state.inventory).forEach((itemId) => {
+        const item = window.ItemsAPI.getItem(itemId);
+        if (item && item.category === effect.category && state.inventory[itemId] > 0) {
+          window.GameState.removeItem(state, itemId, state.inventory[itemId]);
+        }
+      });
+      break;
+    }
     default:
       console.warn('알 수 없는 effect 타입:', effect.type);
   }

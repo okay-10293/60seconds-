@@ -7,6 +7,9 @@
 //   식량: 물보다 훨씬 여유가 있어 1~6일째 '배고픔' → 7~8일째 '굶주림' → 9일째 성인 사망 / 아이 가출
 const WATER_STAGE = { THIRSTY: 1, DEHYDRATED: 4, FATAL: 6 };
 const FOOD_STAGE = { HUNGRY: 1, STARVING: 7, FATAL: 9 };
+// 부상은 자연치유되지 않는다. 방치가 길어지면 병까지 겹치고, 더 길어지면 사망한다.
+const INJURY_SICKEN_DAY = 3;
+const INJURY_FATAL_DAY = 7;
 
 function getWaterStatus(days) {
   if (days >= WATER_STAGE.DEHYDRATED) return 'dehydrated';
@@ -61,6 +64,18 @@ function useFirstAid(state, characterId) {
   return { ok: true };
 }
 
+// 카드/체커 놀이: 탈진 상태를 즉시 회복시킨다 (소모품 아님, 갖고만 있으면 됨)
+function playGames(state, characterId) {
+  const c = window.GameState.getCharacter(state, characterId);
+  if (!c || c.location !== 'shelter') return { ok: false, reason: 'not_in_shelter' };
+  if (!c.exhausted) return { ok: false, reason: 'not_needed' };
+  const hasGame = window.GameState.hasItem(state, 'playing_cards', 1) || window.GameState.hasItem(state, 'board_game', 1);
+  if (!hasGame) return { ok: false, reason: 'no_item' };
+  c.exhausted = false;
+  window.GameState.addLog(state, `[Day ${state.day}] ${c.name}이(가) 카드/체커로 기분을 풀고 탈진에서 회복했다.`);
+  return { ok: true };
+}
+
 // 하루 경과: 배급 결과 반영 → 배고픔/목마름/정신력 갱신 → 사망 체크
 //          → 원정 복귀 처리 → 목표일수 도달 시 엔딩 → 아니면 오늘의 이벤트 뽑기
 function advanceDay(state) {
@@ -81,6 +96,23 @@ function advanceDay(state) {
     }
     c.fedFoodToday = false;
     c.fedWaterToday = false;
+
+    // 원작처럼: 부상은 자연치유되지 않는다. 방치가 길어지면 병까지 겹치고, 더 길어지면 사망한다.
+    if (c.health === 'injured') {
+      c.injuredDays += 1;
+      if (c.injuredDays >= INJURY_FATAL_DAY) {
+        c.health = 'dead';
+        c.location = 'dead';
+        window.GameState.addLog(state, `[Day ${state.day}] 방치된 부상이 악화되어 ${c.name}이(가) 결국 사망했다.`);
+        return; // 사망 처리했으니 이후 로직은 건너뜀
+      }
+      if (c.injuredDays >= INJURY_SICKEN_DAY && Math.random() < 0.15) {
+        c.health = 'sick';
+        window.GameState.addLog(state, `[Day ${state.day}] 방치된 상처가 곪아 ${c.name}이(가) 병까지 얻었다.`);
+      }
+    } else {
+      c.injuredDays = 0;
+    }
 
     // 목마르거나 배고픈 상태가 지속되면 정신력도 함께 깎인다.
     if (getWaterStatus(c.waterDays) !== 'normal') c.sanity = Math.max(0, c.sanity - 2);
@@ -163,6 +195,7 @@ window.ShelterEngine = {
   giveFood,
   giveWater,
   useFirstAid,
+  playGames,
   getWaterStatus,
   getFoodStatus,
   WATER_STAGE,
