@@ -595,32 +595,63 @@ window.EVENTS = [
   {
     id: 'strange_noise_vent',
     title: '환기구에서 나는 소리',
-    description: '환기구 쪽에서 계속 부스럭거리는 소리와 악취가 올라온다. 누군가 가서 확인해봐야 할 것 같다.',
+    description: '환기구 쪽에서 부스럭거리는 소리와 함께 뭔가 방공호 안으로 기어들어왔다. 대응해야 한다.',
     minDay: 3,
     once: false,
     choices: [
       {
-        text: '가서 확인해본다',
+        text: '총으로 제압한다',
+        requires: { items: [{ id: 'rifle', count: 1 }] },
         outcomes: [
           {
-            weight: 45,
-            resultText: '환기구 안에서 벌레떼가 쏟아져 나왔다. 정신없이 쫓아내다 다쳤다.',
-            effects: [
-              { type: 'character', target: 'random', field: 'health', value: 'injured' },
-            ],
+            weight: 100,
+            resultText: '한 방에 처리했다. 피해는 없었다.',
+            effects: [],
+          },
+        ],
+      },
+      {
+        text: '살충제를 뿌린다',
+        requires: { items: [{ id: 'pesticide', count: 1 }] },
+        outcomes: [
+          {
+            weight: 100,
+            resultText: '독한 냄새와 함께 깔끔하게 처리했다.',
+            effects: [{ type: 'item', itemId: 'pesticide', delta: -1 }],
+          },
+        ],
+      },
+      {
+        text: '도끼로 제압한다',
+        requires: { items: [{ id: 'axe', count: 1 }] },
+        outcomes: [
+          {
+            weight: 100,
+            resultText: '단번에 처리했다. 피해는 없었다.',
+            effects: [],
+          },
+        ],
+      },
+      {
+        text: '맨몸으로 쫓아낸다',
+        outcomes: [
+          {
+            weight: 40,
+            resultText: '어찌어찌 쫓아내는 데 성공했다.',
+            effects: [],
           },
           {
             weight: 35,
-            resultText: '막혀 있던 이물질을 치우자 숨겨진 공간에서 물자를 발견했다.',
-            effects: [
-              { type: 'resource', key: 'food', delta: 1 },
-              { type: 'resource', key: 'water', delta: 1 },
-            ],
+            resultText: '정신없이 쫓아내다 다쳤다.',
+            effects: [{ type: 'character', target: 'random', field: 'health', value: 'injured' }],
           },
           {
-            weight: 20,
-            resultText: '별다른 이상은 없었다. 헛걸음이었다.',
-            effects: [],
+            weight: 25,
+            resultText: '난리통에 식량과 물이 좀 상했다.',
+            effects: [
+              { type: 'resource', key: 'food', delta: -1 },
+              { type: 'resource', key: 'water', delta: -1 },
+            ],
           },
         ],
       },

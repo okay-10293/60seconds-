@@ -10,13 +10,15 @@ function canSendExpedition(state, characterId) {
 }
 
 // 원정 시 지참 가능한 장비 카테고리 (무기/도구/의약품 — 위스키·카드 같은 기호품은 제외)
+// 단, 도끼(axe)는 원작에서 원정에 가져가도 아무 효과가 없는 방공호 방어 전용 아이템이라 제외한다.
 const EQUIPPABLE_CATEGORIES = ['weapon', 'tool', 'medicine'];
+const EXPEDITION_USELESS_ITEMS = ['axe'];
 
 function getEquippableItems(state) {
   return Object.entries(state.inventory)
     .filter(([, count]) => count > 0)
     .map(([itemId]) => window.ItemsAPI.getItem(itemId))
-    .filter((item) => item && EQUIPPABLE_CATEGORIES.includes(item.category));
+    .filter((item) => item && EQUIPPABLE_CATEGORIES.includes(item.category) && !EXPEDITION_USELESS_ITEMS.includes(item.id));
 }
 
 // 원정 시작 (UI에서 캐릭터 + (선택) 지참 아이템만 선택하면 목적지는 원작처럼 랜덤으로 정해진다)
