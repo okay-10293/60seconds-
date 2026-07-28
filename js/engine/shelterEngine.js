@@ -64,18 +64,6 @@ function useFirstAid(state, characterId) {
   return { ok: true };
 }
 
-// 카드/체커 놀이: 탈진 상태를 즉시 회복시킨다 (소모품 아님, 갖고만 있으면 됨)
-function playGames(state, characterId) {
-  const c = window.GameState.getCharacter(state, characterId);
-  if (!c || c.location !== 'shelter') return { ok: false, reason: 'not_in_shelter' };
-  if (!c.exhausted) return { ok: false, reason: 'not_needed' };
-  const hasGame = window.GameState.hasItem(state, 'playing_cards', 1) || window.GameState.hasItem(state, 'board_game', 1);
-  if (!hasGame) return { ok: false, reason: 'no_item' };
-  c.exhausted = false;
-  window.GameState.addLog(state, `[Day ${state.day}] ${c.name}이(가) 카드/체커로 기분을 풀고 탈진에서 회복했다.`);
-  return { ok: true };
-}
-
 // 하루 경과: 배급 결과 반영 → 배고픔/목마름/정신력 갱신 → 사망 체크
 //          → 원정 복귀 처리 → 목표일수 도달 시 엔딩 → 아니면 오늘의 이벤트 뽑기
 function advanceDay(state) {
@@ -195,7 +183,6 @@ window.ShelterEngine = {
   giveFood,
   giveWater,
   useFirstAid,
-  playGames,
   getWaterStatus,
   getFoodStatus,
   WATER_STAGE,

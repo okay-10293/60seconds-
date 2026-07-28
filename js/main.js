@@ -327,7 +327,6 @@ function renderStepArea(people) {
         const waterDisabled = c.fedWaterToday || state.resources.water < 0.25;
         const needsAid = c.health === 'injured' || c.health === 'sick';
         const hasAidItem = window.GameState.hasItem(state, 'first_aid', 1);
-        const hasGameItem = window.GameState.hasItem(state, 'playing_cards', 1) || window.GameState.hasItem(state, 'board_game', 1);
         return `
         <div class="ration-row">
           <div class="ration-name">${c.name}</div>
@@ -344,13 +343,6 @@ function renderStepArea(people) {
                 </button>`
               : ''
           }
-          ${
-            c.exhausted
-              ? `<button class="aid-btn" data-play="${c.id}" ${hasGameItem ? '' : 'disabled'}>
-                  ${itemIcon('playing_cards')} <span>${hasGameItem ? '카드/체커로 기분전환' : '놀이거리 없음'}</span>
-                </button>`
-              : ''
-          }
         </div>`;
       })
       .join('');
@@ -358,7 +350,7 @@ function renderStepArea(people) {
     area.innerHTML = `
       <div class="panel-section rations-panel">
         <h2 class="section-label">🥫 배급</h2>
-        <p class="panel-hint">밥과 물은 1인당 하루 1/4씩만 줄 수 있다. 부상·병약은 구급상자로, 탈진은 카드/체커로 즉시 치료할 수 있다.</p>
+        <p class="panel-hint">밥과 물은 1인당 하루 1/4씩만 줄 수 있다. 부상·병약 상태는 구급상자로 즉시 치료할 수 있다.</p>
         <div class="ration-list">${rows || '<div class="diary-line">대피소에 아무도 없다.</div>'}</div>
         <button class="step-next-btn" id="toExpeditionBtn">다음 페이지 →</button>
       </div>`;
@@ -374,12 +366,6 @@ function renderStepArea(people) {
     area.querySelectorAll('[data-aid]').forEach((btn) => {
       btn.addEventListener('click', () => {
         window.ShelterEngine.useFirstAid(state, btn.dataset.aid);
-        renderShelter();
-      });
-    });
-    area.querySelectorAll('[data-play]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        window.ShelterEngine.playGames(state, btn.dataset.play);
         renderShelter();
       });
     });

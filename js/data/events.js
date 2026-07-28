@@ -691,4 +691,59 @@ window.EVENTS = [
       },
     ],
   },
+
+  {
+    id: 'boredom',
+    title: '무료함',
+    description: '좁은 방공호에서 하루하루가 똑같이 흘러간다. 다들 지루함에 몸이 근질거리는 눈치다.',
+    minDay: 2,
+    once: false,
+    choices: [
+      {
+        text: '카드로 시간을 보낸다',
+        requires: { items: [{ id: 'playing_cards', count: 1 }] },
+        outcomes: [
+          {
+            weight: 100,
+            resultText: '카드 게임 몇 판으로 다들 잠시나마 근심을 잊었다.',
+            effects: [{ type: 'character', target: 'all', field: 'sanity', delta: 8 }],
+          },
+        ],
+      },
+      {
+        text: '체커로 시간을 보낸다',
+        requires: { items: [{ id: 'board_game', count: 1 }] },
+        outcomes: [
+          {
+            weight: 75,
+            resultText: '체커 몇 판으로 다들 잠시나마 근심을 잊었다.',
+            effects: [{ type: 'character', target: 'all', field: 'sanity', delta: 8 }],
+          },
+          {
+            weight: 25,
+            resultText: '한 명은 체커랑 안 맞는지, 오히려 더 신경질적으로 변했다.',
+            effects: [{ type: 'character', target: 'random', field: 'sanity', delta: -10 }],
+          },
+        ],
+      },
+      {
+        text: '그냥 조용히 시간을 보낸다',
+        outcomes: [
+          {
+            weight: 70,
+            resultText: '아무 말 없이 하루를 흘려보냈다. 다들 조금씩 지쳐가는 게 느껴진다.',
+            effects: [{ type: 'character', target: 'all', field: 'sanity', delta: -6 }],
+          },
+          {
+            weight: 30,
+            resultText: '적막을 견디지 못한 한 명이 결국 완전히 지쳐 나가떨어졌다.',
+            effects: [
+              { type: 'character', target: 'all', field: 'sanity', delta: -6 },
+              { type: 'character', target: 'random', field: 'exhausted', value: true },
+            ],
+          },
+        ],
+      },
+    ],
+  },
 ];
