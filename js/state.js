@@ -21,6 +21,8 @@ function createCharacter({ id, name, age, isChild = false, startLocation = 'shel
     waterDays: 0,  // 물을 못 마신 연속 일수 (원작처럼 단계적 상태이상으로 이어짐)
     foodDays: 0,   // 식량을 못 먹은 연속 일수
     injuredDays: 0, // 부상을 치료받지 못한 연속 일수 (부상은 자연치유 안 됨, 방치하면 악화)
+    sickDays: 0, // 병약 상태가 지속된 연속 일수 (오래 방치하면 사망/가출)
+    sickFeedStreak: 0, // 병약 상태에서 연속으로 밥을 챙겨 먹은 일수 (3일 이상이면 자연회복 가능)
     exhausted: false, // 탈진 상태 (원정 불가, 며칠 지나면 랜덤하게 자연 치유, 카드/체커로 즉시 치유)
     fedFoodToday: false,   // 오늘 이미 밥을 줬는지 (배급 패널에서 1인당 1회, 1/4씩)
     fedWaterToday: false,  // 오늘 이미 물을 줬는지

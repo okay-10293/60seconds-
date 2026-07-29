@@ -67,7 +67,8 @@ function sendExpedition(state, characterId, equippedItemIds) {
 }
 
 // 지참 장비가 있으면, 그리고 잘 먹여둔 상태였으면 각각 생존/성공 쪽 가중치를 올리고 실종/사망 쪽은 낮춘다.
-function applyOutcomeBonuses(outcomes, hasEquipment, wellFed) {
+// 방독면을 지참했다면 방사능으로 인한 '병' 결과를 크게 줄인다 (원작 확인).
+function applyOutcomeBonuses(outcomes, hasEquipment, wellFed, hasGasMask) {
   return outcomes.map((o) => {
     let weight = o.weight;
     if (hasEquipment) {
@@ -78,6 +79,7 @@ function applyOutcomeBonuses(outcomes, hasEquipment, wellFed) {
       if (o.type === 'dead' || o.type === 'missing') weight *= 0.7;
       if (o.type === 'success') weight *= 1.15;
     }
+    if (hasGasMask && o.type === 'sick') weight *= 0.1;
     return Object.assign({}, o, { weight });
   });
 }
@@ -97,7 +99,8 @@ function processReturns(state) {
       return;
     }
     const equippedItems = c.expedition.equippedItems || [];
-    const outcomes = applyOutcomeBonuses(expedition.outcomes, equippedItems.length > 0, c.expedition.wellFed);
+    const hasGasMask = equippedItems.includes('gas_mask');
+    const outcomes = applyOutcomeBonuses(expedition.outcomes, equippedItems.length > 0, c.expedition.wellFed, hasGasMask);
     const outcome = window.EventEngine.pickWeightedOutcome(outcomes);
     applyExpeditionOutcome(state, c, expedition, outcome, equippedItems);
     results.push({ characterId: c.id, expeditionId: expedition.id, outcome });
@@ -110,10 +113,19 @@ function applyExpeditionOutcome(state, character, expedition, outcome, equippedI
   switch (outcome.type) {
     case 'success':
     case 'injured':
+    case 'sick':
     case 'empty': {
       character.location = 'shelter';
       if (outcome.type === 'injured') character.health = 'injured';
-      equippedItems.forEach((id) => window.GameState.addItem(state, id, 1)); // 무사 귀환 시 장비 전부 회수
+      if (outcome.type === 'sick') character.health = 'sick';
+      equippedItems.forEach((id) => {
+        // 원작 확인: 방독면은 원정 중 일정 확률로 파손되어 돌아오지 못할 수 있다.
+        if (id === 'gas_mask' && Math.random() < 0.2) {
+          window.GameState.addLog(state, `[Day ${state.day}] 방독면이 원정 중 파손되었다.`);
+          return;
+        }
+        window.GameState.addItem(state, id, 1);
+      });
       if (equippedItems.includes('lock')) {
         // 원작 확인: 자물쇠를 지참하면 원정 후 물 2병을 추가로 얻는다.
         state.resources.water = (state.resources.water || 0) + 2;

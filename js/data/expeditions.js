@@ -58,6 +58,12 @@ window.EXPEDITIONS = [
         resultText: '돌아오지 않았다... 무슨 일이 생긴 것 같다.',
         loot: [],
       },
+      {
+        weight: 8,
+        type: 'sick',
+        resultText: '방사능 잔재가 남아있는 구역이었다. 돌아오고 나서 몸이 안 좋아졌다.',
+        loot: [{ key: 'food', min: 0, max: 1 }],
+      },
     ],
   },
   {
@@ -88,6 +94,12 @@ window.EXPEDITIONS = [
         weight: 10,
         type: 'missing',
         resultText: '끝내 돌아오지 않았다.',
+        loot: [],
+      },
+      {
+        weight: 8,
+        type: 'sick',
+        resultText: '환기가 안 되는 건물 안에 오래 있었더니 병을 얻었다.',
         loot: [],
       },
     ],
@@ -129,6 +141,12 @@ window.EXPEDITIONS = [
         resultText: '끝내 소식이 끊겼다. 사망한 것으로 보인다.',
         loot: [],
       },
+      {
+        weight: 10,
+        type: 'sick',
+        resultText: '방사능 낙진이 심한 구역을 지나오다 병을 얻었다.',
+        loot: [{ key: 'food', min: 1, max: 2 }],
+      },
     ],
   },
   {
@@ -167,6 +185,12 @@ window.EXPEDITIONS = [
         resultText: '감염병에 걸려 결국 돌아오지 못했다.',
         loot: [],
       },
+      {
+        weight: 10,
+        type: 'sick',
+        resultText: '병원 안의 오염된 공기를 마셔 병을 얻었다.',
+        loot: [{ itemId: 'first_aid', min: 0, max: 1 }],
+      },
     ],
   },
   {
@@ -201,6 +225,12 @@ window.EXPEDITIONS = [
         type: 'missing',
         resultText: '돌아오는 길에 실종되었다.',
         loot: [],
+      },
+      {
+        weight: 8,
+        type: 'sick',
+        resultText: '오염된 토양 위를 오래 걸어 다녀 병을 얻었다.',
+        loot: [{ key: 'food', min: 1, max: 2 }],
       },
     ],
   },

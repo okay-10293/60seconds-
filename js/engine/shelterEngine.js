@@ -10,6 +10,9 @@ const FOOD_STAGE = { HUNGRY: 1, STARVING: 7, FATAL: 9 };
 // 부상은 자연치유되지 않는다. 방치가 길어지면 병까지 겹치고, 더 길어지면 사망한다.
 const INJURY_SICKEN_DAY = 3;
 const INJURY_FATAL_DAY = 7;
+// 병약: 3일 이상 연속으로 잘 챙겨먹으면 자연회복 가능성이 생기고, 15일 이상 방치하면 사망/가출한다.
+const SICK_FEED_CURE_STREAK = 3;
+const SICK_FATAL_DAY = 15;
 
 function getWaterStatus(days) {
   if (days >= WATER_STAGE.DEHYDRATED) return 'dehydrated';
@@ -72,6 +75,7 @@ function advanceDay(state) {
   const people = window.GameState.shelterCharacters(state);
 
   people.forEach((c) => {
+    const wasFedFoodToday = c.fedFoodToday; // 리셋 전에 캡처 (병약 회복 판정에 사용)
     if (c.fedFoodToday) {
       c.foodDays = 0;
     } else {
@@ -100,6 +104,36 @@ function advanceDay(state) {
       }
     } else {
       c.injuredDays = 0;
+    }
+
+    // 원작 확인: 병약은 3일 이상 연속으로 잘 먹이면 자연회복 가능성이 생기고,
+    // 굶주린 상태에서는 더 빨리 악화되며, 15일 이상 방치하면 사망/가출한다.
+    if (c.health === 'sick') {
+      const starving = getFoodStatus(c.foodDays) === 'starving';
+      c.sickDays += starving ? 2 : 1;
+      c.sickFeedStreak = wasFedFoodToday ? c.sickFeedStreak + 1 : 0;
+
+      if (c.sickFeedStreak >= SICK_FEED_CURE_STREAK && Math.random() < 0.35) {
+        c.health = 'healthy';
+        c.sickDays = 0;
+        c.sickFeedStreak = 0;
+        window.GameState.addLog(state, `[Day ${state.day}] 며칠간 잘 챙겨 먹은 덕분에 ${c.name}이(가) 스스로 병을 이겨냈다.`);
+        return;
+      }
+      if (c.sickDays >= SICK_FATAL_DAY) {
+        if (c.isChild) {
+          c.location = 'missing';
+          window.GameState.addLog(state, `[Day ${state.day}] 오래 앓던 ${c.name}이(가) 결국 대피소를 나가버렸다.`);
+        } else {
+          c.health = 'dead';
+          c.location = 'dead';
+          window.GameState.addLog(state, `[Day ${state.day}] 오래 앓던 ${c.name}이(가) 결국 숨을 거뒀다.`);
+        }
+        return;
+      }
+    } else {
+      c.sickDays = 0;
+      c.sickFeedStreak = 0;
     }
 
     // 목마르거나 배고픈 상태가 지속되면 정신력도 함께 깎인다.
