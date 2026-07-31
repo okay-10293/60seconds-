@@ -174,6 +174,16 @@ function advanceDay(state) {
 
   state.day += 1;
 
+  // 원작 확인: 라디오가 있으면 2~4주차 사이(대략 14일차) 즈음 "오염이 가라앉았다"는 방송이 나오고,
+  // 이후로는 방독면 없이도 원정에서 병에 걸릴 위험이 크게 줄어든다. 라디오가 없으면 이 완화가 훨씬 늦다(20일차).
+  if (!state.flags.contaminationCleared) {
+    const threshold = window.GameState.hasItem(state, 'radio', 1) ? 14 : 20;
+    if (state.day >= threshold) {
+      state.flags.contaminationCleared = true;
+      window.GameState.addLog(state, `[Day ${state.day}] 라디오에서 지역 오염이 가라앉았다는 방송이 나왔다.`);
+    }
+  }
+
   const expeditionResults = window.ExpeditionEngine.processReturns(state);
 
   if (state.day > window.GAME_CONFIG.goalDay) {

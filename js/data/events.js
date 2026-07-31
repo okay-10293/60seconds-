@@ -559,7 +559,7 @@ window.EVENTS = [
     description: '멀리서 차량 엔진 소리가 점점 가까워진다. 며칠 전 보냈던 구조 신호에 대한 응답일지도 모른다.',
     minDay: 9,
     once: true,
-    conditions: { requiredFlags: { distressSignalSent: true } },
+    conditions: { requiredFlags: { distressSignalSent: true }, requiredItems: [{ id: 'radio', count: 1 }] },
     choices: [
       {
         text: '문을 열고 신호를 보낸다',
@@ -628,6 +628,17 @@ window.EVENTS = [
           {
             weight: 100,
             resultText: '단번에 처리했다. 피해는 없었다.',
+            effects: [],
+          },
+        ],
+      },
+      {
+        text: '생존 안내서를 참고해 퇴치한다',
+        requires: { items: [{ id: 'survival_book', count: 1 }] },
+        outcomes: [
+          {
+            weight: 100,
+            resultText: '책에서 본 대로 하니 손쉽게 쫓아낼 수 있었다.',
             effects: [],
           },
         ],
@@ -774,6 +785,51 @@ window.EVENTS = [
             ],
           },
         ],
+      },
+    ],
+  },
+
+  {
+    id: 'radio_static',
+    title: '지지직거리는 라디오',
+    description: '라디오에서 계속 잡음만 나온다. 채널을 잘 맞추면 뭔가 들을 수 있을지도 모른다.',
+    minDay: 3,
+    once: false,
+    conditions: { requiredItems: [{ id: 'radio', count: 1 }] },
+    choices: [
+      {
+        text: '가만히 채널을 맞춰 듣는다',
+        outcomes: [
+          {
+            weight: 60,
+            resultText: '오래된 음악 방송을 찾았다. 다들 잠시 귀 기울였다.',
+            effects: [{ type: 'character', target: 'all', field: 'sanity', delta: 5 }],
+          },
+          {
+            weight: 40,
+            resultText: '들려오는 건 온통 안 좋은 소식뿐이었다. 다들 마음이 무거워졌다.',
+            effects: [{ type: 'character', target: 'all', field: 'sanity', delta: -5 }],
+          },
+        ],
+      },
+      {
+        text: '분해해서 만지작거려 본다',
+        outcomes: [
+          {
+            weight: 55,
+            resultText: '괜히 건드렸다가 라디오가 완전히 망가졌다.',
+            effects: [{ type: 'item', itemId: 'radio', delta: -1 }],
+          },
+          {
+            weight: 45,
+            resultText: '수신 상태가 오히려 좋아졌다.',
+            effects: [{ type: 'character', target: 'all', field: 'sanity', delta: 3 }],
+          },
+        ],
+      },
+      {
+        text: '그냥 꺼둔다',
+        outcomes: [{ weight: 100, resultText: '조용히 라디오를 껐다.', effects: [] }],
       },
     ],
   },

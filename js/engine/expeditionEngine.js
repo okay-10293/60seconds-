@@ -67,8 +67,8 @@ function sendExpedition(state, characterId, equippedItemIds) {
 }
 
 // 지참 장비가 있으면, 그리고 잘 먹여둔 상태였으면 각각 생존/성공 쪽 가중치를 올리고 실종/사망 쪽은 낮춘다.
-// 방독면을 지참했다면 방사능으로 인한 '병' 결과를 크게 줄인다 (원작 확인).
-function applyOutcomeBonuses(outcomes, hasEquipment, wellFed, hasGasMask) {
+// 방독면을 지참했거나, 오염이 가라앉았다는 방송이 나온 뒤라면 방사능으로 인한 '병' 결과를 크게 줄인다.
+function applyOutcomeBonuses(outcomes, hasEquipment, wellFed, hasGasMask, contaminationCleared) {
   return outcomes.map((o) => {
     let weight = o.weight;
     if (hasEquipment) {
@@ -79,7 +79,10 @@ function applyOutcomeBonuses(outcomes, hasEquipment, wellFed, hasGasMask) {
       if (o.type === 'dead' || o.type === 'missing') weight *= 0.7;
       if (o.type === 'success') weight *= 1.15;
     }
-    if (hasGasMask && o.type === 'sick') weight *= 0.1;
+    if (o.type === 'sick') {
+      if (hasGasMask) weight *= 0.1;
+      else if (contaminationCleared) weight *= 0.15;
+    }
     return Object.assign({}, o, { weight });
   });
 }
@@ -100,7 +103,13 @@ function processReturns(state) {
     }
     const equippedItems = c.expedition.equippedItems || [];
     const hasGasMask = equippedItems.includes('gas_mask');
-    const outcomes = applyOutcomeBonuses(expedition.outcomes, equippedItems.length > 0, c.expedition.wellFed, hasGasMask);
+    const outcomes = applyOutcomeBonuses(
+      expedition.outcomes,
+      equippedItems.length > 0,
+      c.expedition.wellFed,
+      hasGasMask,
+      !!state.flags.contaminationCleared
+    );
     const outcome = window.EventEngine.pickWeightedOutcome(outcomes);
     applyExpeditionOutcome(state, c, expedition, outcome, equippedItems);
     results.push({ characterId: c.id, expeditionId: expedition.id, outcome });
