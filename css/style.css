@@ -25,7 +25,8 @@
   --text-main:    var(--ink);
   --text-dim:     #5b5030;
 
-  --font-display: 'Black Han Sans', 'Malgun Gothic', sans-serif;
+  --font-display: 'Black Han Sans', 'Malgun Gothic', sans-serif; /* 큰 제목 전용 */
+  --font-ui:      'Do Hyeon', 'Malgun Gothic', sans-serif; /* 버튼/라벨/이름 등 작은 글씨 */
   --font-body:    'Gowun Batang', 'Malgun Gothic', serif;
   --font-mono:    'Nanum Gothic Coding', 'Malgun Gothic', monospace;
   --font-stamp:   'Special Elite', 'Nanum Gothic Coding', monospace;
@@ -48,7 +49,7 @@ body {
 
 #app { max-width: 920px; margin: 0 auto; position: relative; }
 ::selection { background: var(--danger); color: var(--paper); }
-button { font-family: var(--font-display); letter-spacing: 0.02em; }
+button { font-family: var(--font-ui); letter-spacing: 0.02em; }
 :focus-visible { outline: 4px solid var(--hazard); outline-offset: 3px; }
 
 /* ---------------- 해저드 스트라이프 ---------------- */
@@ -103,7 +104,7 @@ button { font-family: var(--font-display); letter-spacing: 0.02em; }
 
 .panel-section { margin-bottom: 22px; }
 .section-label {
-  font-family: var(--font-display);
+  font-family: var(--font-ui);
   font-size: 1.05em;
   font-weight: 400;
   letter-spacing: 0.06em;
@@ -131,7 +132,7 @@ button { font-family: var(--font-display); letter-spacing: 0.02em; }
 .topbar h1 .goal { font-size: 0.5em; color: var(--metal); letter-spacing: 0.04em; }
 
 .resources { display: flex; gap: 10px; }
-.res-chip { display: flex; flex-direction: column; align-items: flex-end; min-width: 64px; font-family: var(--font-display); font-size: 1.5em; line-height: 1; padding: 8px 12px 8px 14px; background: var(--hazard); color: var(--ink); }
+.res-chip { display: flex; flex-direction: column; align-items: flex-end; min-width: 64px; font-family: var(--font-ui); font-size: 1.5em; line-height: 1; padding: 8px 12px 8px 14px; background: var(--hazard); color: var(--ink); }
 .res-chip i { font-style: normal; font-family: var(--font-mono); font-weight: 700; font-size: 0.42em; letter-spacing: 0.2em; margin-bottom: 4px; }
 .res-chip.water { background: #8fb3c4; }
 
@@ -168,7 +169,7 @@ button { font-family: var(--font-display); letter-spacing: 0.02em; }
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: var(--font-display);
+  font-family: var(--font-ui);
   font-weight: 400;
   letter-spacing: 0.06em;
   color: var(--hazard);
@@ -212,7 +213,7 @@ button { font-family: var(--font-display); letter-spacing: 0.02em; }
 .family-btn .item-icon svg { stroke: currentColor !important; }
 
 .collected { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.95em; margin: 18px 2px 14px; }
-.collected b { font-family: var(--font-display); font-weight: 400; background: var(--ink); color: var(--hazard); padding: 2px 8px; margin-right: 6px; }
+.collected b { font-family: var(--font-ui); font-weight: 400; background: var(--ink); color: var(--hazard); padding: 2px 8px; margin-right: 6px; }
 
 /* 주요 행동 = 해저드 슬랩 */
 .go-btn, #finishBtn, .step-next-btn.advance-day, #restartBtn {
@@ -327,7 +328,7 @@ button { font-family: var(--font-display); letter-spacing: 0.02em; }
 .char-tag { position: absolute; top: 0; right: 0; font-family: var(--font-mono); font-weight: 700; font-size: 0.66em; letter-spacing: 0.1em; color: var(--paper); background: var(--ink); padding: 3px 8px; }
 .char-top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
 .char-id { min-width: 0; }
-.char-name { font-family: var(--font-display); font-size: 1.25em; margin-bottom: 1px; }
+.char-name { font-family: var(--font-ui); font-size: 1.25em; margin-bottom: 1px; }
 .char-status { font-family: var(--font-stamp); font-size: 0.76em; color: var(--text-dim); letter-spacing: 0.08em; }
 
 .ailment-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
@@ -352,7 +353,7 @@ button { font-family: var(--font-display); letter-spacing: 0.02em; }
 
 .ration-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
 .ration-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; background: var(--paper); padding: 10px 12px; }
-.ration-name { font-family: var(--font-display); width: 76px; flex: none; }
+.ration-name { font-family: var(--font-ui); width: 76px; flex: none; }
 
 .step-dots { display: flex; gap: 4px; align-items: center; justify-content: center; margin: 4px 0 12px; font-family: var(--font-mono); font-weight: 700; font-size: 0.8em; color: var(--text-dim); }
 .step-dot { padding: 3px 8px; }
