@@ -28,27 +28,51 @@ function getFoodStatus(days) {
 
 const QUARTER = 0.25;
 
-// 밥/물은 원작처럼 1인당 1/4씩 개별로 준다 (하루에 한 사람당 한 번씩)
-function giveFood(state, characterId) {
+// 배급은 "1인 1회"라는 행동 하나로만 처리한다.
+// 플레이어는 수량을 고르지 않고, 내부적으로 통조림/물통을 1/4씩 알아서 소모한다.
+const RATION_FIELDS = {
+  food: { resource: 'food', daysKey: 'foodDays', fedKey: 'fedFoodToday' },
+  water: { resource: 'water', daysKey: 'waterDays', fedKey: 'fedWaterToday' },
+};
+
+// 배급이 가능한지 확인만 한다 (UI 버튼 비활성화용)
+function canRation(state, characterId, kind) {
+  const f = RATION_FIELDS[kind];
+  if (!f) return { ok: false, reason: 'bad_kind' };
   const c = window.GameState.getCharacter(state, characterId);
   if (!c || c.location !== 'shelter') return { ok: false, reason: 'not_in_shelter' };
-  if (c.fedFoodToday) return { ok: false, reason: 'already_fed' };
-  if (state.resources.food < QUARTER) return { ok: false, reason: 'insufficient' };
-  state.resources.food = Math.round((state.resources.food - QUARTER) * 100) / 100;
-  c.foodDays = 0;
-  c.fedFoodToday = true;
+  if (c[f.fedKey]) return { ok: false, reason: 'already_fed' };
+  if (state.resources[f.resource] < QUARTER) return { ok: false, reason: 'insufficient' };
   return { ok: true };
 }
 
-function giveWater(state, characterId) {
+function ration(state, characterId, kind) {
+  const check = canRation(state, characterId, kind);
+  if (!check.ok) return check;
+  const f = RATION_FIELDS[kind];
   const c = window.GameState.getCharacter(state, characterId);
-  if (!c || c.location !== 'shelter') return { ok: false, reason: 'not_in_shelter' };
-  if (c.fedWaterToday) return { ok: false, reason: 'already_fed' };
-  if (state.resources.water < QUARTER) return { ok: false, reason: 'insufficient' };
-  state.resources.water = Math.round((state.resources.water - QUARTER) * 100) / 100;
-  c.waterDays = 0;
-  c.fedWaterToday = true;
+  state.resources[f.resource] = Math.round((state.resources[f.resource] - QUARTER) * 100) / 100;
+  c[f.daysKey] = 0;
+  c[f.fedKey] = true;
   return { ok: true };
+}
+
+function rationFood(state, characterId) {
+  return ration(state, characterId, 'food');
+}
+
+function rationWater(state, characterId) {
+  return ration(state, characterId, 'water');
+}
+
+// 대피소에 있는 전원에게 한 번에 배급 (자원이 모자라면 되는 데까지만)
+function rationAll(state) {
+  const result = { food: 0, water: 0 };
+  window.GameState.shelterCharacters(state).forEach((c) => {
+    if (ration(state, c.id, 'food').ok) result.food += 1;
+    if (ration(state, c.id, 'water').ok) result.water += 1;
+  });
+  return result;
 }
 
 // 구급상자: 부상/병약 상태를 즉시 회복시킨다 (1개 소모)
@@ -224,8 +248,14 @@ function checkGameOver(state) {
 window.ShelterEngine = {
   advanceDay,
   checkGameOver,
-  giveFood,
-  giveWater,
+  canRation,
+  ration,
+  rationFood,
+  rationWater,
+  rationAll,
+  // 구버전 호환용 별칭
+  giveFood: rationFood,
+  giveWater: rationWater,
   useFirstAid,
   getWaterStatus,
   getFoodStatus,

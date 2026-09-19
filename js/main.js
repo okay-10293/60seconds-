@@ -6,10 +6,12 @@ let state = window.GameState.createInitialState();
 let scavengeState = null;
 let scavengeTimerId = null;
 
-// 대피소 하루 루프: 'diary' → 'rations' → 'expedition' → 'event' 순으로 페이지를 넘긴다.
-let shelterStep = 'diary';
-let dayOutcomeText = null; // 어제 있었던 이벤트의 결과 텍스트 (일기 페이지에 표시)
-let pendingEvent = null;   // advanceDay로 뽑힌 오늘의 이벤트 (event 페이지에서 사용)
+// 대피소 화면: 원작처럼 순서 강제 없이 탭을 자유롭게 오갈 수 있다.
+//   'diary'(벙커 안) · 'rations'(보급품) · 'expedition'(지상으로)
+let shelterView = 'diary';
+let dayOutcomeText = null; // 어제 있었던 이벤트의 결과 텍스트 (벙커 안 화면에 표시)
+let pendingEvent = null;   // advanceDay로 뽑힌 오늘의 이벤트 (모달로 띄운다)
+let pendingEventOutcome = null; // 이벤트 선택 후 결과 텍스트 (모달에 표시)
 
 function itemIcon(itemId) {
   const attrs = `viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"`;
@@ -95,7 +97,16 @@ function diaryStatusLine(c) {
   return `${c.name}: 별다른 이상 없이 지내고 있다.`;
 }
 
+function resetShelterUi() {
+  shelterView = 'diary';
+  dayOutcomeText = null;
+  pendingEvent = null;
+  pendingEventOutcome = null;
+  document.body.classList.remove('modal-open');
+}
+
 function render() {
+  if (state.phase !== 'shelter') document.body.classList.remove('modal-open');
   if (state.phase === 'scavenge') renderScavenge();
   else if (state.phase === 'shelter') renderShelter();
   else if (state.phase === 'gameover') renderGameOver();
@@ -253,15 +264,18 @@ function renderShelter() {
 
   const dayPct = Math.min(100, Math.round((state.day / window.GAME_CONFIG.goalDay) * 100));
 
-  const steps = [
-    { id: 'diary', label: '일기' },
-    { id: 'rations', label: '배급' },
-    { id: 'expedition', label: '원정' },
-    { id: 'event', label: '오늘' },
+  const views = [
+    { id: 'diary', label: '벙커 안', icon: viewIcon('diary') },
+    { id: 'rations', label: '보급품', icon: viewIcon('rations') },
+    { id: 'expedition', label: '지상으로', icon: viewIcon('expedition') },
   ];
-  const stepDotsHtml = steps
-    .map((s) => `<span class="step-dot ${s.id === shelterStep ? 'active' : ''}">${s.label}</span>`)
-    .join('<span class="step-sep">·</span>');
+  const viewTabsHtml = views
+    .map(
+      (v) => `<button class="view-tab ${v.id === shelterView ? 'active' : ''}" data-view="${v.id}">
+        <span class="view-tab-icon">${v.icon}</span><span class="view-tab-label">${v.label}</span>
+      </button>`
+    )
+    .join('');
 
   app.innerHTML = `
     <div class="topbar">
@@ -290,51 +304,123 @@ function renderShelter() {
       <div class="inventory-row">${inventoryHtml || '(인벤토리 없음)'}</div>
     </div>
 
-    <div class="step-dots">${stepDotsHtml}</div>
+    <div class="view-tabs">${viewTabsHtml}</div>
     <div id="stepArea"></div>
+
+    <div class="day-footer">
+      <span class="day-footer-hint">둘러볼 만큼 둘러봤으면 잠자리에 든다.</span>
+      <button class="step-next-btn advance-day" id="advanceDayBtn">다음 날로 진행 →</button>
+    </div>
 
     <div class="log-box">
       <div class="section-label" style="margin-bottom:6px;">무전 기록</div>
       ${state.log.slice(-6).map((l) => `<div>Day ${l.day} — ${l.text}</div>`).join('') || '<div>(기록 없음)</div>'}
     </div>
+    <div id="eventLayer"></div>
   `;
 
+  app.querySelectorAll('.view-tab').forEach((btn) => {
+    btn.addEventListener('click', () => goToView(btn.dataset.view));
+  });
+  document.getElementById('advanceDayBtn').addEventListener('click', handleAdvanceDay);
+
   renderStepArea(people);
+  renderEventModal();
 }
 
-// 현재 shelterStep에 맞는 패널(일기/배급/원정/이벤트)을 그려넣는다.
+// 원작처럼 오늘의 사건은 화면 위에 카드로 덮어씌운다. 선택하기 전까지는 다른 조작이 막힌다.
+function renderEventModal() {
+  const layer = document.getElementById('eventLayer');
+  if (!layer) return;
+  if (!pendingEvent) {
+    layer.innerHTML = '';
+    document.body.classList.remove('modal-open');
+    return;
+  }
+  document.body.classList.add('modal-open');
+
+  const body = pendingEventOutcome
+    ? `<p class="event-outcome-text">${pendingEventOutcome}</p>
+       <button class="step-next-btn" id="closeEventBtn">벙커로 돌아가기 →</button>`
+    : `<div class="choices">${pendingEvent.choices
+        .map((choice, idx) => {
+          const eligible = window.EventEngine.isChoiceEligible(state, choice);
+          return `<button class="choice-btn" ${eligible ? '' : 'disabled'} data-idx="${idx}">${choice.text}</button>`;
+        })
+        .join('')}</div>`;
+
+  layer.innerHTML = `
+    <div class="event-backdrop">
+      <div class="event-modal">
+        ${cdBadge()}
+        <h2>${pendingEvent.title}</h2>
+        <p class="event-desc">${pendingEvent.description}</p>
+        ${body}
+      </div>
+    </div>`;
+
+  layer.querySelectorAll('.choice-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const outcome = window.EventEngine.resolveChoice(state, pendingEvent, Number(btn.dataset.idx));
+      pendingEventOutcome = outcome.resultText;
+      dayOutcomeText = outcome.resultText;
+      renderShelter();
+    });
+  });
+  const closeBtn = document.getElementById('closeEventBtn');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      pendingEvent = null;
+      pendingEventOutcome = null;
+      renderShelter();
+    });
+  }
+}
+
+function viewIcon(id) {
+  const attrs = `viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"`;
+  const icons = {
+    diary: `<path d="M4 4 h13 a2 2 0 0 1 2 2 v14 a2 2 0 0 0-2-2 H4 z"/><line x1="8" y1="9" x2="15" y2="9"/><line x1="8" y1="13" x2="15" y2="13"/>`,
+    rations: `<rect x="6" y="6" width="12" height="14" rx="1"/><ellipse cx="12" cy="6" rx="6" ry="1.8"/><line x1="6" y1="12" x2="18" y2="12"/>`,
+    expedition: `<path d="M4 5 L9 3 L15 5 L20 3 V19 L15 21 L9 19 L4 21 Z"/><line x1="9" y1="3" x2="9" y2="19"/><line x1="15" y1="5" x2="15" y2="21"/>`,
+  };
+  return `<svg ${attrs}>${icons[id] || ''}</svg>`;
+}
+
+// 현재 선택된 탭에 맞는 패널을 그려넣는다 (순서 강제 없음).
 function renderStepArea(people) {
   const area = document.getElementById('stepArea');
 
-  if (shelterStep === 'diary') {
+  if (shelterView === 'diary') {
     area.innerHTML = `
       <div class="panel-section diary-panel">
-        <h2 class="section-label">일기 — Day ${state.day}</h2>
+        <h2 class="section-label">Day ${state.day}</h2>
         <p class="diary-outcome">${dayOutcomeText || '특별한 일 없이 하루를 시작한다.'}</p>
         <div class="diary-status-list">
           ${people.map((c) => `<div class="diary-line">${diaryStatusLine(c)}</div>`).join('') || '<div class="diary-line">대피소에 아무도 없다.</div>'}
         </div>
-        <button class="step-next-btn" id="toRationsBtn">다음 페이지 →</button>
       </div>`;
-    document.getElementById('toRationsBtn').addEventListener('click', () => goToStep('rations'));
     return;
   }
 
-  if (shelterStep === 'rations') {
+  if (shelterView === 'rations') {
+    const canRationAll = people.some((c) => window.ShelterEngine.canRation(state, c.id, 'food').ok || window.ShelterEngine.canRation(state, c.id, 'water').ok);
     const rows = people
       .map((c) => {
-        const foodDisabled = c.fedFoodToday || state.resources.food < 0.25;
-        const waterDisabled = c.fedWaterToday || state.resources.water < 0.25;
+        const foodCheck = window.ShelterEngine.canRation(state, c.id, 'food');
+        const waterCheck = window.ShelterEngine.canRation(state, c.id, 'water');
         const needsAid = c.health === 'injured' || c.health === 'sick';
         const hasAidItem = window.GameState.hasItem(state, 'first_aid', 1);
+        const foodLabel = c.fedFoodToday ? '배급 완료' : foodCheck.reason === 'insufficient' ? '식량 없음' : '식량 배급';
+        const waterLabel = c.fedWaterToday ? '배급 완료' : waterCheck.reason === 'insufficient' ? '식수 없음' : '식수 배급';
         return `
         <div class="ration-row">
           <div class="ration-name">${c.name}</div>
-          <button class="ration-give-btn ${c.fedFoodToday ? 'given' : ''}" data-give="food" data-character="${c.id}" ${foodDisabled ? 'disabled' : ''}>
-            ${itemIcon('canned_food')} <span>${c.fedFoodToday ? '급식 완료' : '1/4 주기'}</span>
+          <button class="ration-give-btn ${c.fedFoodToday ? 'given' : ''}" data-give="food" data-character="${c.id}" ${foodCheck.ok ? '' : 'disabled'}>
+            ${itemIcon('canned_food')} <span>${foodLabel}</span>
           </button>
-          <button class="ration-give-btn ${c.fedWaterToday ? 'given' : ''}" data-give="water" data-character="${c.id}" ${waterDisabled ? 'disabled' : ''}>
-            ${itemIcon('water_bottle')} <span>${c.fedWaterToday ? '급수 완료' : '1/4 주기'}</span>
+          <button class="ration-give-btn ${c.fedWaterToday ? 'given' : ''}" data-give="water" data-character="${c.id}" ${waterCheck.ok ? '' : 'disabled'}>
+            ${itemIcon('water_bottle')} <span>${waterLabel}</span>
           </button>
           ${
             needsAid
@@ -349,17 +435,17 @@ function renderStepArea(people) {
 
     area.innerHTML = `
       <div class="panel-section rations-panel">
-        <h2 class="section-label">배급</h2>
-        <p class="panel-hint">밥과 물은 1인당 하루 1/4씩만 줄 수 있다. 부상·병약 상태는 구급상자로 즉시 치료할 수 있다.</p>
+        <h2 class="section-label">보급품</h2>
+        <p class="panel-hint">배급은 하루에 한 사람당 한 번. 통조림과 물통은 알아서 나눠 쓴다. 부상·병약 상태는 구급상자로 즉시 치료할 수 있다.</p>
         <div class="ration-list">${rows || '<div class="diary-line">대피소에 아무도 없다.</div>'}</div>
-        <button class="step-next-btn" id="toExpeditionBtn">다음 페이지 →</button>
+        <button class="ration-all-btn" id="rationAllBtn" ${canRationAll ? '' : 'disabled'}>전원에게 배급</button>
       </div>`;
 
     area.querySelectorAll('[data-give]').forEach((btn) => {
       btn.addEventListener('click', () => {
         const characterId = btn.dataset.character;
-        if (btn.dataset.give === 'food') window.ShelterEngine.giveFood(state, characterId);
-        else window.ShelterEngine.giveWater(state, characterId);
+        if (btn.dataset.give === 'food') window.ShelterEngine.rationFood(state, characterId);
+        else window.ShelterEngine.rationWater(state, characterId);
         renderShelter();
       });
     });
@@ -369,11 +455,17 @@ function renderStepArea(people) {
         renderShelter();
       });
     });
-    document.getElementById('toExpeditionBtn').addEventListener('click', () => goToStep('expedition'));
+    const allBtn = document.getElementById('rationAllBtn');
+    if (allBtn) {
+      allBtn.addEventListener('click', () => {
+        window.ShelterEngine.rationAll(state);
+        renderShelter();
+      });
+    }
     return;
   }
 
-  if (shelterStep === 'expedition') {
+  if (shelterView === 'expedition') {
     const expeditionCandidates = people.filter((c) => window.ExpeditionEngine.canSendExpedition(state, c.id));
     const outOnExpedition = state.characters.filter((c) => c.location === 'scavenging');
     const equippableItems = window.ExpeditionEngine.getEquippableItems(state);
@@ -405,7 +497,6 @@ function renderStepArea(people) {
             : `<div class="panel-hint">보낼 수 있는 인원이 없다.</div>`
         }
         <div class="inventory-row">${outOnExpeditionHtml}</div>
-        <button class="step-next-btn advance-day" id="advanceDayBtn">다음 날로 진행 →</button>
       </div>`;
 
     const slot0 = document.getElementById('expeditionEquipSelect0');
@@ -431,71 +522,31 @@ function renderStepArea(people) {
         renderShelter();
       });
     }
-    document.getElementById('advanceDayBtn').addEventListener('click', handleAdvanceDay);
     return;
-  }
-
-  if (shelterStep === 'event') {
-    if (!pendingEvent) {
-      // 안전장치: 이벤트 없이 event 단계로 온 경우 바로 다음 날 일기로.
-      goToStep('diary');
-      return;
-    }
-    const choicesHtml = pendingEvent.choices
-      .map((choice, idx) => {
-        const eligible = window.EventEngine.isChoiceEligible(state, choice);
-        return `<button class="choice-btn" ${eligible ? '' : 'disabled'} data-idx="${idx}">${choice.text}</button>`;
-      })
-      .join('');
-
-    area.innerHTML = `
-      <div class="panel-section event-panel-step">
-        <h2 class="section-label">오늘 있었던 일</h2>
-        <div class="event-box">
-          <h2>${pendingEvent.title}</h2>
-          <p>${pendingEvent.description}</p>
-          <div class="choices">${choicesHtml}</div>
-          <div id="outcomeText"></div>
-        </div>
-      </div>`;
-
-    area.querySelectorAll('.choice-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const idx = Number(btn.dataset.idx);
-        const outcome = window.EventEngine.resolveChoice(state, pendingEvent, idx);
-        document.getElementById('outcomeText').innerHTML = `
-          <p class="event-outcome-text">${outcome.resultText}</p>
-          <button class="step-next-btn" id="toNextDiaryBtn">다음 날로 →</button>`;
-        area.querySelectorAll('.choice-btn').forEach((b) => (b.disabled = true));
-        document.getElementById('toNextDiaryBtn').addEventListener('click', () => {
-          dayOutcomeText = outcome.resultText;
-          pendingEvent = null;
-          goToStep('diary');
-        });
-      });
-    });
   }
 }
 
-function goToStep(step) {
-  shelterStep = step;
+function goToView(view) {
+  if (pendingEvent) return; // 사건을 처리하기 전에는 다른 화면으로 못 넘어간다
+  shelterView = view;
   renderShelter();
 }
 
 function handleAdvanceDay() {
+  if (pendingEvent) return;
   const result = window.ShelterEngine.advanceDay(state);
   if (state.phase === 'gameover' || state.phase === 'ending') {
     render();
     return;
   }
+  pendingEventOutcome = null;
   if (result.event) {
     pendingEvent = result.event;
-    shelterStep = 'event';
   } else {
     pendingEvent = null;
     dayOutcomeText = '오늘은 특별한 일 없이 하루가 지나갔다.';
-    shelterStep = 'diary';
   }
+  shelterView = 'diary';
   renderShelter();
 }
 
@@ -515,6 +566,7 @@ function renderGameOver() {
   document.getElementById('restartBtn').addEventListener('click', () => {
     state = window.GameState.createInitialState();
     scavengeState = null;
+    resetShelterUi();
     render();
   });
 }
@@ -542,6 +594,7 @@ function renderEnding() {
   document.getElementById('restartBtn').addEventListener('click', () => {
     state = window.GameState.createInitialState();
     scavengeState = null;
+    resetShelterUi();
     render();
   });
 }

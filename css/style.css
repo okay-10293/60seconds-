@@ -355,10 +355,35 @@ button { font-family: var(--font-ui); letter-spacing: 0.02em; }
 .ration-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; background: var(--paper); padding: 10px 12px; }
 .ration-name { font-family: var(--font-ui); width: 76px; flex: none; }
 
-.step-dots { display: flex; gap: 4px; align-items: center; justify-content: center; margin: 4px 0 12px; font-family: var(--font-mono); font-weight: 700; font-size: 0.8em; color: var(--text-dim); }
-.step-dot { padding: 3px 8px; }
-.step-dot.active { color: var(--hazard); background: var(--ink); }
-.step-sep { opacity: 0.4; }
+/* ---------------- 자유 이동 탭 ---------------- */
+.view-tabs { display: flex; gap: 6px; margin: 10px 0 0; flex-wrap: wrap; }
+.view-tab {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--kraft-dark); color: var(--ink-soft);
+  border: 0; border-bottom: 5px solid var(--metal);
+  padding: 9px 16px; cursor: pointer;
+  font-family: var(--font-ui); font-size: 0.98em;
+}
+.view-tab:hover { background: var(--paper-dim); color: var(--ink); }
+.view-tab.active { background: var(--ink); color: var(--hazard); border-bottom-color: var(--danger); }
+.view-tab svg { display: block; }
+
+/* ---------------- 하루 마감 바 ---------------- */
+.day-footer {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  flex-wrap: wrap; margin-top: 16px; padding: 12px 14px; background: var(--kraft-dark);
+}
+.day-footer-hint { font-family: var(--font-mono); font-size: 0.82em; color: var(--text-dim); }
+.day-footer .step-next-btn.advance-day { margin: 0; }
+
+.ration-all-btn {
+  background: var(--ink); color: var(--hazard); border: 0; cursor: pointer;
+  padding: 11px 20px; font-family: var(--font-ui); font-size: 1em;
+  box-shadow: 5px 5px 0 var(--metal);
+}
+.ration-all-btn:hover:not(:disabled) { background: var(--danger); color: var(--paper); }
+.ration-all-btn:active:not(:disabled) { transform: translate(5px, 5px); box-shadow: none; }
+.ration-all-btn:disabled { background: var(--metal); color: var(--kraft); box-shadow: none; cursor: default; }
 
 .expedition-panel select {
   background: var(--paper);
@@ -426,3 +451,33 @@ button { font-family: var(--font-ui); letter-spacing: 0.02em; }
 }
 
 .step-next-btn.advance-day:hover { padding: 15px 20px 15px 44px; }
+
+/* ---------------- 오늘의 사건 (덮어씌우는 카드) ---------------- */
+body.modal-open { overflow: hidden; }
+.event-backdrop {
+  position: fixed; inset: 0; z-index: 50;
+  background: rgba(15, 13, 8, 0.82);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px; overflow-y: auto;
+}
+.event-modal {
+  position: relative;
+  background: var(--paper); color: var(--ink);
+  width: min(620px, 100%);
+  padding: 24px 24px 22px;
+  box-shadow: 12px 12px 0 var(--danger-deep);
+  transform: rotate(-0.5deg);
+  animation: eventDrop 0.22s ease-out;
+}
+@keyframes eventDrop {
+  from { opacity: 0; transform: rotate(-0.5deg) translateY(-18px) scale(0.97); }
+  to   { opacity: 1; transform: rotate(-0.5deg) translateY(0) scale(1); }
+}
+.event-modal .cd-badge { position: absolute; top: -18px; right: -14px; width: 52px; height: 52px; background: var(--paper); }
+.event-modal h2 {
+  font-family: var(--font-display); font-weight: 400; margin: 0 0 12px;
+  font-size: 1.55em; border-bottom: 6px solid var(--ink); padding-bottom: 8px;
+}
+.event-modal .event-desc { font-family: var(--font-body); font-size: 1.06em; line-height: 1.75; margin: 0; }
+.event-modal .choices { margin-top: 18px; }
+.event-modal .step-next-btn { margin-top: 16px; }
