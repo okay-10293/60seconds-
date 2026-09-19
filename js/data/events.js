@@ -833,4 +833,365 @@ window.EVENTS = [
       },
     ],
   },
+  /* ========================================================
+     아래부터는 원작(60 Seconds!)의 이벤트 구조를 참고해 새로 추가한 이벤트들.
+     원작의 매커니즘(선택 구조·조건·보상 형태)만 참고했고, 문구는 전부 새로 작성함.
+  ======================================================== */
+
+  {
+    id: 'unknown_suitcase',
+    title: '문 앞에 놓인 가방',
+    description: '밤새 문 밖에서 인기척이 났다. 아침에 열어보니 낡은 가방 하나가 덩그러니 놓여 있다. 이름도, 쪽지도 없다.',
+    minDay: 3,
+    once: false,
+    choices: [
+      {
+        text: '열어본다',
+        outcomes: [
+          { weight: 25, resultText: '통조림 몇 개가 들어 있었다. 누군지 몰라도 고맙다.', effects: [{ type: 'resource', key: 'food', delta: 2 }] },
+          { weight: 20, resultText: '깨끗한 물이 들어 있었다. 정말 고마운 사람이다.', effects: [{ type: 'resource', key: 'water', delta: 2 }] },
+          { weight: 15, resultText: '가방 자체가 꽤 튼튼하다. 원정 나갈 때 쓸 만하겠다.', effects: [{ type: 'item', itemId: 'suitcase', delta: 1 }] },
+          { weight: 20, resultText: '통조림이 들어 있었지만 유통기한이 한참 지난 것이었다. 결국 탈이 났다.', effects: [{ type: 'character', target: 'random', field: 'health', value: 'sick' }] },
+          { weight: 20, resultText: '열자마자 안에서 뭔가 터졌다. 누군가 일부러 놓아둔 함정이었다.', effects: [{ type: 'character', target: 'random', field: 'health', value: 'injured' }] },
+        ],
+      },
+      {
+        text: '건드리지 않는다',
+        outcomes: [
+          { weight: 100, resultText: '출처를 모르는 물건은 믿을 수 없다. 그대로 두자 다음 날 사라져 있었다.', effects: [] },
+        ],
+      },
+    ],
+  },
+
+  {
+    id: 'wall_mushrooms',
+    title: '벽에 자란 버섯',
+    description: '대피소 한쪽 벽에 버섯이 잔뜩 돋아났다. 먹을 수 있을 만큼 큼직하다. 식량은 늘 부족하고...',
+    minDay: 4,
+    once: false,
+    choices: [
+      {
+        text: '따서 먹어본다',
+        outcomes: [
+          { weight: 55, resultText: '의외로 먹을 만했다. 어둠 속에서 은은하게 빛나는 게 좀 걸리지만, 배는 채웠다.', effects: [{ type: 'character', target: 'all', field: 'foodDays', value: 0 }] },
+          { weight: 45, resultText: '한 입 먹자마자 속이 뒤집혔다. 역시 벽에 난 건 먹는 게 아니었다.', effects: [{ type: 'character', target: 'random', field: 'health', value: 'sick' }] },
+        ],
+      },
+      {
+        text: '아무리 배고파도 먹지 않는다',
+        outcomes: [
+          { weight: 100, resultText: '배는 고프지만, 먹지 말아야 할 것도 있는 법이다.', effects: [] },
+        ],
+      },
+    ],
+  },
+
+  {
+    id: 'wandering_trader',
+    title: '떠돌이 상인',
+    description: '덩치 큰 호위를 데리고 온 상인이 문을 두드린다. 가방을 열어 보이며 거래를 제안한다.',
+    minDay: 5,
+    once: true,
+    choices: [
+      {
+        text: '통조림 2개를 주고 구급상자를 받는다',
+        outcomes: [
+          { weight: 100, resultText: '깔끔한 거래였다. 상인은 라디오 방송을 꼭 챙겨 들으라는 말을 남기고 떠났다.', effects: [
+            { type: 'resource', key: 'food', delta: -2 },
+            { type: 'item', itemId: 'first_aid', delta: 1 },
+          ] },
+        ],
+      },
+      {
+        text: '물 2병을 주고 지도를 받는다',
+        outcomes: [
+          { weight: 100, resultText: '상인은 흔쾌히 지도를 내주고 길을 떠났다.', effects: [
+            { type: 'resource', key: 'water', delta: -2 },
+            { type: 'item', itemId: 'map', delta: 1 },
+          ] },
+        ],
+      },
+      {
+        text: '거래하지 않는다',
+        outcomes: [
+          { weight: 100, resultText: '상인은 아쉬워하며 돌아섰다. 다음에 또 올지는 모르겠다.', effects: [] },
+        ],
+      },
+    ],
+  },
+
+  {
+    id: 'wall_stench',
+    title: '벽 틈에서 나는 악취',
+    description: '벽돌 하나가 헐거워지며 좁은 구멍이 드러났다. 그 안에서 참기 힘든 냄새가 올라온다.',
+    minDay: 3,
+    once: false,
+    choices: [
+      {
+        text: '구멍 안을 살펴본다',
+        outcomes: [
+          { weight: 50, resultText: '통조림을 물고 죽어 있는 쥐 한 마리가 있었다. 통조림은 멀쩡했다.', effects: [{ type: 'resource', key: 'food', delta: 1 }] },
+          { weight: 30, resultText: '안에서 뭔가가 튀어나와 대피소를 헤집고 다니다 라디오를 떨어뜨리고 사라졌다.', effects: [{ type: 'item', itemId: 'radio', delta: -1 }] },
+          { weight: 20, resultText: '한참 들여다봤지만 아무것도 없었다. 냄새만 실컷 맡았다.', effects: [{ type: 'character', target: 'all', field: 'sanity', delta: -3 }] },
+        ],
+      },
+      {
+        text: '그냥 막아둔다',
+        outcomes: [
+          { weight: 100, resultText: '헝겊으로 대충 틀어막았다. 냄새는 며칠 더 갔다.', effects: [{ type: 'character', target: 'all', field: 'sanity', delta: -4 }] },
+        ],
+      },
+    ],
+  },
+
+  {
+    id: 'hidden_safe',
+    title: '지도 뒤의 금고',
+    description: '벽에 붙여둔 지도가 아침에 저절로 떨어졌다. 그 뒤에 작은 금고가 박혀 있다. 우리가 설치한 게 아니다.',
+    minDay: 4,
+    once: true,
+    conditions: { requiredItems: [{ id: 'map', count: 1 }] },
+    choices: [
+      {
+        text: '열어본다',
+        outcomes: [
+          { weight: 40, resultText: '안에 비상식량이 들어 있었다. 이 집 주인은 꽤 준비성이 좋았던 모양이다.', effects: [{ type: 'resource', key: 'food', delta: 2 }] },
+          { weight: 30, resultText: '손전등이 하나 들어 있었다. 쓸모가 많겠다.', effects: [{ type: 'item', itemId: 'flashlight', delta: 1 }] },
+          { weight: 30, resultText: '금고 문을 여는 순간 불이 나갔다. 다시 켜졌을 땐 식량이 조금 비어 있었다.', effects: [{ type: 'resource', key: 'food', delta: -1 }] },
+        ],
+      },
+      {
+        text: '괜히 건드리지 않는다',
+        outcomes: [
+          { weight: 100, resultText: '이미 문제는 충분히 많다. 금고는 그대로 두기로 했다.', effects: [] },
+        ],
+      },
+    ],
+  },
+
+  {
+    id: 'armed_teens',
+    title: '무장한 무리',
+    description: '"자유의 이름으로 문을 열어라!" 밖에서 누군가 외친다. 여러 명, 그리고 총기를 들고 있는 것 같다.',
+    minDay: 6,
+    once: true,
+    choices: [
+      {
+        text: '문을 열어준다',
+        outcomes: [
+          { weight: 35, resultText: '무장한 고등학생 무리였다. 적군을 못 봤냐고 묻더니, 빈손인 우리에게 물을 나눠주고 떠났다.', effects: [{ type: 'resource', key: 'water', delta: 2 }] },
+          { weight: 30, resultText: '겁먹은 우리를 보더니 여분의 도끼를 하나 건네주고는 씩씩하게 사라졌다.', effects: [{ type: 'item', itemId: 'axe', delta: 1 }] },
+          { weight: 20, resultText: '무기가 없다는 말에 여분의 소총을 넘겨주고 떠났다. 어리지만 든든한 아이들이었다.', effects: [{ type: 'item', itemId: 'rifle', delta: 1 }] },
+          { weight: 15, resultText: '문을 열자마자 총구가 들이닥쳤다. 물자를 조금 빼앗기고 나서야 물러갔다.', effects: [
+            { type: 'resource', key: 'food', delta: -2 },
+            { type: 'character', target: 'all', field: 'sanity', delta: -5 },
+          ] },
+        ],
+      },
+      {
+        text: '숨죽이고 기다린다',
+        outcomes: [
+          { weight: 100, resultText: '한참 뒤 발소리가 멀어졌다. 현명한 판단이었길 바란다.', effects: [{ type: 'character', target: 'all', field: 'sanity', delta: -3 }] },
+        ],
+      },
+    ],
+  },
+
+  {
+    id: 'claustrophobia',
+    title: '숨이 막힌다',
+    description: '벽이 조여오는 것 같다는 사람이 나왔다. 문을 잠깐만 열어서 바람이라도 쐬자고 한다.',
+    minDay: 4,
+    once: false,
+    choices: [
+      {
+        text: '잠깐만 문을 연다',
+        outcomes: [
+          { weight: 45, resultText: '잠깐 바깥 공기를 쐬자 한결 나아졌다. 물론 그 공기가 깨끗할 리는 없지만.', effects: [{ type: 'character', target: 'all', field: 'sanity', delta: 8 }] },
+          { weight: 55, resultText: '오염된 공기가 밀려들어왔다. 답답함은 가셨지만 대신 속이 메스껍다.', effects: [
+            { type: 'character', target: 'all', field: 'sanity', delta: 5 },
+            { type: 'character', target: 'random', field: 'health', value: 'sick' },
+          ] },
+        ],
+      },
+      {
+        text: '절대 열지 않는다',
+        outcomes: [
+          { weight: 100, resultText: '문을 닫아둔 건 옳은 판단이었다. 다만 그날 대피소 공기는 유난히 무거웠다.', effects: [{ type: 'character', target: 'all', field: 'sanity', delta: -7 }] },
+        ],
+      },
+    ],
+  },
+
+  {
+    id: 'kids_play_tag',
+    title: '좁은 곳에서의 술래잡기',
+    description: '아이들이 몸이 근질거리는지 대피소 안에서 뛰어놀고 싶어한다. 공간이 넉넉할 리가 없다.',
+    minDay: 3,
+    once: false,
+    conditions: { minCharacters: 2 },
+    choices: [
+      {
+        text: '놀게 둔다',
+        outcomes: [
+          { weight: 45, resultText: '한참을 뛰어다니며 웃었다. 구석에 굴러다니던 통조림까지 찾아냈다.', effects: [
+            { type: 'character', target: 'all', field: 'sanity', delta: 8 },
+            { type: 'resource', key: 'food', delta: 1 },
+          ] },
+          { weight: 30, resultText: '신나게 놀긴 했는데, 부딪히는 바람에 선반 위 물건이 죄다 쏟아졌다.', effects: [
+            { type: 'character', target: 'all', field: 'sanity', delta: 6 },
+            { type: 'resource', key: 'water', delta: -1 },
+          ] },
+          { weight: 25, resultText: '뛰다가 넘어져 한 명이 다쳤다. 그래도 표정은 한결 밝아졌다.', effects: [
+            { type: 'character', target: 'all', field: 'sanity', delta: 5 },
+            { type: 'character', target: 'random', field: 'health', value: 'injured' },
+          ] },
+        ],
+      },
+      {
+        text: '안 된다고 한다',
+        outcomes: [
+          { weight: 100, resultText: '여기서 뛸 공간은 없다. 아이들은 시무룩해졌다.', effects: [{ type: 'character', target: 'all', field: 'sanity', delta: -6 }] },
+        ],
+      },
+    ],
+  },
+
+  {
+    id: 'dog_errand',
+    title: '나가고 싶어하는 개',
+    description: '개가 몇 시간째 문 앞에서 낑낑거린다. 잠깐 내보내주면 뭔가 물어올지도 모른다.',
+    minDay: 4,
+    once: false,
+    conditions: { requiredFlags: { dogJoined: true } },
+    choices: [
+      {
+        text: '잠깐 내보낸다',
+        outcomes: [
+          { weight: 30, resultText: '물병을 하나 물고 돌아왔다. 대체 어떻게 물고 온 건지 모르겠다.', effects: [{ type: 'resource', key: 'water', delta: 1 }] },
+          { weight: 25, resultText: '통조림을 하나 물고 왔다. 기특하다.', effects: [{ type: 'resource', key: 'food', delta: 1 }] },
+          { weight: 15, resultText: '어디서 구했는지 구급상자를 통째로 끌고 왔다.', effects: [{ type: 'item', itemId: 'first_aid', delta: 1 }] },
+          { weight: 30, resultText: '빈손으로 돌아왔지만, 돌아왔다는 것만으로 다들 안도했다.', effects: [{ type: 'character', target: 'all', field: 'sanity', delta: 4 }] },
+        ],
+      },
+      {
+        text: '위험하니 그냥 둔다',
+        outcomes: [
+          { weight: 100, resultText: '한참 낑낑거리다 결국 발치에 엎드려 잠들었다.', effects: [] },
+        ],
+      },
+    ],
+  },
+
+  {
+    id: 'cat_and_checkers',
+    title: '고양이와 체커판',
+    description: '고양이가 체커 말을 하나씩 바닥으로 밀어 떨어뜨리는 데 재미를 붙였다. 하루 종일 딸깍거리는 소리에 다들 신경이 곤두선다.',
+    minDay: 5,
+    once: true,
+    conditions: { requiredFlags: { catJoined: true }, requiredItems: [{ id: 'board_game', count: 1 }] },
+    choices: [
+      {
+        text: '그냥 놀게 둔다',
+        outcomes: [
+          { weight: 60, resultText: '허락하자마자 흥미를 잃더니 체커판 위에 올라앉아 오후 내내 잠만 잤다.', effects: [] },
+          { weight: 40, resultText: '실컷 가지고 놀더니 기어이 체커판을 두 동강 내놓았다. 어떻게 한 건지는 모르겠다.', effects: [{ type: 'item', itemId: 'board_game', delta: -1 }] },
+        ],
+      },
+      {
+        text: '체커판을 치운다',
+        outcomes: [
+          { weight: 100, resultText: '빼앗으려 하자 사납게 달려들었다. 결국 체커판을 포기하고 물러섰다.', effects: [
+            { type: 'item', itemId: 'board_game', delta: -1 },
+            { type: 'character', target: 'all', field: 'sanity', delta: -3 },
+          ] },
+        ],
+      },
+    ],
+  },
+
+  {
+    id: 'dark_side_neighbor',
+    title: '이웃의 대피소',
+    description: '물자가 바닥을 보인다. 길 건너 이웃집 대피소의 잠금장치가 고장 나 있다는 걸 다들 알고 있다. 그 집 사람들이 무사히 들어갔는지는... 모른다.',
+    minDay: 8,
+    once: true,
+    choices: [
+      {
+        text: '가서 가져온다',
+        outcomes: [
+          { weight: 55, resultText: '물자는 챙겼다. 하지만 아무도 그날 일을 입에 올리지 않았다.', effects: [
+            { type: 'resource', key: 'food', delta: 4 },
+            { type: 'resource', key: 'water', delta: 3 },
+            { type: 'character', target: 'all', field: 'sanity', delta: -15 },
+            { type: 'flag', key: 'bloodyHands', value: true },
+          ] },
+          { weight: 45, resultText: '문을 열자 총구가 우리를 맞이했다. 그 집 사람들은 멀쩡히 살아 있었다. 아무 말도 못 하고 돌아왔다.', effects: [
+            { type: 'character', target: 'all', field: 'sanity', delta: -12 },
+            { type: 'flag', key: 'bloodyHands', value: true },
+          ] },
+        ],
+      },
+      {
+        text: '그럴 수는 없다',
+        outcomes: [
+          { weight: 100, resultText: '배가 고파도 넘지 말아야 할 선은 있다. 그렇게 정하고 나니 마음이 한결 가벼워졌다.', effects: [{ type: 'character', target: 'all', field: 'sanity', delta: 10 }] },
+        ],
+      },
+    ],
+  },
+
+  {
+    id: 'plant_seed',
+    title: '주머니 속의 씨앗',
+    description: '짐을 뒤지다 씨앗 한 알이 나왔다. 무슨 씨앗인지는 모르지만, 물 한 병만 쓰면 심어볼 수는 있다.',
+    minDay: 3,
+    once: true,
+    choices: [
+      {
+        text: '물을 써서 심어본다',
+        outcomes: [
+          { weight: 100, resultText: '빈 깡통에 흙을 채우고 씨앗을 묻었다. 뭐라도 나오길 기다려보기로 했다.', effects: [
+            { type: 'resource', key: 'water', delta: -1 },
+            { type: 'flag', key: 'seedPlanted', value: true },
+            { type: 'character', target: 'all', field: 'sanity', delta: 5 },
+          ] },
+        ],
+      },
+      {
+        text: '물이 아깝다',
+        outcomes: [
+          { weight: 100, resultText: '물은 마시는 데 써야 한다. 씨앗은 그대로 주머니에 넣어뒀다.', effects: [{ type: 'character', target: 'all', field: 'sanity', delta: -4 }] },
+        ],
+      },
+    ],
+  },
+
+  {
+    id: 'plant_harvest',
+    title: '자라난 것',
+    description: '깡통에 심어둔 씨앗이 며칠 만에 사람 키만큼 자랐다. 가지에 뭔가 주렁주렁 달려 있는데, 어둠 속에서 희미하게 빛난다.',
+    minDay: 6,
+    once: true,
+    conditions: { requiredFlags: { seedPlanted: true } },
+    choices: [
+      {
+        text: '수확해서 먹는다',
+        outcomes: [
+          { weight: 70, resultText: '빛나는 게 좀 꺼림칙했지만, 통조림 네 개 분량은 충분히 나왔다.', effects: [{ type: 'resource', key: 'food', delta: 4 }] },
+          { weight: 30, resultText: '먹자마자 속이 뒤집혔다. 역시 빛나는 건 먹는 게 아니었다.', effects: [
+            { type: 'resource', key: 'food', delta: 2 },
+            { type: 'character', target: 'random', field: 'health', value: 'sick' },
+          ] },
+        ],
+      },
+      {
+        text: '좀 더 키워본다',
+        outcomes: [
+          { weight: 100, resultText: '욕심을 부렸더니 하룻밤 사이에 폭삭 삭아 재가 되어버렸다.', effects: [{ type: 'character', target: 'all', field: 'sanity', delta: -5 }] },
+        ],
+      },
+    ],
+  },
 ];

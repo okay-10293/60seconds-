@@ -37,7 +37,15 @@ window.ENDINGS = [
     title: '구조대 도착',
     description:
       '헬기 프로펠러 소리와 함께 방공호 문이 열린다. 며칠 전 보낸 구조 신호가 통했다. 밖은 여전히 위험하지만, 이제 혼자가 아니다.',
-    condition: (ctx) => ctx.militaryRescueConfirmed && ctx.shelterCount >= 1,
+    /* 원작처럼: 다른 생존자를 약탈한 적이 있으면(bloodyHands) 구조 대상에서 제외된다. */
+    condition: (ctx) => ctx.militaryRescueConfirmed && ctx.shelterCount >= 1 && !ctx.state.flags.bloodyHands,
+  },
+  {
+    id: 'survived_but_stained',
+    title: '대가를 치른 생존',
+    description:
+      '살아남았다. 하지만 그날 남의 대피소 문을 열었던 순간은 누구의 기억에서도 지워지지 않는다. 구조 신호에 응답이 없었던 것도, 어쩌면 우연이 아닐지 모른다.',
+    condition: (ctx) => !!ctx.state.flags.bloodyHands && ctx.shelterCount >= 1,
   },
   {
     id: 'perfect_with_dog_and_cat',
