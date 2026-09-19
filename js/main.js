@@ -12,7 +12,7 @@ let dayOutcomeText = null; // 어제 있었던 이벤트의 결과 텍스트 (�
 let pendingEvent = null;   // advanceDay로 뽑힌 오늘의 이벤트 (event 페이지에서 사용)
 
 function itemIcon(itemId) {
-  const attrs = `viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"`;
+  const attrs = `viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"`;
   const icons = {
     canned_food: `<rect x="6" y="6" width="12" height="14" rx="1"/><ellipse cx="12" cy="6" rx="6" ry="1.8"/><ellipse cx="12" cy="20" rx="6" ry="1.8"/><line x1="6" y1="12" x2="18" y2="12"/>`,
     water_bottle: `<path d="M10 3h4v3l1.5 2v13a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1V8L10 6z"/><line x1="9" y1="12" x2="15" y2="12"/>`,
@@ -36,7 +36,7 @@ function itemIcon(itemId) {
 }
 
 function roomIcon(roomId) {
-  const attrs = `viewBox="0 0 32 32" width="22" height="22" fill="none" stroke="var(--warn)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"`;
+  const attrs = `viewBox="0 0 32 32" width="22" height="22" fill="none" stroke="var(--warn)" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"`;
   const icons = {
     kitchen: `<rect x="5" y="14" width="22" height="12" rx="1"/><circle cx="11" cy="10" r="2.2"/><circle cx="17" cy="10" r="2.2"/><circle cx="23" cy="10" r="2.2"/><line x1="5" y1="20" x2="27" y2="20"/>`,
     living_room: `<path d="M6 18 v-4 a3 3 0 0 1 3-3 h14 a3 3 0 0 1 3 3 v4"/><rect x="4" y="18" width="24" height="7" rx="1.5"/><line x1="6" y1="25" x2="6" y2="27"/><line x1="26" y1="25" x2="26" y2="27"/>`,
@@ -49,7 +49,7 @@ function roomIcon(roomId) {
 }
 
 function personSearchIcon() {
-  return `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--danger)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="7" r="3.2"/><path d="M5 21 v-2 a7 7 0 0 1 14 0 v2"/></svg>`;
+  return `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="7" r="3.2"/><path d="M5 21 v-2 a7 7 0 0 1 14 0 v2"/></svg>`;
 }
 
 const app = document.getElementById('app');
@@ -158,8 +158,8 @@ function renderScavenge() {
     </div>
     <div class="rooms-grid">${roomsHtml}</div>
     <div class="collected">
-      <span>📦 챙긴 아이템 ${scavengeState.collected.length}개</span>
-      <span>🧍 찾은 가족 ${scavengeState.foundFamily.length}명</span>
+      <span><b>챙긴 물건</b>${scavengeState.collected.length}개</span>
+      <span><b>찾은 가족</b>${scavengeState.foundFamily.length}명</span>
     </div>
     <button id="finishBtn">지금 대피소로 (${scavengeState.collected.length}개 들고) →</button>
   `;
@@ -273,8 +273,8 @@ function renderShelter() {
         </div>
       </div>
       <div class="resources">
-        <span class="res-chip food">🥫 ${state.resources.food}</span>
-        <span class="res-chip water">💧 ${state.resources.water}</span>
+        <span class="res-chip food"><i>식량</i>${state.resources.food}</span>
+        <span class="res-chip water"><i>식수</i>${state.resources.water}</span>
       </div>
     </div>
     <div class="day-progress"><div class="day-progress-fill" style="width:${dayPct}%"></div></div>
@@ -309,7 +309,7 @@ function renderStepArea(people) {
   if (shelterStep === 'diary') {
     area.innerHTML = `
       <div class="panel-section diary-panel">
-        <h2 class="section-label">📔 일기 — Day ${state.day}</h2>
+        <h2 class="section-label">일기 — Day ${state.day}</h2>
         <p class="diary-outcome">${dayOutcomeText || '특별한 일 없이 하루를 시작한다.'}</p>
         <div class="diary-status-list">
           ${people.map((c) => `<div class="diary-line">${diaryStatusLine(c)}</div>`).join('') || '<div class="diary-line">대피소에 아무도 없다.</div>'}
@@ -349,7 +349,7 @@ function renderStepArea(people) {
 
     area.innerHTML = `
       <div class="panel-section rations-panel">
-        <h2 class="section-label">🥫 배급</h2>
+        <h2 class="section-label">배급</h2>
         <p class="panel-hint">밥과 물은 1인당 하루 1/4씩만 줄 수 있다. 부상·병약 상태는 구급상자로 즉시 치료할 수 있다.</p>
         <div class="ration-list">${rows || '<div class="diary-line">대피소에 아무도 없다.</div>'}</div>
         <button class="step-next-btn" id="toExpeditionBtn">다음 페이지 →</button>
@@ -386,13 +386,13 @@ function renderStepArea(people) {
         const equippedNames = (c.expedition && c.expedition.equippedItems ? c.expedition.equippedItems : [])
           .map((id) => window.ItemsAPI.getItem(id).name)
           .join(', ');
-        return `<span class="inv-chip">🚶 ${c.name} (Day ${c.expedition ? c.expedition.returnDay : '?'} 복귀 예정, 목적지 미상)${equippedNames ? ` · ${equippedNames} 지참` : ''}</span>`;
+        return `<span class="inv-chip">[원정 중] ${c.name} (Day ${c.expedition ? c.expedition.returnDay : '?'} 복귀 예정, 목적지 미상)${equippedNames ? ` · ${equippedNames} 지참` : ''}</span>`;
       })
       .join('');
 
     area.innerHTML = `
       <div class="panel-section expedition-panel">
-        <h2 class="section-label">🚶 원정 파견</h2>
+        <h2 class="section-label">원정 파견</h2>
         ${
           expeditionCandidates.length > 0
             ? `<select id="expeditionCharSelect">${expeditionCharOptionsHtml}</select>
@@ -450,7 +450,7 @@ function renderStepArea(people) {
 
     area.innerHTML = `
       <div class="panel-section event-panel-step">
-        <h2 class="section-label">☎ 오늘 있었던 일</h2>
+        <h2 class="section-label">오늘 있었던 일</h2>
         <div class="event-box">
           <h2>${pendingEvent.title}</h2>
           <p>${pendingEvent.description}</p>
