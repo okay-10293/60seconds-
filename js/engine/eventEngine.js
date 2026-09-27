@@ -37,11 +37,23 @@ function isChoiceEligible(state, choice) {
   );
 }
 
+// event.descriptions(배열)가 있으면 그중 하나를 랜덤으로 골라 description으로
+// 써준다. 같은 이벤트라도 매번 다른 상황 지문(문구)으로 보이지만, 선택지/결과는
+// 동일하다 — 원본 이벤트 객체는 건드리지 않고 얕은 복사본을 돌려준다.
+function resolveEventDescription(event) {
+  if (Array.isArray(event.descriptions) && event.descriptions.length > 0) {
+    const picked = event.descriptions[Math.floor(Math.random() * event.descriptions.length)];
+    return { ...event, description: picked };
+  }
+  return event;
+}
+
 // 오늘의 이벤트 후보 중 하나를 랜덤 선택 (없으면 null)
 function pickEventForToday(state) {
   const eligible = window.EVENTS.filter((e) => isEventEligible(state, e));
   if (eligible.length === 0) return null;
-  return eligible[Math.floor(Math.random() * eligible.length)];
+  const chosen = eligible[Math.floor(Math.random() * eligible.length)];
+  return resolveEventDescription(chosen);
 }
 
 function pickWeightedOutcome(outcomes) {

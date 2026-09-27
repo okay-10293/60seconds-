@@ -7,7 +7,9 @@
 // {
 //   id: string (유니크),
 //   title: string,
-//   description: string,
+//   description: string,        // 둘 중 하나만 쓰면 됨
+//   descriptions: [string],      // 여러 개면 매번 그중 하나를 랜덤으로 보여줌
+//                                 (선택지/결과는 어느 문구가 나오든 동일함)
 //   minDay, maxDay: number (선택, 이 기간에만 등장),
 //   once: boolean (한 번 등장하면 다시 안 나옴, 기본 true),
 //   conditions: {                      // 전부 optional
@@ -38,55 +40,58 @@
 //     value:any, delta:number }                         // value 지정시 대입, delta 지정시 증감
 //   { type:'flag', key, value }
 //   { type:'log', text }
+//
+// ------------------------------------------------------------
+// 아래 이벤트들은 '60 Seconds!'의 'Send Someone' 이벤트를 사용자가
+// 직접 한국어로 번역한 지문을 그대로 옮긴 것입니다 (개인용 번역).
+// - 상황 지문에 여러 버전(1./2./3.)이 있는 경우, 서로 다른 이벤트가 아니라
+//   '같은 이벤트를 매번 다른 문구로 보여주는 것'뿐이고 선택지/결과는 동일하므로,
+//   descriptions 배열에 전부 담아 매번 랜덤하게 하나가 뜨도록 했습니다.
+// - '누군가 보낸 경우' / '아무도 보내지 않은 경우' 문단이 여러 개인 경우,
+//   같은 가중치(weight)의 결과 후보로 등록해 매번 랜덤하게 하나가 나오도록
+//   했습니다.
+// - 번역 원문에는 구체적인 자원/능력치 수치가 없어서, 게임 밸런스에 영향을
+//   주는 effects는 임의로 만들어 넣지 않고 빈 배열로 남겨뒀습니다.
+//   필요하면 원하는 effects를 나중에 채워 넣으면 됩니다.
+// ------------------------------------------------------------
 
 window.EVENTS = [
   {
-    id: 'stranger_knock',
-    title: '누군가 문을 두드린다',
-    description: '대피소 밖에서 낯선 목소리가 들린다. "저기요... 살려주세요..."',
-    minDay: 2,
+    id: 'a_new_hope',
+    title: 'A New Hope',
+    descriptions: [
+      '대피소 문 옆에서 익명의 쪽지를 발견했습니다. 쪽지를 쓴 사람은 오늘 밤 정해진 장소에서 열리는 만남에 대표 한 명을 보내 달라고 요청하고 있습니다. 그 사람은 무기를 가져오지 않아야 합니다. 이 점이 걱정스럽지만, 쪽지를 쓴 사람은 자신이 우호적이며 우리를 해칠 생각이 없다고 말합니다. 누군가 확인하러 가도록 할까요?',
+      '오늘 문에서 발견한 쪽지는 우리 모두에게 정말 뜻밖의 일이었습니다. 서명은 없지만, 쪽지를 쓴 사람은 한동안 우리를 지켜봤으며 우리가 자신들이 찾던 종류의 사람들이라고 생각한다고 합니다. 그리고 더 자세한 이야기를 듣기 위해 오늘 자정에 무장하지 않은 대표 한 명을 보내라고 합니다. 누군가 보낼까요?',
+      '오늘 다른 생존자들로 보이는 사람들이 보낸 편지를 발견했습니다. 그들은 우리에게 해를 끼칠 생각이 없으며 우리를 더 알고 싶다고 합니다. 오늘 밤 무장하지 않은 상태로 한 사람을 골라 우리를 대표해 만남에 와 달라고 요청하고 있습니다. 조금 걱정되지만, 우호적인 사람들일 수도 있습니다… 가도 될까요?',
+    ],
     once: true,
     choices: [
       {
-        text: '문을 열어준다',
+        text: '누군가를 보낸다',
         outcomes: [
           {
-            weight: 60,
-            resultText: '지쳐 보이는 생존자였다. 가족이 되기로 했다.',
-            effects: [
-              { type: 'flag', key: 'strangerJoined', value: true },
-              { type: 'log', text: '낯선 사람을 받아들였다.' },
-            ],
+            weight: 1,
+            resultText: '정말입니다. 모두 사실이었습니다! 우리와 같은 다른 사람들이 실제로 존재했습니다. 우리는 무장하지 않은 채 약속 시간에 맞춰 만남 장소에 도착했고, 친절해 보이는 생존자 무리를 만났습니다. 그들은 한 쌍의 쌍둥이, 남자 형제와 여자 형제의 지휘를 받고 있었으며, 꽤 친절해 보였습니다. 그들은 우리에게 몇 가지 질문을 했고 계속 연락하겠다고 약속했습니다!',
+            effects: [],
           },
           {
-            weight: 40,
-            resultText: '함정이었다! 식량을 훔쳐 도망갔다.',
-            effects: [
-              { type: 'resource', key: 'food', delta: -2 },
-              { type: 'log', text: '식량을 도둑맞았다.' },
-            ],
+            weight: 1,
+            resultText: '그 만남은 쌍둥이 남매가 주선한 것이었습니다. 그들은 믿을 만하고 괜찮은 사람들을 찾기 위해 도시의 폐허를 돌아다니며 정찰하는 일을 맡고 있었습니다. 그들은 자신들의 의도에 대해 솔직해 보였고, 우리는 그들을 다시 만나게 되어 매우 기쁩니다. 그들은 우리가 어디에 있는지 알고 있으며, 도움이 필요하면 연락하겠다고 했습니다.',
+            effects: [],
           },
         ],
       },
       {
-        text: '무시한다',
+        text: '아무도 보내지 않는다',
         outcomes: [
           {
-            weight: 100,
-            resultText: '발소리가 멀어졌다. 찜찜한 기분이 남는다.',
-            effects: [
-              { type: 'character', target: 'all', field: 'sanity', delta: -5 },
-            ],
+            weight: 1,
+            resultText: '이건 너무 위험해 보입니다. 누가 그 편지를 남겼는지 알 방법이 없습니다. 무해한 장난일 수도 있고, 약탈자들의 함정일 수도 있습니다… 어느 쪽이든 우리는 여기 남아 군대가 우리를 구하러 오기를 기다리겠습니다. 우리는 군대를 믿을 수 있다는 걸 알고 있습니다!',
+            effects: [],
           },
-        ],
-      },
-      {
-        text: '총으로 위협해서 쫓아낸다',
-        requires: { items: [{ id: 'rifle', count: 1 }] },
-        outcomes: [
           {
-            weight: 100,
-            resultText: '겁을 먹고 도망갔다.',
+            weight: 1,
+            resultText: '여기서 큰 기회를 놓치는 것일지도 모르지만, 대신 군대를 믿고 기다리기로 했습니다. 이 끔찍한 세상에서 믿을 수 있는 건 용감한 군인들뿐입니다. 게다가 함정일 경우 목숨을 걸고 싶지도 않습니다.',
             effects: [],
           },
         ],
@@ -95,25 +100,31 @@ window.EVENTS = [
   },
 
   {
-    id: 'radio_broadcast',
-    title: '라디오 방송',
-    description: '라디오에서 지지직거리는 소리와 함께 정부 방송이 흘러나온다.',
-    conditions: {
-      requiredItems: [{ id: 'radio', count: 1 }],
-    },
-    once: false, // 여러 번 등장 가능한 이벤트 예시
+    id: 'an_unexpected_call',
+    title: 'An Unexpected Call',
+    descriptions: [
+      '따르릉, 따르릉. 다시는 전화 신호를 들을 수 없을 거라고 생각하고 있었는데, 갑자기 바깥 어딘가에서 전화가 울리기 시작했습니다. 길 건너편 공중전화인 것 같습니다. 누군가 가서 받아야 할까요?',
+      '원자폭탄이 우리 작은 마을의 모든 것을 파괴한 뒤로 전화는 과거의 일이 되었다고 생각했습니다. 그런데 우리 거리의 공중전화 한 대가 어떻게든 폭격에서 살아남은 것 같습니다. 지금 전화가 울리고 있습니다! 누군가 전화를 받으러 가야 합니다!',
+      '원자폭탄이 떨어진 지 얼마 되지 않아 전화가 올 거라고는 생각하지 못했습니다. 그런데 지금 바깥에서 전화벨이 분명하게 들립니다. 길 건너편 공중전화가 틀림없습니다. 누군가 가서 받아야 할까요?',
+    ],
+    once: true,
     choices: [
       {
-        text: '계속 듣는다',
+        text: '누군가를 보낸다',
         outcomes: [
           {
-            weight: 50,
-            resultText: '구조대가 다가오고 있다는 소식이다. 희망이 생긴다.',
-            effects: [{ type: 'character', target: 'all', field: 'sanity', delta: 10 }],
+            weight: 1,
+            resultText: '전화를 받자, 상대방이 안도의 한숨을 내쉬는 것이 분명하게 들렸습니다. 자신들은 근처 마을인 힐 밸리에서 온 생존자들이라고 소개했습니다. 우리는 정보를 주고받기 시작했지만 통화가 갑자기 끊겼습니다. 상대방 쪽에서 무슨 일이 생긴 것이 틀림없습니다. 다시 연락해 오기를 바랍니다.',
+            effects: [],
           },
+        ],
+      },
+      {
+        text: '아무도 보내지 않는다',
+        outcomes: [
           {
-            weight: 50,
-            resultText: '아무 정보도 없이 잡음만 계속된다.',
+            weight: 1,
+            resultText: '방사능에 뒤덮인 유령 도시 한가운데서 무작정 울리는 전화로 달려가는 건 너무 위험합니다. 우리는 위험을 감수하지 않겠습니다. 전화벨은 한동안 계속 울리다가 멈췄습니다. 우리 모두에게 꽤 성가셨습니다.',
             effects: [],
           },
         ],
@@ -122,430 +133,36 @@ window.EVENTS = [
   },
 
   {
-    id: 'sick_child',
-    title: '아이가 아프다',
-    description: '아이 중 한 명이 열이 심하게 오른다.',
-    minDay: 3,
+    id: 'blind_date',
+    title: 'Blind date',
+    descriptions: [
+      '군대가 다시 방송을 시작했습니다! 그들은 모든 생존자 집단에게 근처의 특정 장소에서 대표 한 명과 만나자고 요청하고 있습니다. 우리를 이 지역에서 대피시키기 전에 사람들을 심문하려는 것 같습니다. 그들이 좋은 사람인지 나쁜 사람인지 확신할 수 없습니다. 그래도 누군가 보내야 합니다. 여전히 이것이 우리에게 가장 좋은 기회입니다.',
+      '한동안 잠잠했는데, 라디오에서 군대의 또 다른 메시지가 나왔습니다! 그들은 우리에게 한 사람을 보내 만나 달라고 합니다. 일종의 예방 조치인지… 아니면 함정인지 모르겠습니다. 우리가 무엇을 하려는 건지 제대로 알고 있기를 바랍니다. 누구를 보내야 할까요?',
+      '라디오에서 또 다른 군의 발표가 있었습니다. 군인들이 근처에 있으며 각 생존자 집단에서 한 사람씩 만나 자신들의 상황을 설명하라고 요구하고 있습니다. 조금 이상합니다… 그래도 그들이 좋은 의도를 가지고 있기를 바랍니다. 사실상 우리가 할 수 있는 유일한 일이니 누군가 보내볼 만합니다.',
+    ],
     once: true,
-    conditions: { minCharacters: 1 },
     choices: [
       {
-        text: '구급상자로 치료한다',
-        requires: { items: [{ id: 'first_aid', count: 1 }] },
+        text: '누군가를 보낸다',
         outcomes: [
           {
-            weight: 100,
-            resultText: '금방 나았다.',
-            effects: [{ type: 'item', itemId: 'first_aid', delta: -1 }],
-          },
-        ],
-      },
-      {
-        text: '그냥 지켜본다',
-        outcomes: [
-          {
-            weight: 50,
-            resultText: '다행히 스스로 회복했다.',
+            weight: 1,
+            resultText: '우리는 제시간에 만남 장소에 도착했습니다. 군인들이 물어본 질문에 최선을 다해 대답했습니다. 그들의 기대를 충족했기를 바라며, 우리의 초라한 모습이 나쁜 인상을 주지 않았기를 바랍니다.',
             effects: [],
           },
           {
-            weight: 50,
-            resultText: '상태가 악화되었다.',
-            effects: [
-              { type: 'character', target: 'random', field: 'health', value: 'sick' },
-            ],
-          },
-        ],
-      },
-    ],
-  },
-
-  {
-    id: 'rat_infestation',
-    title: '쥐가 들끓는다',
-    description: '식량 창고에서 부스럭거리는 소리가 들린다. 쥐가 식량을 갉아먹고 있는 것 같다.',
-    minDay: 2,
-    once: false,
-    choices: [
-      {
-        text: '도끼로 쫓아낸다',
-        requires: { items: [{ id: 'axe', count: 1 }] },
-        outcomes: [
-          { weight: 100, resultText: '쥐들을 몰아냈다. 식량은 무사하다.', effects: [] },
-        ],
-      },
-      {
-        text: '직접 몸으로 막아본다',
-        outcomes: [
-          {
-            weight: 50,
-            resultText: '겨우 쫓아냈지만 일부는 이미 갉아먹혔다.',
-            effects: [{ type: 'resource', key: 'food', delta: -1 }],
-          },
-          {
-            weight: 50,
-            resultText: '결국 식량 일부를 빼앗겼다.',
-            effects: [{ type: 'resource', key: 'food', delta: -2 }],
-          },
-        ],
-      },
-    ],
-  },
-
-  {
-    id: 'nightmare',
-    title: '악몽',
-    description: '가족 중 한 명이 식은땀을 흘리며 잠에서 깬다. 밖의 상황이 꿈에서도 떠나지 않는 모양이다.',
-    minDay: 2,
-    once: false,
-    choices: [
-      {
-        text: '곁에서 위로해준다',
-        outcomes: [
-          {
-            weight: 100,
-            resultText: '한참을 이야기하다 다시 잠들었다.',
-            effects: [{ type: 'character', target: 'random', field: 'sanity', delta: 8 }],
-          },
-        ],
-      },
-      {
-        text: '그냥 다시 자게 둔다',
-        outcomes: [
-          {
-            weight: 100,
-            resultText: '혼자 뒤척이다 겨우 잠들었다.',
-            effects: [{ type: 'character', target: 'random', field: 'sanity', delta: -5 }],
-          },
-        ],
-      },
-    ],
-  },
-
-  {
-    id: 'trade_offer',
-    title: '라디오로 들려온 거래 제안',
-    description: '다른 생존자 무리가 라디오로 물물교환을 제안한다. "자물쇠 있으면 식량이랑 바꿔줄게요."',
-    minDay: 4,
-    once: true,
-    conditions: { requiredItems: [{ id: 'radio', count: 1 }] },
-    choices: [
-      {
-        text: '자물쇠를 넘기고 식량을 받는다',
-        requires: { items: [{ id: 'lock', count: 1 }] },
-        outcomes: [
-          {
-            weight: 80,
-            resultText: '약속대로 식량을 보내왔다.',
-            effects: [
-              { type: 'item', itemId: 'lock', delta: -1 },
-              { type: 'resource', key: 'food', delta: 3 },
-            ],
-          },
-          {
-            weight: 20,
-            resultText: '사기였다. 자물쇠만 뺏겼다.',
-            effects: [{ type: 'item', itemId: 'lock', delta: -1 }],
-          },
-        ],
-      },
-      {
-        text: '거절한다',
-        outcomes: [{ weight: 100, resultText: '별다른 일 없이 지나갔다.', effects: [] }],
-      },
-    ],
-  },
-
-  {
-    id: 'gas_leak',
-    title: '가스 냄새',
-    description: '어디선가 희미하게 가스 냄새가 풍긴다. 배관이 손상된 것 같다.',
-    minDay: 3,
-    once: true,
-    choices: [
-      {
-        text: '방독면을 쓰고 점검한다',
-        requires: { items: [{ id: 'gas_mask', count: 1 }] },
-        outcomes: [
-          { weight: 100, resultText: '무사히 밸브를 잠갔다. 위험을 피했다.', effects: [] },
-        ],
-      },
-      {
-        text: '생존 안내서를 참고해 임시로 틀어막는다',
-        requires: { items: [{ id: 'survival_book', count: 1 }] },
-        outcomes: [
-          {
-            weight: 70,
-            resultText: '임시로 막는 데 성공했다.',
+            weight: 1,
+            resultText: '우리는 만남 장소에 도착했습니다. 진지해 보이는 군인이 우리에게 몇 가지 질문을 하고 메모를 한 뒤 다시 연락하겠다고 했습니다. 좋은 인상을 남겼기를 바랄 뿐입니다… 폭발 때문에 일요일에 입을 가장 좋은 옷까지 남아 있지는 않았지만요.',
             effects: [],
           },
-          {
-            weight: 30,
-            resultText: '작업 중 냄새를 많이 들이마셨다.',
-            effects: [{ type: 'character', target: 'random', field: 'health', value: 'sick' }],
-          },
         ],
       },
       {
-        text: '일단 환기만 시킨다',
+        text: '아무도 보내지 않는다',
         outcomes: [
           {
-            weight: 50,
-            resultText: '다행히 냄새가 옅어졌다.',
-            effects: [{ type: 'character', target: 'all', field: 'sanity', delta: -3 }],
-          },
-          {
-            weight: 50,
-            resultText: '가스를 마셔 몸이 좋지 않다.',
-            effects: [{ type: 'character', target: 'random', field: 'health', value: 'sick' }],
-          },
-        ],
-      },
-    ],
-  },
-
-  {
-    id: 'family_argument',
-    title: '가족 간의 다툼',
-    description: '좁은 공간에 오래 갇혀있다 보니 사소한 일로 언성이 높아진다.',
-    minDay: 5,
-    once: false,
-    conditions: { minCharacters: 2 },
-    choices: [
-      {
-        text: '보드게임으로 분위기를 풀어본다',
-        requires: { items: [{ id: 'board_game', count: 1 }] },
-        outcomes: [
-          {
-            weight: 100,
-            resultText: '게임을 하다 보니 다들 웃음을 되찾았다.',
-            effects: [{ type: 'character', target: 'all', field: 'sanity', delta: 6 }],
-          },
-        ],
-      },
-      {
-        text: '하모니카를 연주해준다',
-        requires: { items: [{ id: 'harmonica', count: 1 }] },
-        outcomes: [
-          {
-            weight: 100,
-            resultText: '어색한 연주였지만 다들 진정했다.',
-            effects: [{ type: 'character', target: 'all', field: 'sanity', delta: 5 }],
-          },
-        ],
-      },
-      {
-        text: '그냥 각자 진정할 때까지 둔다',
-        outcomes: [
-          {
-            weight: 100,
-            resultText: '냉랭한 분위기가 며칠 갈 것 같다.',
-            effects: [{ type: 'character', target: 'all', field: 'sanity', delta: -6 }],
-          },
-        ],
-      },
-    ],
-  },
-
-  {
-    id: 'flu_outbreak',
-    title: '독감 기운',
-    description: '한 명이 콜록거리기 시작한다. 좁은 대피소에서 옮으면 큰일이다.',
-    minDay: 6,
-    once: false,
-    choices: [
-      {
-        text: '구급상자로 즉시 치료한다',
-        requires: { items: [{ id: 'first_aid', count: 1 }] },
-        outcomes: [
-          {
-            weight: 100,
-            resultText: '초기에 잡아서 퍼지지 않았다.',
-            effects: [{ type: 'item', itemId: 'first_aid', delta: -1 }],
-          },
-        ],
-      },
-      {
-        text: '격리시키고 지켜본다',
-        outcomes: [
-          {
-            weight: 60,
-            resultText: '다행히 다른 사람에게는 옮지 않았다.',
-            effects: [{ type: 'character', target: 'random', field: 'health', value: 'sick' }],
-          },
-          {
-            weight: 40,
-            resultText: '결국 대피소 전체로 퍼졌다.',
-            effects: [{ type: 'character', target: 'all', field: 'sanity', delta: -8 }],
-          },
-        ],
-      },
-    ],
-  },
-
-  {
-    id: 'stray_dog',
-    title: '문 밖의 개',
-    description: '문 틈으로 마르고 지친 개 한 마리가 보인다. 낑낑거리며 안으로 들어오려 한다.',
-    minDay: 3,
-    once: true,
-    choices: [
-      {
-        text: '먹을 게 없지만 일단 들인다',
-        outcomes: [
-          {
-            weight: 100,
-            resultText: '식량은 부족해졌지만, 개를 보자 다들 거짓말처럼 마음이 놓였다.',
-            effects: [
-              { type: 'resource', key: 'food', delta: -1 },
-              { type: 'flag', key: 'dogJoined', value: true },
-              { type: 'character', target: 'all', field: 'sanity', delta: 20 },
-            ],
-          },
-        ],
-      },
-      {
-        text: '문을 열어주지 않는다',
-        outcomes: [
-          {
-            weight: 100,
-            resultText: '낑낑거리는 소리가 한참 이어지다 조용해졌다.',
-            effects: [{ type: 'character', target: 'all', field: 'sanity', delta: -4 }],
-          },
-        ],
-      },
-    ],
-  },
-
-  {
-    id: 'stray_cat',
-    title: '창고에 숨어든 고양이',
-    description: '식량 창고 쪽에서 부스럭거리는 소리가 난다. 살펴보니 비쩍 마른 고양이 한 마리가 구석에 웅크리고 있다.',
-    minDay: 5,
-    once: true,
-    choices: [
-      {
-        text: '조심스럽게 물을 나눠준다',
-        outcomes: [
-          {
-            weight: 100,
-            resultText: '경계하던 고양이가 발치에 와서 몸을 비비자, 다들 거짓말처럼 마음이 놓였다.',
-            effects: [
-              { type: 'resource', key: 'water', delta: -1 },
-              { type: 'flag', key: 'catJoined', value: true },
-              { type: 'character', target: 'all', field: 'sanity', delta: 20 },
-            ],
-          },
-        ],
-      },
-      {
-        text: '그냥 내버려 둔다',
-        outcomes: [
-          {
-            weight: 50,
-            resultText: '고양이는 알아서 어딘가로 사라졌다.',
-            effects: [],
-          },
-          {
-            weight: 50,
-            resultText: '밤새 창고를 뒤지고 다녔는지 식량이 조금 상해 있었다.',
-            effects: [{ type: 'resource', key: 'food', delta: -1 }],
-          },
-        ],
-      },
-    ],
-  },
-
-  {
-    id: 'looters_at_the_door',
-    title: '약탈자들',
-    description: '무장한 무리가 대피소 물자를 노리고 접근하고 있다.',
-    minDay: 7,
-    once: false,
-    choices: [
-      {
-        text: '자물쇠로 문을 걸어 잠근다',
-        requires: { items: [{ id: 'lock', count: 1 }] },
-        outcomes: [
-          {
-            weight: 100,
-            resultText: '단단히 잠긴 문 앞에서 약탈자들은 헛수고만 하다 돌아갔다.',
-            effects: [{ type: 'item', itemId: 'lock', delta: -1 }],
-          },
-        ],
-      },
-      {
-        text: '엽총으로 맞선다',
-        requires: { items: [{ id: 'rifle', count: 1 }] },
-        outcomes: [
-          { weight: 80, resultText: '위협적인 태세에 약탈자들이 물러났다.', effects: [] },
-          {
-            weight: 20,
-            resultText: '충돌이 벌어져 한 명이 다쳤다.',
-            effects: [{ type: 'character', target: 'random', field: 'health', value: 'injured' }],
-          },
-        ],
-      },
-      {
-        text: '도끼로 맞선다',
-        requires: { items: [{ id: 'axe', count: 1 }] },
-        outcomes: [
-          { weight: 50, resultText: '몸싸움 끝에 겨우 쫓아냈다.', effects: [] },
-          {
-            weight: 50,
-            resultText: '싸우다 다쳤지만 물자는 지켰다.',
-            effects: [{ type: 'character', target: 'random', field: 'health', value: 'injured' }],
-          },
-        ],
-      },
-      {
-        text: '조용히 숨는다',
-        outcomes: [
-          {
-            weight: 50,
-            resultText: '들키지 않고 지나갔다.',
-            effects: [{ type: 'character', target: 'all', field: 'sanity', delta: -5 }],
-          },
-          {
-            weight: 50,
-            resultText: '결국 발각되어 물자를 일부 빼앗겼다.',
-            effects: [
-              { type: 'resource', key: 'food', delta: -2 },
-              { type: 'resource', key: 'water', delta: -2 },
-            ],
-          },
-        ],
-      },
-    ],
-  },
-
-  {
-    id: 'distress_signal',
-    title: '라디오 주파수 속 목소리',
-    description: '라디오 잡음 사이로 희미하게 신호가 잡힌다. "...생존자가 있다면... 응답하라..." 군 통신인 것 같다.',
-    minDay: 5,
-    once: true,
-    conditions: { requiredItems: [{ id: 'radio', count: 1 }] },
-    choices: [
-      {
-        text: '구조 신호를 보낸다',
-        outcomes: [
-          {
-            weight: 100,
-            resultText: '위치와 상태를 알렸다. 응답이 올지는 알 수 없지만, 기다려보기로 했다.',
-            effects: [
-              { type: 'flag', key: 'distressSignalSent', value: true },
-              { type: 'log', text: '군 통신에 구조 신호를 보냈다.' },
-            ],
-          },
-        ],
-      },
-      {
-        text: '섣불리 위치를 알리지 않는다',
-        outcomes: [
-          {
-            weight: 100,
-            resultText: '누군지 모를 상대에게 위치를 알리는 건 위험하다고 판단했다.',
+            weight: 1,
+            resultText: '위험을 감수할 가치가 없습니다. 저들이 군인이 아니라 약탈자라면 어떻게 하죠? 아니면 그보다 더 나쁜 존재라면…',
             effects: [],
           },
         ],
@@ -554,130 +171,137 @@ window.EVENTS = [
   },
 
   {
-    id: 'rescue_convoy',
-    title: '다가오는 엔진 소리',
-    description: '멀리서 차량 엔진 소리가 점점 가까워진다. 며칠 전 보냈던 구조 신호에 대한 응답일지도 모른다.',
-    minDay: 9,
+    id: 'coffee_run',
+    title: 'Coffee run',
+    description: '이 밋밋하고 맛없는 물도 이제 지긋지긋합니다. 돌로레스는 커피 한 잔을 정말 간절히 원하고 있습니다. 진짜 미국식 커피, 다섯 잔을 마셔도 여전히 졸릴 정도의 커피 말입니다. 하지만 이런 황무지에서 그런 걸 어디서 구할 수 있을까요? 음, 돌로레스가 가장 좋아하던 식당이… 어, 예전에는 몇 블록 떨어진 곳에 있었습니다. 누군가 커피를 구하러 가야 하지 않을까요? 하지만 누가 가죠?',
     once: true,
-    conditions: { requiredFlags: { distressSignalSent: true }, requiredItems: [{ id: 'radio', count: 1 }] },
     choices: [
       {
-        text: '문을 열고 신호를 보낸다',
+        text: '누군가를 보낸다',
         outcomes: [
           {
-            weight: 75,
-            resultText: '군 구조대였다. 곧 데리러 오겠다는 약속을 받았다.',
-            effects: [
-              { type: 'flag', key: 'militaryRescueConfirmed', value: true },
-              { type: 'log', text: '구조대와 접선에 성공했다.' },
-            ],
+            weight: 1,
+            resultText: '오. 차가운 커피가 한 냄비나 생겼습니다! 맛은 이상하고 맛을 내줄 설탕이나 우유도 없지만, 그래도 괜찮습니다. 우리가 마시던 밋밋하고 약간 방사능에 오염된 물보다는 낫습니다. 냄비에는 커피가 몇 잔밖에 없었고 우리는 단 몇 분 만에 전부 들이켰습니다. 우리 모두 아주 정신이 맑아졌고 뭐든 할 준비가 되어 있습니다… 앞으로 5분 정도는 말이죠.',
+            effects: [],
           },
           {
-            weight: 25,
-            resultText: '아쉽게도 그냥 지나가는 차량이었다.',
-            effects: [{ type: 'character', target: 'all', field: 'sanity', delta: -4 }],
-          },
-        ],
-      },
-      {
-        text: '만약을 대비해 숨죽이고 지켜본다',
-        outcomes: [
-          {
-            weight: 100,
-            resultText: '차량은 별다른 반응 없이 지나갔다.',
-            effects: [{ type: 'character', target: 'all', field: 'sanity', delta: -3 }],
-          },
-        ],
-      },
-    ],
-  },
-
-  {
-    id: 'strange_noise_vent',
-    title: '환기구에서 나는 소리',
-    description: '환기구 쪽에서 부스럭거리는 소리와 함께 뭔가 방공호 안으로 기어들어왔다. 대응해야 한다.',
-    minDay: 3,
-    once: false,
-    choices: [
-      {
-        text: '총으로 제압한다',
-        requires: { items: [{ id: 'rifle', count: 1 }] },
-        outcomes: [
-          {
-            weight: 100,
-            resultText: '한 방에 처리했다. 피해는 없었다.',
+            weight: 1,
+            resultText: '우리의 지원자는 빈손으로 돌아왔습니다. 듣자 하니 그 식당은 이제 의자 몇 개만 남은 슬픈 구덩이가 되어 있었다고 합니다. 정말 실망스럽군요.',
             effects: [],
           },
         ],
       },
       {
-        text: '살충제를 뿌린다',
-        requires: { items: [{ id: 'pesticide', count: 1 }] },
+        text: '아무도 보내지 않는다',
         outcomes: [
           {
-            weight: 100,
-            resultText: '독한 냄새와 함께 깔끔하게 처리했다.',
-            effects: [{ type: 'item', itemId: 'pesticide', delta: -1 }],
+            weight: 1,
+            resultText: '이걸 위해 목숨을 걸지는 않겠습니다. 우리 머릿속에는 더 중요한 일이 있습니다. 벽의 금이 저절로 숫자를 세어주지는 않을 테니까요!',
+            effects: [],
           },
         ],
       },
+    ],
+  },
+
+  {
+    id: 'danger_of_the_wasteland',
+    title: 'Danger Of The Wasteland',
+    descriptions: [
+      '들었어요? 우리 머리 바로 위, 예전에 아름다웠던 잔디밭을 가로질러 동물 떼가 달려가는 소리 같습니다. 저 녀석들이 그냥 도망가게 둘 수는 없습니다! 신선한 먹거리를 구할 완벽한 기회일지도 모릅니다. 누가 사냥하러 갈까요?',
+      '오늘 동네에서 이상한 소리를 많이 들었습니다. 아마 동물원에서 동물들이 탈출해 위에서 떼를 지어 달리고 있는 것 같습니다. 신선한 먹거리를 사냥할 좋은 기회일지도 모릅니다. 누가 밖으로 나갈까요?',
+    ],
+    once: true,
+    choices: [
       {
-        text: '도끼로 제압한다',
-        requires: { items: [{ id: 'axe', count: 1 }] },
+        text: '누군가를 보낸다',
         outcomes: [
           {
-            weight: 100,
-            resultText: '단번에 처리했다. 피해는 없었다.',
+            weight: 1,
+            resultText: '오. 우리는 그 무리를 찾아냈고, 일종의 꾸러미를 들고 있던 두 머리 달린 당나귀처럼 생긴 것을 쓰러뜨릴 수 있었습니다. 우리가 다가가기도 전에 거대한 맹금류 한 마리가 급강하해 그 사체를 낚아채 날아가 버렸습니다. 남은 것은 당나귀의 짐에서 떨어진 수프 통조림 몇 개뿐이었습니다.',
+            effects: [],
+          },
+          {
+            weight: 1,
+            resultText: '저 바깥의 괴물은 대체 뭐였죠?! 기린인지, 소인지, 거미인지 구분할 수 없었습니다! 쓰러뜨리는 데 꽤 많은 총알이 필요했지만, 결국 우리의 배 속으로 들어갔습니다. 토마토 수프와 맛이 아주 비슷했던 게 아쉽군요.',
+            effects: [],
+          },
+          {
+            weight: 1,
+            resultText: '조준 사격을 연습하지 않은 것이 안타깝습니다. 두 머리 달린 소처럼 보이는 동물들을 향해 쏜 총알은 모두 빗나갔습니다. 다음에는 제대로 맞히길 바랍니다.',
+            effects: [],
+          },
+          {
+            weight: 1,
+            resultText: '정말 끔찍한 생각이었다면 이번 원정이 상위 5위 안에 확실히 들 겁니다. 모든 일이 잘되고 있었는데, 갑자기 그것이 벨로시랩터 무리라는 사실을 깨달았습니다! 아니면 적어도 그렇게 보이는 무리였습니다! 공룡이 아니었다고 해도 고기를 향한 굶주림만큼은 공룡과 다르지 않았습니다… 우리 원정대는 그 사실을 뼈저리게 알게 되었습니다.',
             effects: [],
           },
         ],
       },
       {
-        text: '생존 안내서를 참고해 퇴치한다',
-        requires: { items: [{ id: 'survival_book', count: 1 }] },
+        text: '아무도 보내지 않는다',
         outcomes: [
           {
-            weight: 100,
-            resultText: '책에서 본 대로 하니 손쉽게 쫓아낼 수 있었다.',
+            weight: 1,
+            resultText: '사냥 원정은 너무 위험해 보입니다. 저것들이 평범한 동물이 아니라 돌연변이 거미사자나 그보다 더 끔찍한 존재라면 어떡하죠?',
+            effects: [],
+          },
+        ],
+      },
+    ],
+  },
+
+  {
+    id: 'graffiti',
+    title: 'Graffiti',
+    descriptions: [
+      '대피소 앞에서 양동이를 비우던 중, 폐허가 된 벽 하나에서 급하게 그린 지도를 발견했습니다. 누군가 경로를 그려 놓고 끝부분에 한 장소를 표시해 두었습니다. 그곳에 보급품이 숨겨져 있을지도 모릅니다. 확인해 볼까요?',
+      '지난 원정에서 돌아오는 길에 근처의 반쯤 무너진 벽에서 그림을 발견했습니다. 우리 마을을 아주 조잡하게 그린 지도였고 한 장소에는 X 표시가 되어 있었습니다. 누군가 숨겨둔 수프 비축품일지도 모릅니다. 가서 확인해 볼까요?',
+    ],
+    once: true,
+    choices: [
+      {
+        text: '누군가를 보낸다',
+        outcomes: [
+          {
+            weight: 1,
+            resultText: '그 지도를 발견한 건 정말 운이 좋았습니다! 표시된 장소는 작은 은신처였고, 그곳에서 유용한 보급품을 찾았습니다.',
+            effects: [],
+          },
+          {
+            weight: 1,
+            resultText: '이 보물찾기는 우리 마을이 방사능으로 오염된 폐허라는 사실에도 불구하고 꽤 재미있었습니다. 더 중요한 것은 성공했다는 점입니다. 작은 꾸러미도 찾아냈습니다! 그 안에 무엇이 들어 있든 분명 우리에게 도움이 될 겁니다.',
+            effects: [],
+          },
+          {
+            weight: 1,
+            resultText: '정말 운이 좋았습니다! 우리는 그 지도가 함정이라서 약탈자들의 캠프로 곧장 이어지는 건 아닐까 걱정했지만, 실제로 지도는 맞았습니다! 길 끝에서 우리에게 도움이 될 만한 보급품을 발견했습니다.',
+            effects: [],
+          },
+          {
+            weight: 1,
+            resultText: '한번 시도해 볼 가치는 있었지만, 안타깝게도 보물이 그곳에 없었습니다. 누군가가 먼저 찾아간 모양입니다. 빌어먹을 해적들!',
+            effects: [],
+          },
+          {
+            weight: 1,
+            resultText: '안타깝게도 장난이었던 것 같습니다. 표시된 장소에서는 아무것도 찾지 못했지만, 적어도 약탈자들과 마주치지는 않았습니다.',
             effects: [],
           },
         ],
       },
       {
-        text: '맨몸으로 쫓아낸다',
+        text: '아무도 보내지 않는다',
         outcomes: [
           {
-            weight: 40,
-            resultText: '어찌어찌 쫓아내는 데 성공했다.',
+            weight: 1,
+            resultText: '누군가 벽에 휘갈겨 놓은 낙서를 따라 원탁의 기사처럼 돌아다니지는 않겠습니다. 세상은 지금도 충분히 미쳐 있으니까요.',
             effects: [],
           },
           {
-            weight: 35,
-            resultText: '정신없이 쫓아내다 다쳤다.',
-            effects: [{ type: 'character', target: 'random', field: 'health', value: 'injured' }],
-          },
-          {
-            weight: 25,
-            resultText: '난리통에 식량과 물이 좀 상했다.',
-            effects: [
-              { type: 'resource', key: 'food', delta: -1 },
-              { type: 'resource', key: 'water', delta: -1 },
-            ],
-          },
-        ],
-      },
-      {
-        text: '그냥 무시한다',
-        outcomes: [
-          {
-            weight: 60,
-            resultText: '악취와 소음을 참고 넘어갔다. 다들 신경이 곤두선 채로 하루를 보냈다.',
-            effects: [{ type: 'character', target: 'all', field: 'sanity', delta: -6 }],
-          },
-          {
-            weight: 40,
-            resultText: '뒤척이다 뜬눈으로 밤을 보낸 사람이 생겼다. 완전히 탈진해버렸다.',
-            effects: [{ type: 'character', target: 'random', field: 'exhausted', value: true }],
+            weight: 1,
+            resultText: '무언가를 놓치는 것일지도 모르지만, 우리는 벽에 그려진 표시를 따라가지는 않기로 했습니다. 아마 다른 누군가가 용감하게 시도할지도 모르죠.',
+            effects: [],
           },
         ],
       },
@@ -685,49 +309,33 @@ window.EVENTS = [
   },
 
   {
-    id: 'triple_disaster',
-    title: '동시다발 재해',
-    description:
-      '화재, 지진, 침수가 한꺼번에 대피소를 덮쳤다. 도저히 전부 지킬 수 없다 — 딱 한 종류의 물자만 지킬 수 있다.',
-    minDay: 2,
+    id: 'is_neds_safe_safe',
+    title: 'Is Ned’s Safe Safe?',
+    description: '우리는 ’가장 싫어하는 것 목록 만들기’라는 게임을 했는데, 이상하게도 이웃의 이름이 계속 나왔습니다. 그러고 보니 그 못된 녀석은 거실에 금고가 하나 있었습니다. 우리는 늘 그 안에 무엇이 들어 있는지 궁금했습니다. 어쩌면 이제 드디어 알아낼 때인지도 모르죠. 하지만 우리의 숙적의 물건을 훔치는 영광을 누가 맡을까요?',
     once: true,
     choices: [
       {
-        text: '무기류를 지킨다',
+        text: '누군가를 보낸다',
         outcomes: [
           {
-            weight: 100,
-            resultText: '무기는 지켰지만, 나머지 물자는 무너진 잔해에 깔려버렸다.',
-            effects: [
-              { type: 'destroyCategory', category: 'tool' },
-              { type: 'destroyCategory', category: 'medicine' },
-            ],
+            weight: 1,
+            resultText: '우리는 네드의 집으로 가서 폭발 때문에 금고가 부서져 열린 것을 발견했습니다. 내용물 대부분은 망가졌지만 그래도 무언가를 건질 수 있었습니다. 네드는 어디에도 없었습니다. 아마 방사능 속에서 고통스럽게 죽었을 겁니다. 모든 걸 종합해 보면 꽤 좋은 날이었습니다.',
+            effects: [],
+          },
+          {
+            weight: 1,
+            resultText: '금고를 열자 큰 소리가 들렸고 방 안이 두껍고 지독한 연기로 가득 찼습니다. 썩은 달걀 냄새가 났습니다. 그 자식이 금고에 함정을 설치해 둔 겁니다! 우리를 조금 늦추기는 했지만, 그의 가장 소중한 물건을 가져오는 것까지 막지는 못했습니다. 잘됐군, 네드! 이제 우리 옷에 밴 냄새를 영원히 없애지 못할 것 같다는 게 아쉽네요.',
+            effects: [],
           },
         ],
       },
       {
-        text: '생존 도구를 지킨다',
+        text: '아무도 보내지 않는다',
         outcomes: [
           {
-            weight: 100,
-            resultText: '도구는 지켰지만, 나머지 물자는 무너진 잔해에 깔려버렸다.',
-            effects: [
-              { type: 'destroyCategory', category: 'weapon' },
-              { type: 'destroyCategory', category: 'medicine' },
-            ],
-          },
-        ],
-      },
-      {
-        text: '의약품을 지킨다',
-        outcomes: [
-          {
-            weight: 100,
-            resultText: '의약품은 지켰지만, 나머지 물자는 무너진 잔해에 깔려버렸다.',
-            effects: [
-              { type: 'destroyCategory', category: 'weapon' },
-              { type: 'destroyCategory', category: 'tool' },
-            ],
+            weight: 1,
+            resultText: '우리는 그런 위험한 일을 하지 않기로 했습니다. 금고가 멀쩡하더라도 안에 든 것은 네드만큼이나 지루하고 공간만 차지하는 물건일 가능성이 높습니다.',
+            effects: [],
           },
         ],
       },
@@ -735,463 +343,318 @@ window.EVENTS = [
   },
 
   {
-    id: 'boredom',
-    title: '무료함',
-    description: '좁은 방공호에서 하루하루가 똑같이 흘러간다. 다들 지루함에 몸이 근질거리는 눈치다.',
-    minDay: 2,
-    once: false,
-    choices: [
-      {
-        text: '카드로 시간을 보낸다',
-        requires: { items: [{ id: 'playing_cards', count: 1 }] },
-        outcomes: [
-          {
-            weight: 100,
-            resultText: '카드 게임 몇 판으로 다들 잠시나마 근심을 잊었다.',
-            effects: [{ type: 'character', target: 'all', field: 'sanity', delta: 8 }],
-          },
-        ],
-      },
-      {
-        text: '체커로 시간을 보낸다',
-        requires: { items: [{ id: 'board_game', count: 1 }] },
-        outcomes: [
-          {
-            weight: 75,
-            resultText: '체커 몇 판으로 다들 잠시나마 근심을 잊었다.',
-            effects: [{ type: 'character', target: 'all', field: 'sanity', delta: 8 }],
-          },
-          {
-            weight: 25,
-            resultText: '한 명은 체커랑 안 맞는지, 오히려 더 신경질적으로 변했다.',
-            effects: [{ type: 'character', target: 'random', field: 'sanity', delta: -10 }],
-          },
-        ],
-      },
-      {
-        text: '그냥 조용히 시간을 보낸다',
-        outcomes: [
-          {
-            weight: 70,
-            resultText: '아무 말 없이 하루를 흘려보냈다. 다들 조금씩 지쳐가는 게 느껴진다.',
-            effects: [{ type: 'character', target: 'all', field: 'sanity', delta: -6 }],
-          },
-          {
-            weight: 30,
-            resultText: '적막을 견디지 못한 한 명이 결국 완전히 지쳐 나가떨어졌다.',
-            effects: [
-              { type: 'character', target: 'all', field: 'sanity', delta: -6 },
-              { type: 'character', target: 'random', field: 'exhausted', value: true },
-            ],
-          },
-        ],
-      },
+    id: 'lab_rats',
+    title: 'Lab Rats',
+    descriptions: [
+      '(첫 번째) 미친 과학자가 우리 중 한 명에게 자신의 실험실에서 실험에 참여해 달라고 요청했습니다. 그 실험은 그의 프로젝트에 꼭 필요한 것이라고 합니다. 무엇을 기대해야 할지 전혀 모르지만, 황무지의 질병을 연구하기 위한 것이라고 합니다. 우리가 참여하고 싶은 걸까요? 신비롭고 잠재적으로 위험한 실험을 견디기에 가장 적합한 사람은 누구일까요?',
+      '(두 번째) 박사가 다시 대피소에 찾아와 자신의 프로젝트에 대해 이야기했습니다. 그는 황무지가 주민들에게 미치는 영향을 시험하고 있습니다. 전염성이 있으며 이름부터 위험하게 들리는 질병을 연구하는 데 도움이 될 실험을 위해 살아 있는 실험 대상이 필요하다고 합니다. 도와줘야 할까요? 과학 실험의 기니피그로 가장 적합한 사람은 누구일까요?',
+      '(세 번째) 미친 박사가 우리 중 한 명을 자신의 실험실로 초대해 실험을 도와달라고 했습니다. 현재 그의 프로젝트는 핵전쟁으로 황폐해진 황무지에서 발견된 여러 질병에 관한 것입니다. 그를 도와주고 싶을까요? 행운의 지원자는 누가 될까요?',
     ],
-  },
-
-  {
-    id: 'radio_static',
-    title: '지지직거리는 라디오',
-    description: '라디오에서 계속 잡음만 나온다. 채널을 잘 맞추면 뭔가 들을 수 있을지도 모른다.',
-    minDay: 3,
-    once: false,
-    conditions: { requiredItems: [{ id: 'radio', count: 1 }] },
-    choices: [
-      {
-        text: '가만히 채널을 맞춰 듣는다',
-        outcomes: [
-          {
-            weight: 60,
-            resultText: '오래된 음악 방송을 찾았다. 다들 잠시 귀 기울였다.',
-            effects: [{ type: 'character', target: 'all', field: 'sanity', delta: 5 }],
-          },
-          {
-            weight: 40,
-            resultText: '들려오는 건 온통 안 좋은 소식뿐이었다. 다들 마음이 무거워졌다.',
-            effects: [{ type: 'character', target: 'all', field: 'sanity', delta: -5 }],
-          },
-        ],
-      },
-      {
-        text: '분해해서 만지작거려 본다',
-        outcomes: [
-          {
-            weight: 55,
-            resultText: '괜히 건드렸다가 라디오가 완전히 망가졌다.',
-            effects: [{ type: 'item', itemId: 'radio', delta: -1 }],
-          },
-          {
-            weight: 45,
-            resultText: '수신 상태가 오히려 좋아졌다.',
-            effects: [{ type: 'character', target: 'all', field: 'sanity', delta: 3 }],
-          },
-        ],
-      },
-      {
-        text: '그냥 꺼둔다',
-        outcomes: [{ weight: 100, resultText: '조용히 라디오를 껐다.', effects: [] }],
-      },
-    ],
-  },
-  /* ========================================================
-     아래부터는 원작(60 Seconds!)의 이벤트 구조를 참고해 새로 추가한 이벤트들.
-     원작의 매커니즘(선택 구조·조건·보상 형태)만 참고했고, 문구는 전부 새로 작성함.
-  ======================================================== */
-
-  {
-    id: 'unknown_suitcase',
-    title: '문 앞에 놓인 가방',
-    description: '밤새 문 밖에서 인기척이 났다. 아침에 열어보니 낡은 가방 하나가 덩그러니 놓여 있다. 이름도, 쪽지도 없다.',
-    minDay: 3,
-    once: false,
-    choices: [
-      {
-        text: '열어본다',
-        outcomes: [
-          { weight: 25, resultText: '통조림 몇 개가 들어 있었다. 누군지 몰라도 고맙다.', effects: [{ type: 'resource', key: 'food', delta: 2 }] },
-          { weight: 20, resultText: '깨끗한 물이 들어 있었다. 정말 고마운 사람이다.', effects: [{ type: 'resource', key: 'water', delta: 2 }] },
-          { weight: 15, resultText: '가방 자체가 꽤 튼튼하다. 원정 나갈 때 쓸 만하겠다.', effects: [{ type: 'item', itemId: 'suitcase', delta: 1 }] },
-          { weight: 20, resultText: '통조림이 들어 있었지만 유통기한이 한참 지난 것이었다. 결국 탈이 났다.', effects: [{ type: 'character', target: 'random', field: 'health', value: 'sick' }] },
-          { weight: 20, resultText: '열자마자 안에서 뭔가 터졌다. 누군가 일부러 놓아둔 함정이었다.', effects: [{ type: 'character', target: 'random', field: 'health', value: 'injured' }] },
-        ],
-      },
-      {
-        text: '건드리지 않는다',
-        outcomes: [
-          { weight: 100, resultText: '출처를 모르는 물건은 믿을 수 없다. 그대로 두자 다음 날 사라져 있었다.', effects: [] },
-        ],
-      },
-    ],
-  },
-
-  {
-    id: 'wall_mushrooms',
-    title: '벽에 자란 버섯',
-    description: '대피소 한쪽 벽에 버섯이 잔뜩 돋아났다. 먹을 수 있을 만큼 큼직하다. 식량은 늘 부족하고...',
-    minDay: 4,
-    once: false,
-    choices: [
-      {
-        text: '따서 먹어본다',
-        outcomes: [
-          { weight: 55, resultText: '의외로 먹을 만했다. 어둠 속에서 은은하게 빛나는 게 좀 걸리지만, 배는 채웠다.', effects: [{ type: 'character', target: 'all', field: 'foodDays', value: 0 }] },
-          { weight: 45, resultText: '한 입 먹자마자 속이 뒤집혔다. 역시 벽에 난 건 먹는 게 아니었다.', effects: [{ type: 'character', target: 'random', field: 'health', value: 'sick' }] },
-        ],
-      },
-      {
-        text: '아무리 배고파도 먹지 않는다',
-        outcomes: [
-          { weight: 100, resultText: '배는 고프지만, 먹지 말아야 할 것도 있는 법이다.', effects: [] },
-        ],
-      },
-    ],
-  },
-
-  {
-    id: 'wandering_trader',
-    title: '떠돌이 상인',
-    description: '덩치 큰 호위를 데리고 온 상인이 문을 두드린다. 가방을 열어 보이며 거래를 제안한다.',
-    minDay: 5,
     once: true,
     choices: [
       {
-        text: '통조림 2개를 주고 구급상자를 받는다',
+        text: '누군가를 보낸다',
         outcomes: [
-          { weight: 100, resultText: '깔끔한 거래였다. 상인은 라디오 방송을 꼭 챙겨 들으라는 말을 남기고 떠났다.', effects: [
-            { type: 'resource', key: 'food', delta: -2 },
-            { type: 'item', itemId: 'first_aid', delta: 1 },
-          ] },
+          {
+            weight: 1,
+            resultText: '우리의 지원자는 ’우리 모두가 황무지에서 탈출할 수 있는 멋진 로켓’을 만드는 일을 돕기 위해 잠시 대피소를 떠났습니다. 우리가 그저 시간을 낭비하는 게 아니기를 바랍니다.',
+            effects: [],
+          },
         ],
       },
       {
-        text: '물 2병을 주고 지도를 받는다',
+        text: '아무도 보내지 않는다',
         outcomes: [
-          { weight: 100, resultText: '상인은 흔쾌히 지도를 내주고 길을 떠났다.', effects: [
-            { type: 'resource', key: 'water', delta: -2 },
-            { type: 'item', itemId: 'map', delta: 1 },
-          ] },
-        ],
-      },
-      {
-        text: '거래하지 않는다',
-        outcomes: [
-          { weight: 100, resultText: '상인은 아쉬워하며 돌아섰다. 다음에 또 올지는 모르겠다.', effects: [] },
+          {
+            weight: 1,
+            resultText: '1.  우리는 인간을 대상으로 실험하는 것에 반대해 왔습니다. 테드의 고모할머니가 의대생들에게 치아를 뽑아 달라고 지원했다가 그들이 그녀의 배를 열려고 했던 그때 이후로 말이죠. 됐습니다. 사양하겠습니다.',
+            effects: [],
+          },
+          {
+            weight: 1,
+            resultText: '2.  왜 이런 미친 일에 자원해야 하죠? 황무지에는 실험할 수 있는 흉악한 약탈자들이 가득합니다. 우리 같은 무고한 생존자들이 건강을 위험에 빠뜨릴 필요는 없습니다. 그래서 우리는 거절했습니다.',
+            effects: [],
+          },
+          {
+            weight: 1,
+            resultText: '3.  우리는 과학자의 제안을 거절했습니다. 우리 중 누구도 사람을 대상으로 실험하는 미친 남자를 돕기 위해 기니피그가 되고 싶지 않습니다. 지옥에나 가라고 하죠.',
+            effects: [],
+          },
         ],
       },
     ],
   },
 
   {
-    id: 'wall_stench',
-    title: '벽 틈에서 나는 악취',
-    description: '벽돌 하나가 헐거워지며 좁은 구멍이 드러났다. 그 안에서 참기 힘든 냄새가 올라온다.',
-    minDay: 3,
-    once: false,
-    choices: [
-      {
-        text: '구멍 안을 살펴본다',
-        outcomes: [
-          { weight: 50, resultText: '통조림을 물고 죽어 있는 쥐 한 마리가 있었다. 통조림은 멀쩡했다.', effects: [{ type: 'resource', key: 'food', delta: 1 }] },
-          { weight: 30, resultText: '안에서 뭔가가 튀어나와 대피소를 헤집고 다니다 라디오를 떨어뜨리고 사라졌다.', effects: [{ type: 'item', itemId: 'radio', delta: -1 }] },
-          { weight: 20, resultText: '한참 들여다봤지만 아무것도 없었다. 냄새만 실컷 맡았다.', effects: [{ type: 'character', target: 'all', field: 'sanity', delta: -3 }] },
-        ],
-      },
-      {
-        text: '그냥 막아둔다',
-        outcomes: [
-          { weight: 100, resultText: '헝겊으로 대충 틀어막았다. 냄새는 며칠 더 갔다.', effects: [{ type: 'character', target: 'all', field: 'sanity', delta: -4 }] },
-        ],
-      },
+    id: 'recon',
+    title: 'Recon',
+    descriptions: [
+      '(첫 번째) 종이컵과 실로 만든 첨단 장비를 이용해 요원들이 다음 일급비밀 임무를 알려왔습니다. 이 임무를 성공하면 곧 VIP 벙커에 들어갈 수 있을 겁니다. 그들은 성공적인 원정 한 번을 수행하고 우리가 본 것을 일지에 기록하라고 합니다. 식은 죽 먹기죠… 그렇죠?',
+      '(두 번째) 요원들이 다시 찾아와 우리가 아직 자신들의 간단한 정찰 임무를 하겠다고 동의하지 않았다는 점을 지적했습니다. 그 임무를 완료하면 VIP 벙커에서 사는 것에 한층 더 가까워질 겁니다. 누군가 보내야 할까요?',
+      '(세 번째) 정부 요원들을 위한 정찰 임무의 마감 시간이 다가오고 있습니다. 그들은 협조할 마지막 기회라고 경고하러 왔습니다. 그들의 말대로 누군가를 밖으로 보내야 할까요?',
     ],
-  },
-
-  {
-    id: 'hidden_safe',
-    title: '지도 뒤의 금고',
-    description: '벽에 붙여둔 지도가 아침에 저절로 떨어졌다. 그 뒤에 작은 금고가 박혀 있다. 우리가 설치한 게 아니다.',
-    minDay: 4,
-    once: true,
-    conditions: { requiredItems: [{ id: 'map', count: 1 }] },
-    choices: [
-      {
-        text: '열어본다',
-        outcomes: [
-          { weight: 40, resultText: '안에 비상식량이 들어 있었다. 이 집 주인은 꽤 준비성이 좋았던 모양이다.', effects: [{ type: 'resource', key: 'food', delta: 2 }] },
-          { weight: 30, resultText: '손전등이 하나 들어 있었다. 쓸모가 많겠다.', effects: [{ type: 'item', itemId: 'flashlight', delta: 1 }] },
-          { weight: 30, resultText: '금고 문을 여는 순간 불이 나갔다. 다시 켜졌을 땐 식량이 조금 비어 있었다.', effects: [{ type: 'resource', key: 'food', delta: -1 }] },
-        ],
-      },
-      {
-        text: '괜히 건드리지 않는다',
-        outcomes: [
-          { weight: 100, resultText: '이미 문제는 충분히 많다. 금고는 그대로 두기로 했다.', effects: [] },
-        ],
-      },
-    ],
-  },
-
-  {
-    id: 'armed_teens',
-    title: '무장한 무리',
-    description: '"자유의 이름으로 문을 열어라!" 밖에서 누군가 외친다. 여러 명, 그리고 총기를 들고 있는 것 같다.',
-    minDay: 6,
     once: true,
     choices: [
       {
-        text: '문을 열어준다',
+        text: '누군가를 보낸다',
         outcomes: [
-          { weight: 35, resultText: '무장한 고등학생 무리였다. 적군을 못 봤냐고 묻더니, 빈손인 우리에게 물을 나눠주고 떠났다.', effects: [{ type: 'resource', key: 'water', delta: 2 }] },
-          { weight: 30, resultText: '겁먹은 우리를 보더니 여분의 도끼를 하나 건네주고는 씩씩하게 사라졌다.', effects: [{ type: 'item', itemId: 'axe', delta: 1 }] },
-          { weight: 20, resultText: '무기가 없다는 말에 여분의 소총을 넘겨주고 떠났다. 어리지만 든든한 아이들이었다.', effects: [{ type: 'item', itemId: 'rifle', delta: 1 }] },
-          { weight: 15, resultText: '문을 열자마자 총구가 들이닥쳤다. 물자를 조금 빼앗기고 나서야 물러갔다.', effects: [
-            { type: 'resource', key: 'food', delta: -2 },
-            { type: 'character', target: 'all', field: 'sanity', delta: -5 },
-          ] },
+          {
+            weight: 1,
+            resultText: '우리는 기꺼이 그들의 요청에 동의했습니다. 그들은 우리가 시민으로서의 의무를 다한 것에 감사하며 곧 더 많은 정보를 가지고 돌아오겠다고 약속했습니다.',
+            effects: [],
+          },
+          {
+            weight: 1,
+            resultText: '그 정찰 임무는 위험했습니다. 우리는 평소에도 위험한 동네들을 방문해야 했습니다. 그 지역에는 서로 무리를 지어 싸우는 돌연변이 고양이와 개들이 가득했고, 녀석들은 온갖 무기를 잔뜩 들고 있었습니다. 우리는 간신히 살아서 빠져나왔지만, 요원들은 우리의 노력에 만족하는 것 같습니다. 이런 임무들이 정말 가치가 있기를 바랍니다. 우리 양동이는 업그레이드할 때가 거의 다 됐고, 정부 대피소에는 훌륭한 욕실, 어쩌면 온수 욕조까지 있을 거라고 기대하고 있습니다!',
+            effects: [],
+          },
         ],
       },
       {
-        text: '숨죽이고 기다린다',
+        text: '아무도 보내지 않는다',
         outcomes: [
-          { weight: 100, resultText: '한참 뒤 발소리가 멀어졌다. 현명한 판단이었길 바란다.', effects: [{ type: 'character', target: 'all', field: 'sanity', delta: -3 }] },
+          {
+            weight: 1,
+            resultText: '1.  지금은 위험한 일에 참여하고 싶지 않습니다. 요원들은 실망했지만 아마 곧 다시 찾아올 겁니다.',
+            effects: [],
+          },
+          {
+            weight: 1,
+            resultText: '2.  임무를 신중하게 검토한 뒤 당분간 하지 않기로 결정했습니다. 요원들은 조금 화난 것 같았지만 다음에 다시 오겠다고 약속했습니다.',
+            effects: [],
+          },
+          {
+            weight: 1,
+            resultText: '3.  솔직히 이제 이 요원들에게 질렸습니다. 방문 판매원만큼이나 성가셨습니다. 이제는 정말 우리를 내버려 두기를 바랍니다.',
+            effects: [],
+          },
         ],
       },
     ],
   },
 
   {
-    id: 'claustrophobia',
-    title: '숨이 막힌다',
-    description: '벽이 조여오는 것 같다는 사람이 나왔다. 문을 잠깐만 열어서 바람이라도 쐬자고 한다.',
-    minDay: 4,
-    once: false,
-    choices: [
-      {
-        text: '잠깐만 문을 연다',
-        outcomes: [
-          { weight: 45, resultText: '잠깐 바깥 공기를 쐬자 한결 나아졌다. 물론 그 공기가 깨끗할 리는 없지만.', effects: [{ type: 'character', target: 'all', field: 'sanity', delta: 8 }] },
-          { weight: 55, resultText: '오염된 공기가 밀려들어왔다. 답답함은 가셨지만 대신 속이 메스껍다.', effects: [
-            { type: 'character', target: 'all', field: 'sanity', delta: 5 },
-            { type: 'character', target: 'random', field: 'health', value: 'sick' },
-          ] },
-        ],
-      },
-      {
-        text: '절대 열지 않는다',
-        outcomes: [
-          { weight: 100, resultText: '문을 닫아둔 건 옳은 판단이었다. 다만 그날 대피소 공기는 유난히 무거웠다.', effects: [{ type: 'character', target: 'all', field: 'sanity', delta: -7 }] },
-        ],
-      },
+    id: 'reunited_bandits',
+    title: 'Reunited (Bandits)',
+    descriptions: [
+      '오늘 온통 흰옷을 입은 젊은 여성이 우리를 찾아와 도움을 요청했습니다. 그녀는 지체 없이 약탈자 캠프라고 주장하는 곳의 계획을 펼쳐 보였습니다. 그곳에는 쌍둥이 남자 형제가 붙잡혀 있다고 합니다. 그 젊은 남자는 가장 큰 약탈자 우두머리에게 결투를 신청할 정도로 어리석었고, 이제 그의 누나는 매우 걱정하고 있습니다. 그녀는 우리가 돕기로 결정한다면 분명 후회하지 않을 거라고 말합니다.',
+      '오늘 흰옷을 입은 젊은 여성이 우리 문을 두드리며 실종된 쌍둥이 남자 형제에 관한 이야기를 했습니다. 그는 아마 약탈자 캠프에 붙잡혀 있을 겁니다. 그는 거대한 약탈자 우두머리를 쓰러뜨리려 했고, 누나는 그에게 무슨 일이 생겼을까 걱정하고 있습니다. 그녀는 우리가 좋은 사람이고 믿을 만하다는 사실을 알고 있으며, 우리가 동생을 구해줄 수 있다고 믿습니다. 그렇게 한다면 확실한 우정의 시작이 될 수도 있다고 합니다.',
+      '오늘 한 젊은 여성이 찾아왔습니다. 그녀는 지역 약탈자 우두머리에게 결투를 신청한 뒤 실종된 쌍둥이 남자 형제를 구하러 가는 중이라고 합니다. 그들은 한동안 우리를 지켜봤고 언젠가는 함께 찾아오려고 했지만, 그러던 중 그녀의 형제가 실종되었습니다. 그녀는 우리가 형제와 다시 만날 수 있도록 도와주길 바라며, 후회하지 않을 거라고 약속합니다.',
+      '오늘 한 젊은 남자가 찾아왔습니다. 그는 약탈자 캠프를 염탐하던 중 실종된 용감한 쌍둥이 누나에 관한 이야기를 했습니다. 상황이 좋지는 않지만, 사실 그들은 언젠가 우리에게 연락해 만나려고 했다고 합니다. 그는 누나가 발각되어 현재 그 캠프에 붙잡혀 있다고 생각합니다. 함께할 사람이 몇 명 있지만 도움이 더 필요하다고 합니다. 도와줄까요?',
+      '오늘 한 젊은 남자가 우리 문을 두드리며 도움을 요청했습니다. 그는 한동안 우리를 지켜봤으며 우리가 선하고 괜찮은 사람들이라고 생각한다고 했습니다. 다른 상황에서 만나길 바랐지만 지금은 정말 우리의 도움이 필요하다고 합니다. 임무는 근처 약탈자 캠프에 잠입하다 실종된 쌍둥이 누나를 구하는 것입니다. 그는 우리가 도와주면 분명 그만한 가치가 있을 거라고 약속합니다.',
+      '오늘 약탈자 캠프에서 얼마 전 정찰병으로 활동하며 새로운 약탈자 요새의 계획을 손에 넣으려다 실종된 쌍둥이 누나를 걱정하는 젊은 남자가 찾아왔습니다. 그는 우리를 완전히 믿는 것 같고 매우 친절하지만, 분명히 걱정하고 있습니다. 그는 어려운 상황에 처한 자신을 도와달라고 부탁하며, 성공한다면 우리에게 아주 좋은 일이 생길지도 모른다고 합니다.',
     ],
-  },
-
-  {
-    id: 'kids_play_tag',
-    title: '좁은 곳에서의 술래잡기',
-    description: '아이들이 몸이 근질거리는지 대피소 안에서 뛰어놀고 싶어한다. 공간이 넉넉할 리가 없다.',
-    minDay: 3,
-    once: false,
-    conditions: { minCharacters: 2 },
-    choices: [
-      {
-        text: '놀게 둔다',
-        outcomes: [
-          { weight: 45, resultText: '한참을 뛰어다니며 웃었다. 구석에 굴러다니던 통조림까지 찾아냈다.', effects: [
-            { type: 'character', target: 'all', field: 'sanity', delta: 8 },
-            { type: 'resource', key: 'food', delta: 1 },
-          ] },
-          { weight: 30, resultText: '신나게 놀긴 했는데, 부딪히는 바람에 선반 위 물건이 죄다 쏟아졌다.', effects: [
-            { type: 'character', target: 'all', field: 'sanity', delta: 6 },
-            { type: 'resource', key: 'water', delta: -1 },
-          ] },
-          { weight: 25, resultText: '뛰다가 넘어져 한 명이 다쳤다. 그래도 표정은 한결 밝아졌다.', effects: [
-            { type: 'character', target: 'all', field: 'sanity', delta: 5 },
-            { type: 'character', target: 'random', field: 'health', value: 'injured' },
-          ] },
-        ],
-      },
-      {
-        text: '안 된다고 한다',
-        outcomes: [
-          { weight: 100, resultText: '여기서 뛸 공간은 없다. 아이들은 시무룩해졌다.', effects: [{ type: 'character', target: 'all', field: 'sanity', delta: -6 }] },
-        ],
-      },
-    ],
-  },
-
-  {
-    id: 'dog_errand',
-    title: '나가고 싶어하는 개',
-    description: '개가 몇 시간째 문 앞에서 낑낑거린다. 잠깐 내보내주면 뭔가 물어올지도 모른다.',
-    minDay: 4,
-    once: false,
-    conditions: { requiredFlags: { dogJoined: true } },
-    choices: [
-      {
-        text: '잠깐 내보낸다',
-        outcomes: [
-          { weight: 30, resultText: '물병을 하나 물고 돌아왔다. 대체 어떻게 물고 온 건지 모르겠다.', effects: [{ type: 'resource', key: 'water', delta: 1 }] },
-          { weight: 25, resultText: '통조림을 하나 물고 왔다. 기특하다.', effects: [{ type: 'resource', key: 'food', delta: 1 }] },
-          { weight: 15, resultText: '어디서 구했는지 구급상자를 통째로 끌고 왔다.', effects: [{ type: 'item', itemId: 'first_aid', delta: 1 }] },
-          { weight: 30, resultText: '빈손으로 돌아왔지만, 돌아왔다는 것만으로 다들 안도했다.', effects: [{ type: 'character', target: 'all', field: 'sanity', delta: 4 }] },
-        ],
-      },
-      {
-        text: '위험하니 그냥 둔다',
-        outcomes: [
-          { weight: 100, resultText: '한참 낑낑거리다 결국 발치에 엎드려 잠들었다.', effects: [] },
-        ],
-      },
-    ],
-  },
-
-  {
-    id: 'cat_and_checkers',
-    title: '고양이와 체커판',
-    description: '고양이가 체커 말을 하나씩 바닥으로 밀어 떨어뜨리는 데 재미를 붙였다. 하루 종일 딸깍거리는 소리에 다들 신경이 곤두선다.',
-    minDay: 5,
-    once: true,
-    conditions: { requiredFlags: { catJoined: true }, requiredItems: [{ id: 'board_game', count: 1 }] },
-    choices: [
-      {
-        text: '그냥 놀게 둔다',
-        outcomes: [
-          { weight: 60, resultText: '허락하자마자 흥미를 잃더니 체커판 위에 올라앉아 오후 내내 잠만 잤다.', effects: [] },
-          { weight: 40, resultText: '실컷 가지고 놀더니 기어이 체커판을 두 동강 내놓았다. 어떻게 한 건지는 모르겠다.', effects: [{ type: 'item', itemId: 'board_game', delta: -1 }] },
-        ],
-      },
-      {
-        text: '체커판을 치운다',
-        outcomes: [
-          { weight: 100, resultText: '빼앗으려 하자 사납게 달려들었다. 결국 체커판을 포기하고 물러섰다.', effects: [
-            { type: 'item', itemId: 'board_game', delta: -1 },
-            { type: 'character', target: 'all', field: 'sanity', delta: -3 },
-          ] },
-        ],
-      },
-    ],
-  },
-
-  {
-    id: 'dark_side_neighbor',
-    title: '이웃의 대피소',
-    description: '물자가 바닥을 보인다. 길 건너 이웃집 대피소의 잠금장치가 고장 나 있다는 걸 다들 알고 있다. 그 집 사람들이 무사히 들어갔는지는... 모른다.',
-    minDay: 8,
     once: true,
     choices: [
       {
-        text: '가서 가져온다',
+        text: '누군가를 보낸다',
         outcomes: [
-          { weight: 55, resultText: '물자는 챙겼다. 하지만 아무도 그날 일을 입에 올리지 않았다.', effects: [
-            { type: 'resource', key: 'food', delta: 4 },
-            { type: 'resource', key: 'water', delta: 3 },
-            { type: 'character', target: 'all', field: 'sanity', delta: -15 },
-            { type: 'flag', key: 'bloodyHands', value: true },
-          ] },
-          { weight: 45, resultText: '문을 열자 총구가 우리를 맞이했다. 그 집 사람들은 멀쩡히 살아 있었다. 아무 말도 못 하고 돌아왔다.', effects: [
-            { type: 'character', target: 'all', field: 'sanity', delta: -12 },
-            { type: 'flag', key: 'bloodyHands', value: true },
-          ] },
+          {
+            weight: 1,
+            resultText: '그 여성은 재빨리 친구들을 모았고 우리는 성공적인 임무에 나섰습니다. 잃어버린 쌍둥이 남자 형제를 찾는 것은 어렵지 않았습니다. 그는 탈출하려고 울타리 옆 안테나 위에 매달려 있었습니다. 약탈자 우두머리와의 결투에서 손 하나를 잃었지만, 일행이 신속하게 부상을 치료했고 그는 괜찮을 겁니다. 남매는 우리에게 수없이 감사하며 반드시 다시 연락하겠다고 했습니다.',
+            effects: [],
+          },
+          {
+            weight: 1,
+            resultText: '그 젊은 남자는 무장을 했지만 정말 친절한 다른 생존자들의 도움을 받았습니다. 우리는 여자를 찾아 무기를 건네주고 출구를 지키던 약탈자들과 싸웠습니다. 남매는 다시 만나 기뻐했지만 매우 혼란스러워했습니다. 알고 보니 약탈자 우두머리가 사실 그들의 아버지였던 겁니다! 우리가 사는 세상은 정말 작고 미친 곳입니다. 어쨌든 그들은 우리에게 정말 고마워했고 곧 다시 연락하겠다고 약속했습니다.',
+            effects: [],
+          },
         ],
       },
       {
-        text: '그럴 수는 없다',
+        text: '아무도 보내지 않는다',
         outcomes: [
-          { weight: 100, resultText: '배가 고파도 넘지 말아야 할 선은 있다. 그렇게 정하고 나니 마음이 한결 가벼워졌다.', effects: [{ type: 'character', target: 'all', field: 'sanity', delta: 10 }] },
+          {
+            weight: 1,
+            resultText: '약탈자 캠프 깊숙한 곳까지 들어가 싸움을 벌이겠다고요? 이 사람들은 완전히 무책임합니다. 친절해 보이기는 하지만, 우리는 지금 당장은 위험을 감수하지 않겠습니다.',
+            effects: [],
+          },
+          {
+            weight: 1,
+            resultText: '우리 상황에서는 낯선 사람들을 위해 밖으로 나가 목숨을 걸도록 장려할 만한 것이 없습니다. 적어도 오늘은 말이죠. 다음 주 화요일쯤이라면 모를까요?',
+            effects: [],
+          },
+          {
+            weight: 1,
+            resultText: '가족 문제 때문에 목숨을 걸지는 않겠습니다! 그들이 스스로 문제를 만들었으니 스스로 해결하도록 두죠. 아마 다른 때라면 모를 겁니다.',
+            effects: [],
+          },
         ],
       },
     ],
   },
 
   {
-    id: 'plant_seed',
-    title: '주머니 속의 씨앗',
-    description: '짐을 뒤지다 씨앗 한 알이 나왔다. 무슨 씨앗인지는 모르지만, 물 한 병만 쓰면 심어볼 수는 있다.',
-    minDay: 3,
+    id: 'strong_bonds',
+    title: 'Strong Bonds',
+    description: '때가 왔습니다. 더 이상 스스로를 속일 수 없습니다. 이 대피소는 우리 모두를 수용하기에 충분히 크지 않습니다. 누군가는 떠나 방사능에 오염된 황무지에서 자신의 운명을 개척해야 합니다. 하지만 누가 떠나야 할까요?',
     once: true,
     choices: [
       {
-        text: '물을 써서 심어본다',
+        text: '테드를 보낸다',
+        requires: { flags: {} },
         outcomes: [
-          { weight: 100, resultText: '빈 깡통에 흙을 채우고 씨앗을 묻었다. 뭐라도 나오길 기다려보기로 했다.', effects: [
-            { type: 'resource', key: 'water', delta: -1 },
-            { type: 'flag', key: 'seedPlanted', value: true },
-            { type: 'character', target: 'all', field: 'sanity', delta: 5 },
-          ] },
+          {
+            weight: 1,
+            resultText: '잘 가, 테드. 네가 그리울 거야. 넌 분명 잘 해낼 거라고 믿어. 우리는 전혀 걱정하지 않아! 음, 대부분은…',
+            effects: [],
+          },
         ],
       },
       {
-        text: '물이 아깝다',
+        text: '돌로레스를 보낸다',
+        requires: { flags: {} },
         outcomes: [
-          { weight: 100, resultText: '물은 마시는 데 써야 한다. 씨앗은 그대로 주머니에 넣어뒀다.', effects: [{ type: 'character', target: 'all', field: 'sanity', delta: -4 }] },
+          {
+            weight: 1,
+            resultText: '우리는 돌로레스가 혼자 황무지에서도 살아남을 수 있다고 확신합니다. 그녀는 강하고 재치가 있습니다. 행운을 빌어, 돌로레스…',
+            effects: [],
+          },
+        ],
+      },
+      {
+        text: '메리 제인을 보낸다',
+        requires: { flags: {} },
+        outcomes: [
+          {
+            weight: 1,
+            resultText: '메리 제인은 이유를 말하지 않은 채 대피소를 떠나겠다고 자원했습니다. 어쩌면 모험을 찾고 있는 걸지도 모릅니다. 아니면 단순히 우리를 별로 좋아하지 않는 걸 수도 있죠. 어쨌든 잘 가, 메리 제인. 다음 생에서 보자.',
+            effects: [],
+          },
+        ],
+      },
+      {
+        text: '티미를 보낸다',
+        requires: { flags: {} },
+        outcomes: [
+          {
+            weight: 1,
+            resultText: '밖에서도 스스로를 잘 돌보길 바랍니다, 티미. 넌 진정한 스카우트야. 네가 떠나는 걸 보니 슬프지만, 어쩔 수 없군…',
+            effects: [],
+          },
+        ],
+      },
+      {
+        text: '아무도 보내지 않는다',
+        outcomes: [
+          {
+            weight: 1,
+            resultText: '그래, 우리가 탈수되고 굶주리고 심하게 다치고 죽을 만큼 아프고 미쳐가고 있을 수도 있습니다. 그렇다고 누구를 내쫓을 이유는 없죠! 원자폭발에서 함께 살아남은 가족은 끝까지 함께하는 법입니다. 이것이 우리의 신조이고 마지막 순간까지 서로와 함께할 겁니다… 그 순간이 빠르게 다가오고 있긴 하지만요. 내일 우리 모두 죽을 수도 있습니다. 그래도 적어도 우리는 도덕적으로 우위에 있을 겁니다. 이 상황에서 그 무엇보다도 중요한 게 분명하니까요.',
+            effects: [],
+          },
         ],
       },
     ],
   },
 
   {
-    id: 'plant_harvest',
-    title: '자라난 것',
-    description: '깡통에 심어둔 씨앗이 며칠 만에 사람 키만큼 자랐다. 가지에 뭔가 주렁주렁 달려 있는데, 어둠 속에서 희미하게 빛난다.',
-    minDay: 6,
+    id: 'tank_boy',
+    title: 'Tank Boy',
+    descriptions: [
+      '지난번 원정에서 나갔을 때, 밖에 버려진 전차 한 대가 그냥 놓여 있는 것을 발견했습니다. 망가져 보이지만 유용한 보급품이 들어 있을지도 모릅니다. 누군가 보내 조사해 볼까요?',
+      '추가 보급품이 있으면 좋겠습니다. 지난번 보급품을 구하러 갔을 때 근처 잔해에 손상된 전차 한 대가 끼어 있는 것을 발견했습니다. 누군가 보내 조사해 보는 건 어떨까요?',
+    ],
     once: true,
-    conditions: { requiredFlags: { seedPlanted: true } },
     choices: [
       {
-        text: '수확해서 먹는다',
+        text: '누군가를 보낸다',
         outcomes: [
-          { weight: 70, resultText: '빛나는 게 좀 꺼림칙했지만, 통조림 네 개 분량은 충분히 나왔다.', effects: [{ type: 'resource', key: 'food', delta: 4 }] },
-          { weight: 30, resultText: '먹자마자 속이 뒤집혔다. 역시 빛나는 건 먹는 게 아니었다.', effects: [
-            { type: 'resource', key: 'food', delta: 2 },
-            { type: 'character', target: 'random', field: 'health', value: 'sick' },
-          ] },
+          {
+            weight: 1,
+            resultText: '오. 군용 식량도 대부분 토마토 수프 통조림과 생수로 이루어져 있는 것 같습니다. 아니면 다른 누군가가 이 망가진 전차 안에 보급품을 남겨둔 걸지도 모르죠.',
+            effects: [],
+          },
+          {
+            weight: 1,
+            resultText: '전차에는 방독면을 포함한 보호 장비가 있었습니다. 여분의 방독면 하나를 얻었습니다. 이제 우리 것입니다.',
+            effects: [],
+          },
+          {
+            weight: 1,
+            resultText: '전차는 겉보기에는 심하게 손상되어 있었지만 안에서 작동하는 라디오를 발견해 군대와 연락했습니다! 군대는 우리를 도와줄 의향이 있지만, 대피소에 전송을 받을 수 있는 작동하는 라디오가 준비되어 있어야 합니다.',
+            effects: [],
+          },
+          {
+            weight: 1,
+            resultText: '화력이 조금 더 있는 것도 나쁘지 않습니다. 우리는 전차에서 군용 소총을 물려받게 되어 기뻤습니다.',
+            effects: [],
+          },
+          {
+            weight: 1,
+            resultText: '망가진 전차의 껍데기 안에서 찾을 수 있었던 것은 느슨하게 흩어진 탄약뿐이었습니다. 우리는 전부 주워 왔습니다.',
+            effects: [],
+          },
+          {
+            weight: 1,
+            resultText: '우리가 가장 예상하지 못했던 것은 거대한 폭발이었습니다. 하늘에서 잔해가 떨어져 집의 초라한 잔해에 부딪히는 소리가 들렸습니다. 전차에 함정이 설치되어 있었거나 불안정한 폭발물이 들어 있었던 게 틀림없습니다. 우리가 왜 그런 짓을 했을까요… 왜…',
+            effects: [],
+          },
         ],
       },
       {
-        text: '좀 더 키워본다',
+        text: '아무도 보내지 않는다',
         outcomes: [
-          { weight: 100, resultText: '욕심을 부렸더니 하룻밤 사이에 폭삭 삭아 재가 되어버렸다.', effects: [{ type: 'character', target: 'all', field: 'sanity', delta: -5 }] },
+          {
+            weight: 1,
+            resultText: '우리는 전차를 조사하러 가는 것을 포기했습니다. 우리 입장에서는 함정일 수도 있고 단순히 불타버린 잔해일 수도 있습니다. 시간과 노력을 들일 가치가 없습니다.',
+            effects: [],
+          },
         ],
       },
     ],
   },
+
+  {
+    id: 'treasure_island',
+    title: 'Treasure Island',
+    descriptions: [
+      '지도를 자세히 살펴보던 중, 한쪽 구석에 누군가 수수께끼 같은 방향을 적어 놓은 것을 발견했습니다. 이것이 어떤 보물로 이어질까요? 누군가 보내 확인해 볼 만할지도 모릅니다.',
+      '지도를 살펴보다가 원래 있던 것이 아닌 몇 가지 표시를 발견했습니다. 누군가 우리 근처의 한 장소를 가리키는 표시를 추가해 놓았습니다. 그곳에서 무엇을 찾게 될까요? 모릅니다. 누군가 보내 확인해 볼 만할까요?',
+      '우리는 시간을 들여 지도를 살펴보다가 몇 군데에 이상한 기호가 휘갈겨져 있는 것을 발견했습니다. 누군가 이 지역에 무언가를 숨겨놓고 그곳으로 가는 길을 표시해 둔 것처럼 보였습니다! 누군가 보내 조사해 볼까요?',
+    ],
+    once: true,
+    choices: [
+      {
+        text: '누군가를 보낸다',
+        outcomes: [
+          {
+            weight: 1,
+            resultText: '지도에 적힌 방향은 따라가기 어렵지 않았습니다. 우리는 이웃집 뒷마당까지 찾아가 나무 아래를 팠습니다. 음식 통조림 두 개를 발견했습니다! 이런 걸 성공적인 보물찾기라고 부르죠!',
+            effects: [],
+          },
+          {
+            weight: 1,
+            resultText: '지도 단서를 따라가는 건 재미있었습니다. 암울한 종말 이후의 환경에서도 말이죠! 단서는 우리를 몸통에 구멍이 난 오래된 나무로 이끌었고, 그 안에는 체커 게임판이 들어 있었습니다. 운이 좋았군요!',
+            effects: [],
+          },
+          {
+            weight: 1,
+            resultText: '지도에 표시된 사람이 숨겨둔 것을 찾을 수 있을지 확신하지 못했지만, 곧 퍼즐 조각들이 맞아떨어지기 시작했습니다. 한 시간 동안 지역 공원, 아니 공원의 남은 부분을 파헤친 끝에 작동하는 손전등을 발견했습니다. 정말 필요한 물건입니다!',
+            effects: [],
+          },
+          {
+            weight: 1,
+            resultText: '그 지도에 적힌 방향은 잔인한 농담이었거나 어린아이가 장난으로 상상한 것이었던 것 같습니다. 아무것도 찾지 못했고 오후 시간만 낭비했습니다.',
+            effects: [],
+          },
+          {
+            weight: 1,
+            resultText: '우리는 지도에 적힌 방향을 아주 주의 깊게 따라갔습니다. 너무 주의 깊게 따라간 나머지 잔해 더미에 그대로 걸어 들어가 지도를 망가뜨리고 말았습니다. 보물찾기는 끝났습니다.',
+            effects: [],
+          },
+        ],
+      },
+      {
+        text: '아무도 보내지 않는다',
+        outcomes: [
+          {
+            weight: 1,
+            resultText: '지도에 그려진 어린애 같은 그림만으로는 이런 엉망진창인 상황에서 목숨을 걸 만큼 좋은 이유가 되지 않습니다. 거기에 묻혀 있다면 대체 무엇일까요? 생수병 뚜껑 여섯 개쯤? 분명 위험을 감수할 가치가 없습니다.',
+            effects: [],
+          },
+        ],
+      },
+    ],
+  },
+
 ];
