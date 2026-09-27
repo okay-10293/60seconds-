@@ -513,63 +513,68 @@ body.modal-open { overflow: hidden; }
 .title-screen-hint { font-family: var(--font-mono); font-size: 0.8em; color: var(--text-dim); margin: 0; }
 
 /* ============================================================
-   탈출 파트 — 조이스틱 2D
+   탈출 파트 — 조이스틱 2D (복도 중심 집 구조)
    ============================================================ */
 .hidden { display: none !important; }
 
 .scavenge-stage-wrap { margin-top: 16px; }
 .scavenge-stage {
   position: relative;
-  width: 100%;
-  max-width: 900px;
-  aspect-ratio: 900 / 640;
+  /* 세로로 긴 집이라, 폰에서 조이스틱까지 한 화면에 보이도록 높이를 화면 비율로 제한 */
+  width: min(100%, calc(58vh * 720 / 900));
+  aspect-ratio: 720 / 900;
   margin: 0 auto;
-  background: var(--kraft-dark);
+  background: var(--ink); /* 벽 */
   box-shadow: 6px 6px 0 var(--ink);
   overflow: hidden;
   touch-action: none;
   user-select: none;
 }
-.scavenge-room {
-  position: absolute;
-  background: var(--paper);
-  outline: 3px solid var(--ink);
-  outline-offset: -3px;
+.scavenge-room, .scavenge-corridor, .scavenge-door { position: absolute; }
+.scavenge-room { background: var(--paper); }
+.scavenge-corridor { background: var(--paper-dim); display: flex; align-items: center; justify-content: center; }
+.scavenge-corridor-label {
+  font-family: var(--font-stamp); letter-spacing: 0.4em; color: var(--metal);
+  writing-mode: vertical-rl; font-size: clamp(0.6em, 2.2vw, 1em); opacity: 0.8;
 }
+.scavenge-door { background: var(--paper-dim); z-index: 1; }
 .scavenge-room-label {
-  position: absolute; top: 6px; left: 8px;
+  position: absolute; top: 0; left: 0;
   display: flex; align-items: center; gap: 4px;
-  font-family: var(--font-ui); font-size: clamp(0.65em, 1.9vw, 1em);
-  color: var(--ink); background: var(--ink); padding: 2px 6px;
+  font-family: var(--font-ui); font-size: clamp(0.6em, 1.9vw, 0.95em);
+  color: var(--hazard); background: var(--ink); padding: 2px 6px;
 }
-.scavenge-room-label { color: var(--hazard); }
 .scavenge-dropzone {
   position: absolute;
-  display: flex; align-items: center; justify-content: center;
+  display: flex; align-items: center; justify-content: center; text-align: center;
   background: repeating-linear-gradient(45deg, var(--hazard) 0 14px, var(--ink) 14px 28px);
-  outline: 3px solid var(--ink); outline-offset: -3px;
-}
-.scavenge-dropzone {
-  font-family: var(--font-ui); font-size: clamp(0.7em, 2.2vw, 1.15em);
+  font-family: var(--font-ui); font-size: clamp(0.65em, 2.1vw, 1.1em);
   color: var(--ink); text-shadow: 0 0 6px var(--hazard), 0 0 6px var(--hazard), 0 0 6px var(--hazard);
 }
 .scavenge-item, .scavenge-family {
   position: absolute;
-  width: 8%; aspect-ratio: 1; max-width: 44px;
+  width: 7%; aspect-ratio: 1; max-width: 50px;
   transform: translate(-50%, -50%);
   display: flex; align-items: center; justify-content: center;
   background: var(--ink); color: var(--hazard);
+  z-index: 2;
 }
 .scavenge-item svg, .scavenge-family svg { width: 68%; height: 68%; }
 .scavenge-family { background: var(--danger); color: var(--paper); }
-.scavenge-family-name {
+.scavenge-item-name {
   position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
-  font-family: var(--font-ui); font-size: 0.7em; white-space: nowrap;
-  background: var(--danger); color: var(--paper); padding: 0 4px;
+  font-family: var(--font-ui); font-size: clamp(0.5em, 1.6vw, 0.75em); white-space: nowrap;
+  background: var(--ink); color: var(--hazard); padding: 0 3px;
+  display: none;
 }
+.scavenge-item-name.family { display: block; background: var(--danger); color: var(--paper); }
+/* '챙기기'를 누르면 잡히는 대상 */
+.scavenge-target { outline: 4px solid var(--hazard); outline-offset: 3px; animation: target-pulse 0.5s infinite alternate; z-index: 3; }
+.scavenge-target .scavenge-item-name { display: block; }
+@keyframes target-pulse { from { outline-color: var(--hazard); } to { outline-color: var(--danger-glow); } }
 .scavenge-player {
   position: absolute;
-  width: 5%; aspect-ratio: 1; max-width: 30px;
+  width: 5%; aspect-ratio: 1; max-width: 36px;
   transform: translate(-50%, -50%);
   background: var(--info);
   border: 3px solid var(--ink);
@@ -585,10 +590,13 @@ body.modal-open { overflow: hidden; }
 .scavenge-carry-badge svg { width: 70%; height: 70%; }
 .collected i { font-style: normal; font-family: var(--font-ui); }
 
-.joystick-wrap { display: flex; justify-content: center; margin: 18px 0 8px; }
+.scavenge-controls {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; max-width: 520px; margin: 16px auto 8px; padding: 0 8px;
+}
 .joystick-base {
   position: relative;
-  width: 150px; height: 150px;
+  width: 140px; height: 140px; flex: none;
   border-radius: 50%;
   background: var(--paper-dim);
   border: 4px solid var(--ink);
@@ -596,9 +604,13 @@ body.modal-open { overflow: hidden; }
   display: flex; align-items: center; justify-content: center;
 }
 .joystick-base.joystick-active { background: var(--hazard); }
-.joystick-knob {
-  width: 64px; height: 64px;
-  border-radius: 50%;
-  background: var(--ink);
-  pointer-events: none;
+.joystick-knob { width: 60px; height: 60px; border-radius: 50%; background: var(--ink); pointer-events: none; }
+.scavenge-action-btn {
+  flex: 1; min-height: 110px;
+  font-family: var(--font-display); font-size: 1.5em; line-height: 1.2;
+  background: var(--danger); color: var(--paper);
+  border: 0; box-shadow: 0 7px 0 var(--danger-deep);
+  cursor: pointer; touch-action: manipulation;
 }
+.scavenge-action-btn:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 3px 0 var(--danger-deep); }
+.scavenge-action-btn:disabled { background: var(--metal); color: var(--paper-dim); box-shadow: 0 7px 0 var(--ink-soft); cursor: not-allowed; }

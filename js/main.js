@@ -7,6 +7,7 @@ let scavengeState = null;
 let scavengeRafId = null;
 let scavengeJoystick = null;
 let scavengeLastTs = null;
+let scavengeKeyHandler = null;
 let scavengeDom = null; // 프레임마다 갱신할 DOM 참조 캐시
 
 // 대피소 화면: 원작처럼 순서 강제 없이 탭을 자유롭게 오갈 수 있다.
@@ -145,11 +146,14 @@ function renderTitle() {
 
 // ---------------- 탈출 파트 (조이스틱 2D) ----------------
 
-const SCAVENGE_SPEED = 260; // 월드 좌표 단위 / 초
-const PLAYER_MARGIN = 14;
+const SCAVENGE_SPEED = 240; // 월드 좌표 단위 / 초
 
 function pct(v, total) {
   return `${(v / total) * 100}%`;
+}
+
+function rectStyle(rect, W, H) {
+  return `left:${pct(rect.x, W)};top:${pct(rect.y, H)};width:${pct(rect.w, W)};height:${pct(rect.h, H)};`;
 }
 
 function renderScavenge() {
@@ -160,33 +164,36 @@ function renderScavenge() {
 
   const W = window.ScavengeEngine.WORLD_W;
   const H = window.ScavengeEngine.WORLD_H;
-  const dz = scavengeState.dropzone;
+  const S = scavengeState;
 
-  const roomsHtml = scavengeState.rooms
+  // 벽(배경) 위에 복도 → 방 → 문 순서로 바닥을 깐다 (문이 벽 틈을 이어줌)
+  const roomsHtml = S.rooms
     .map(
       (room) => `
-    <div class="scavenge-room" style="left:${pct(room.rect.x, W)};top:${pct(room.rect.y, H)};width:${pct(room.rect.w, W)};height:${pct(room.rect.h, H)};">
+    <div class="scavenge-room" style="${rectStyle(room.rect, W, H)}">
       <span class="scavenge-room-label"><span class="room-icon">${roomIcon(room.id)}</span>${room.name}</span>
     </div>`
     )
     .join('');
+  const doorsHtml = S.doors.map((d) => `<div class="scavenge-door" style="${rectStyle(d, W, H)}"></div>`).join('');
 
-  const itemsHtml = scavengeState.items
+  const itemsHtml = S.items
     .map(
       (it) => `
     <div class="scavenge-item" data-key="${it.key}" style="left:${pct(it.x, W)};top:${pct(it.y, H)};" title="${window.ItemsAPI.getItem(it.itemId).name}">
       ${itemIcon(it.itemId)}
+      <span class="scavenge-item-name">${window.ItemsAPI.getItem(it.itemId).name}</span>
     </div>`
     )
     .join('');
 
-  const familyHtml = scavengeState.family
+  const familyHtml = S.family
     .map((fam) => {
       const c = window.GameState.getCharacter(state, fam.characterId);
       return `
     <div class="scavenge-family" data-key="${fam.key}" style="left:${pct(fam.x, W)};top:${pct(fam.y, H)};">
       ${personSearchIcon()}
-      <span class="scavenge-family-name">${c ? c.name : '?'}</span>
+      <span class="scavenge-item-name family">${c ? c.name : '?'}</span>
     </div>`;
     })
     .join('');
@@ -202,16 +209,16 @@ function renderScavenge() {
       </div>
       <div class="timer-unit">
         <span class="timer-label">남은 시간</span>
-        <div class="timer" id="scavengeTimer">${scavengeState.timeLeft}</div>
+        <div class="timer" id="scavengeTimer">${S.timeLeft}</div>
       </div>
     </div>
 
     <div class="scavenge-stage-wrap">
       <div class="scavenge-stage" id="scavengeStage">
+        <div class="scavenge-corridor" style="${rectStyle(S.corridor, W, H)}"><span class="scavenge-corridor-label">복도</span></div>
         ${roomsHtml}
-        <div class="scavenge-dropzone" style="left:${pct(dz.x, W)};top:${pct(dz.y, H)};width:${pct(dz.w, W)};height:${pct(dz.h, H)};">
-          대피소 입구 — 물건을 여기로 날라라!
-        </div>
+        <div class="scavenge-dropzone" style="${rectStyle(S.dropzone, W, H)}">방공호 — 물건을 들고 들어와라!</div>
+        ${doorsHtml}
         ${itemsHtml}
         ${familyHtml}
         <div class="scavenge-player" id="scavengePlayer">
@@ -225,8 +232,9 @@ function renderScavenge() {
       <span><b>찾은 가족</b><i id="scavengeFoundCount">0</i>명</span>
     </div>
 
-    <div class="joystick-wrap">
+    <div class="scavenge-controls">
       <div class="joystick-base" id="joystickBase"><div class="joystick-knob" id="joystickKnob"></div></div>
+      <button id="actionBtn" class="scavenge-action-btn" disabled>챙기기</button>
     </div>
 
     <button id="finishBtn">지금 대피소로 (탈출 종료) →</button>
@@ -244,9 +252,12 @@ function renderScavenge() {
     timer: document.getElementById('scavengeTimer'),
     collected: document.getElementById('scavengeCollectedCount'),
     found: document.getElementById('scavengeFoundCount'),
+    actionBtn: document.getElementById('actionBtn'),
     itemEls,
     familyEls,
     lastCarryId: null,
+    lastTargetKey: null,
+    lastActionLabel: null,
   };
 
   scavengeJoystick = window.Joystick.create(
@@ -254,9 +265,23 @@ function renderScavenge() {
     document.getElementById('joystickKnob')
   );
 
+  // 챙기기 버튼 (터치는 pointerdown으로 즉각 반응) + 키보드 Space/E
+  const doAction = (e) => {
+    if (!scavengeState) return;
+    e.preventDefault();
+    window.ScavengeEngine.actionScavenge(scavengeState);
+    scavengeDrawFrame();
+  };
+  scavengeDom.actionBtn.addEventListener('pointerdown', doAction);
+  scavengeKeyHandler = (e) => {
+    if (e.code === 'Space' || e.key === 'e' || e.key === 'E') doAction(e);
+  };
+  window.addEventListener('keydown', scavengeKeyHandler);
+
   document.getElementById('finishBtn').addEventListener('click', endScavenge);
 
   scavengeLastTs = null;
+  window.ScavengeEngine.updateScavenge(scavengeState);
   scavengeDrawFrame();
   scavengeRafId = requestAnimationFrame(scavengeTick);
 }
@@ -268,13 +293,8 @@ function scavengeTick(ts) {
   const dt = Math.min(0.05, (ts - scavengeLastTs) / 1000);
   scavengeLastTs = ts;
 
-  const W = window.ScavengeEngine.WORLD_W;
-  const H = window.ScavengeEngine.WORLD_H;
   const vec = scavengeJoystick.vector;
-  const p = scavengeState.player;
-  p.x = Math.max(PLAYER_MARGIN, Math.min(W - PLAYER_MARGIN, p.x + vec.x * SCAVENGE_SPEED * dt));
-  p.y = Math.max(PLAYER_MARGIN, Math.min(H - PLAYER_MARGIN, p.y + vec.y * SCAVENGE_SPEED * dt));
-
+  window.ScavengeEngine.movePlayer(scavengeState, vec.x * SCAVENGE_SPEED * dt, vec.y * SCAVENGE_SPEED * dt);
   window.ScavengeEngine.updateScavenge(scavengeState);
 
   scavengeState.timeLeft -= dt;
@@ -298,10 +318,48 @@ function scavengeDrawFrame() {
   d.player.style.left = pct(s.player.x, W);
   d.player.style.top = pct(s.player.y, H);
 
-  s.items.forEach((it) => d.itemEls[it.key].classList.toggle('hidden', it.taken));
+  s.items.forEach((it) => {
+    const el = d.itemEls[it.key];
+    el.classList.toggle('hidden', it.taken);
+    el.style.left = pct(it.x, W); // 내려놓기로 위치가 바뀔 수 있음
+    el.style.top = pct(it.y, H);
+  });
   s.family.forEach((fam) =>
     d.familyEls[fam.key].classList.toggle('hidden', s.foundFamily.includes(fam.characterId))
   );
+
+  // 지금 '챙기기'로 잡히는 대상 강조 + 버튼 문구
+  const targetKey = s.target ? s.target.key : null;
+  if (targetKey !== d.lastTargetKey) {
+    if (d.lastTargetKey) {
+      const prev = d.itemEls[d.lastTargetKey] || d.familyEls[d.lastTargetKey];
+      if (prev) prev.classList.remove('scavenge-target');
+    }
+    if (targetKey) {
+      const cur = d.itemEls[targetKey] || d.familyEls[targetKey];
+      if (cur) cur.classList.add('scavenge-target');
+    }
+    d.lastTargetKey = targetKey;
+  }
+
+  let label = '챙기기';
+  let enabled = false;
+  if (s.target && s.target.kind === 'family') {
+    label = '구하기';
+    enabled = true;
+  } else if (s.carrying) {
+    label = '내려놓기';
+    enabled = true;
+  } else if (s.target) {
+    const it = s.items.find((i) => i.key === s.target.key);
+    label = `챙기기 · ${window.ItemsAPI.getItem(it.itemId).name}`;
+    enabled = true;
+  }
+  if (label !== d.lastActionLabel) {
+    d.lastActionLabel = label;
+    d.actionBtn.textContent = label;
+  }
+  d.actionBtn.disabled = !enabled;
 
   const carryId = s.carrying ? s.carrying.itemId : null;
   if (carryId !== d.lastCarryId) {
@@ -320,7 +378,9 @@ function scavengeDrawFrame() {
 function endScavenge() {
   cancelAnimationFrame(scavengeRafId);
   if (scavengeJoystick) scavengeJoystick.destroy();
+  if (scavengeKeyHandler) window.removeEventListener('keydown', scavengeKeyHandler);
   scavengeJoystick = null;
+  scavengeKeyHandler = null;
   scavengeDom = null;
   window.ScavengeEngine.finishScavenge(state, scavengeState);
   scavengeState = null;
