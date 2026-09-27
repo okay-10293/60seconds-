@@ -34,7 +34,7 @@ function createCharacter({ id, name, age, isChild = false, startLocation = 'shel
 function createInitialState() {
   return {
     day: 1,
-    phase: 'scavenge', // 'scavenge' | 'shelter' | 'gameover' | 'ending'
+    phase: 'title', // 'title' | 'scavenge' | 'shelter' | 'gameover' | 'ending'
     resources: {
       food: 0,
       water: 0,
