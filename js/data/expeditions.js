@@ -75,7 +75,7 @@ window.EXPEDITIONS = [
       {
         weight: 45,
         type: 'success',
-        resultText: '구급상자를 여러 개 찾아냈다.',
+        resultText: '구급상자를 찾아냈다.',
         loot: [{ itemId: 'first_aid', min: 1, max: 2 }],
       },
       {

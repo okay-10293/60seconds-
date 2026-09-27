@@ -75,7 +75,8 @@ function applyEffect(state, effect) {
     case 'item': {
       if (effect.delta < 0) {
         window.GameState.removeItem(state, effect.itemId, -effect.delta);
-      } else {
+      } else if (window.GameState.canGainItem(state, effect.itemId)) {
+        // 식량/물 외 물자는 이미 갖고 있으면 또 얻을 수 없다 (무조건 1개만 존재)
         window.GameState.addItem(state, effect.itemId, effect.delta);
       }
       break;

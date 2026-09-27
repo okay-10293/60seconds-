@@ -90,6 +90,19 @@ function removeItem(state, itemId, count = 1) {
   state.inventory[itemId] = Math.max(0, next);
 }
 
+// 이미 갖고 있는가? (대피소 인벤토리 + 지금 원정에 들고 나간 장비까지 포함)
+function ownsItem(state, itemId) {
+  if (itemCount(state, itemId) > 0) return true;
+  return state.characters.some(
+    (c) => c.expedition && c.expedition.equippedItems && c.expedition.equippedItems.includes(itemId)
+  );
+}
+
+// 새로 얻을 수 있는가? 식량/물은 항상 가능, 그 외 물자는 아직 없을 때만 가능(무조건 1개만 존재).
+function canGainItem(state, itemId) {
+  return !isUniqueItem(itemId) || !ownsItem(state, itemId);
+}
+
 function hasItem(state, itemId, count = 1) {
   return itemCount(state, itemId) >= count;
 }
@@ -114,6 +127,8 @@ window.GameState = {
   addItem,
   removeItem,
   hasItem,
+  ownsItem,
+  canGainItem,
   serializeState,
   deserializeState,
 };

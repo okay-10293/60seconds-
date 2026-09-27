@@ -145,7 +145,10 @@ function applyExpeditionOutcome(state, character, expedition, outcome, equippedI
         if (loot.key) {
           state.resources[loot.key] = (state.resources[loot.key] || 0) + amount;
         } else if (loot.itemId) {
-          window.GameState.addItem(state, loot.itemId, amount);
+          // 식량/물이 아닌 물자는 무조건 1개만 존재 — 이미 갖고 있으면 또 얻을 수 없다.
+          if (window.GameState.canGainItem(state, loot.itemId)) {
+            window.GameState.addItem(state, loot.itemId, 1);
+          }
         }
       });
       window.GameState.addLog(
