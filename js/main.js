@@ -368,7 +368,7 @@ function renderShelter() {
     .filter(([, count]) => count > 0)
     .map(([itemId, count]) => {
       const item = window.ItemsAPI.getItem(itemId);
-      return `<span class="inv-chip"><span class="item-icon small">${itemIcon(item.id)}</span>${item.name} x${count}</span>`;
+      return `<span class="inv-chip"><span class="item-icon small">${itemIcon(item.id)}</span>${item.name}</span>`;
     })
     .join('');
 
@@ -582,7 +582,7 @@ function renderStepArea(people) {
     const expeditionCharOptionsHtml = expeditionCandidates.map((c) => `<option value="${c.id}">${c.name}</option>`).join('');
     const equipOptionsHtml =
       `<option value="">없음</option>` +
-      equippableItems.map((item) => `<option value="${item.id}">${item.name} (${state.inventory[item.id]}개)</option>`).join('');
+      equippableItems.map((item) => `<option value="${item.id}">${item.name}</option>`).join('');
     const outOnExpeditionHtml = outOnExpedition
       .map((c) => {
         const equippedNames = (c.expedition && c.expedition.equippedItems ? c.expedition.equippedItems : [])

@@ -19,40 +19,41 @@ const PICKUP_RADIUS = 30; // 이 거리 안으로 들어오면 자동으로 줍�
 
 // 방에 놓일 아이템 & 가족 스폰 테이블 (나중에 방 추가하려면 여기에 배열만 추가)
 window.SCAVENGE_ROOMS = [
+  // 식량(canned_food)/물(water_bottle)만 여러 개, 나머지 물자는 집 전체에 딱 하나씩
   {
     id: 'kitchen',
     name: '주방',
-    spawns: ['canned_food', 'canned_food', 'canned_food', 'water_bottle', 'water_bottle', 'water_bottle', 'first_aid', 'pesticide'],
+    spawns: ['canned_food', 'canned_food', 'canned_food', 'water_bottle', 'water_bottle', 'first_aid', 'pesticide'],
     familySpawns: [],
   },
   {
     id: 'living_room',
     name: '거실',
-    spawns: ['radio', 'board_game', 'playing_cards', 'map', 'canned_food', 'harmonica'],
+    spawns: ['radio', 'board_game', 'playing_cards', 'map', 'harmonica', 'canned_food'],
     familySpawns: ['mom'],
   },
   {
     id: 'bedroom',
     name: '침실',
-    spawns: ['flashlight', 'first_aid', 'survival_book', 'water_bottle', 'axe'],
+    spawns: ['flashlight', 'survival_book', 'axe', 'water_bottle', 'canned_food'],
     familySpawns: ['son', 'daughter'],
   },
   {
     id: 'garage',
     name: '차고',
-    spawns: ['rifle', 'ammo', 'flashlight', 'canned_food', 'survival_book', 'gas_mask'],
+    spawns: ['rifle', 'ammo', 'gas_mask', 'canned_food', 'water_bottle'],
     familySpawns: [],
   },
   {
     id: 'basement',
     name: '지하실',
-    spawns: ['gas_mask', 'suitcase', 'canned_food', 'water_bottle', 'lock'],
+    spawns: ['suitcase', 'lock', 'canned_food', 'water_bottle'],
     familySpawns: [],
   },
   {
     id: 'bathroom',
     name: '화장실',
-    spawns: ['first_aid', 'water_bottle', 'flashlight', 'lock'],
+    spawns: ['water_bottle', 'water_bottle'],
     familySpawns: [],
   },
 ];

@@ -74,8 +74,15 @@ function itemCount(state, itemId) {
   return state.inventory[itemId] || 0;
 }
 
+// 식량/물이 아닌 아이템은 개수가 아니라 '있다/없다'로만 관리한다 (최대 1개).
+function isUniqueItem(itemId) {
+  const item = window.ItemsAPI && window.ItemsAPI.getItem(itemId);
+  return !!item && item.category !== 'food' && item.category !== 'water';
+}
+
 function addItem(state, itemId, count = 1) {
-  state.inventory[itemId] = itemCount(state, itemId) + count;
+  const next = itemCount(state, itemId) + count;
+  state.inventory[itemId] = isUniqueItem(itemId) ? Math.min(1, next) : next;
 }
 
 function removeItem(state, itemId, count = 1) {
