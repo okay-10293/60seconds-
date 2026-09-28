@@ -6,7 +6,8 @@
 //
 // 조작: 조이스틱으로 이동 → 가까이 가서 '챙기기' 버튼으로 원하는 물자를 가방에 담는다.
 // 가방은 원작처럼 4칸이고 물자마다 차지하는 칸 수가 다르다(items.js의 slots).
-// 방공호 안에서 같은 버튼('넣기')을 눌러야 가방을 비우고 물자가 확정된다. 가족은 '구하기'.
+// 방공호 안에서 같은 버튼('넣기')을 눌러야 가방을 비우고 확정된다.
+// 가족도 '구하기'로 업어서(칸 차지) 방공호까지 데려가야 구조가 확정된다.
 // 벽이 있어서 문(door)으로만 복도와 방을 오갈 수 있다.
 
 const SCAVENGE_TIME_LIMIT = 60; // 초
@@ -16,6 +17,8 @@ const WORLD_H = 900;
 const PICKUP_RADIUS = 62; // 이 거리 안이면 '챙기기' 버튼으로 집을 수 있다
 const PLAYER_RADIUS = 14; // 벽 충돌 반경
 const BAG_CAPACITY = 4; // 원작 기준 가방 칸 수
+// 가족도 원작처럼 업고 가야 해서 칸을 차지한다 (돌로레스 2, 티미 2, 메리 제인 3)
+const FAMILY_SLOTS = { mom: 2, son: 2, daughter: 3 };
 
 // 방에 놓일 아이템 & 가족 스폰 테이블 (방이 5개 = 자리 5곳: 위 1 + 양옆 4)
 // 식량(canned_food)/물(water_bottle)만 여러 개, 나머지 물자는 집 전체에 딱 하나씩
@@ -152,7 +155,7 @@ function startScavenge(state) {
       return c && c.location === 'missing';
     }),
     player: { x: SHELTER.x + SHELTER.w / 2, y: SHELTER.y + SHELTER.h / 2 },
-    carrying: [], // 가방에 든 물자 [{ key, itemId }] — 칸 수 합이 BAG_CAPACITY 이하
+    carrying: [], // 가방에 든 것 [{ key, itemId } | { key, characterId }] — 칸 수 합이 BAG_CAPACITY 이하
     target: null, // 지금 '챙기기'를 누르면 잡히는 대상 { kind:'item'|'family', key }
   };
 }
@@ -185,8 +188,13 @@ function slotsOf(itemId) {
   return (item && item.slots) || 1;
 }
 
+// 가방 항목 하나(물자 또는 가족)가 차지하는 칸 수
+function entrySlots(entry) {
+  return entry.characterId ? FAMILY_SLOTS[entry.characterId] || 2 : slotsOf(entry.itemId);
+}
+
 function usedSlots(scavengeState) {
-  return scavengeState.carrying.reduce((sum, c) => sum + slotsOf(c.itemId), 0);
+  return scavengeState.carrying.reduce((sum, c) => sum + entrySlots(c), 0);
 }
 
 function inShelter(scavengeState) {
@@ -209,11 +217,11 @@ function findTarget(scavengeState) {
     }
   });
   scavengeState.family.forEach((fam) => {
-    if (scavengeState.foundFamily.includes(fam.characterId)) return;
+    if (fam.taken || scavengeState.foundFamily.includes(fam.characterId)) return;
     const d = dist(p.x, p.y, fam.x, fam.y);
     if (d <= bestD) {
       bestD = d;
-      best = { kind: 'family', key: fam.key, fits: true };
+      best = { kind: 'family', key: fam.key, fits: used + (FAMILY_SLOTS[fam.characterId] || 2) <= BAG_CAPACITY };
     }
   });
   return best;
@@ -223,7 +231,10 @@ function findTarget(scavengeState) {
 function actionScavenge(scavengeState) {
   if (inShelter(scavengeState)) {
     if (scavengeState.carrying.length > 0) {
-      scavengeState.carrying.forEach((c) => scavengeState.collected.push(c.itemId));
+      scavengeState.carrying.forEach((c) => {
+        if (c.characterId) scavengeState.foundFamily.push(c.characterId); // 가족은 방공호에 들어가야 구조 확정
+        else scavengeState.collected.push(c.itemId);
+      });
       scavengeState.carrying = [];
     }
   } else {
@@ -232,9 +243,10 @@ function actionScavenge(scavengeState) {
       const it = scavengeState.items.find((i) => i.key === t.key);
       scavengeState.carrying.push({ key: it.key, itemId: it.itemId });
       it.taken = true;
-    } else if (t && t.kind === 'family') {
+    } else if (t && t.kind === 'family' && t.fits) {
       const fam = scavengeState.family.find((f) => f.key === t.key);
-      scavengeState.foundFamily.push(fam.characterId);
+      scavengeState.carrying.push({ key: fam.key, characterId: fam.characterId });
+      fam.taken = true;
     }
   }
   scavengeState.target = findTarget(scavengeState);
@@ -247,7 +259,7 @@ function updateScavenge(scavengeState) {
 
 // 타이머 종료 -> 주운 아이템들을 실제 게임 상태 인벤토리/자원으로 반영
 // + 찾은/못 찾은 가족을 shelter/missing으로 확정
-// (시간 종료 시 가방에 든 채 방공호에 못 넣은 것(carrying)은 사라짐)
+// (시간 종료 시 가방에 든 채 방공호에 못 넣은 것(carrying)은 사라지고, 업고 있던 가족은 못 구한 것으로 처리)
 function finishScavenge(state, scavengeState) {
   scavengeState.collected.forEach((itemId) => {
     const item = window.ItemsAPI.getItem(itemId);
@@ -282,6 +294,7 @@ window.ScavengeEngine = {
   PICKUP_RADIUS,
   BAG_CAPACITY,
   slotsOf,
+  entrySlots,
   usedSlots,
   inShelter,
   startScavenge,

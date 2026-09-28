@@ -598,6 +598,7 @@ body.modal-open { overflow: hidden; }
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
 }
 .inv-slot.filled { background: var(--ink); border: 3px solid var(--ink); color: var(--hazard); }
+.inv-slot.filled.family { background: var(--danger); border-color: var(--danger); color: var(--paper); }
 .inv-slot svg { width: 26px; height: 26px; }
 .inv-slot span { font-family: var(--font-ui); font-size: 0.65em; white-space: nowrap; }
 .collected i { font-style: normal; font-family: var(--font-ui); }

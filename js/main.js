@@ -133,7 +133,7 @@ function renderTitle() {
       </p>
       <button id="titleStartBtn" class="go-btn">시작하기</button>
       <p class="title-screen-hint">
-        조이스틱(또는 방향키)으로 움직여 '챙기기'로 물건을 가방(4칸)에 담고, 방공호에서 '넣기'로 비워라.
+        조이스틱(또는 방향키)으로 움직여 '챙기기'로 물건을, '구하기'로 가족을 가방(4칸)에 담고, 방공호에서 '넣기'로 비워라.
       </p>
     </div>
   `;
@@ -194,7 +194,8 @@ function renderScavenge() {
       return `
     <div class="scavenge-family" data-key="${fam.key}" style="left:${pct(fam.x, W)};top:${pct(fam.y, H)};">
       ${personSearchIcon()}
-      <span class="scavenge-item-name family">${c ? c.name : '?'}</span>
+      <span class="scavenge-slot-badge">${window.ScavengeEngine.entrySlots(fam)}</span>
+      <span class="scavenge-item-name family">${c ? c.name : '?'} ${window.ScavengeEngine.entrySlots(fam)}칸</span>
     </div>`;
     })
     .join('');
@@ -328,7 +329,7 @@ function scavengeDrawFrame() {
     el.classList.toggle('hidden', it.taken);
   });
   s.family.forEach((fam) =>
-    d.familyEls[fam.key].classList.toggle('hidden', s.foundFamily.includes(fam.characterId))
+    d.familyEls[fam.key].classList.toggle('hidden', fam.taken || s.foundFamily.includes(fam.characterId))
   );
 
   // 지금 '챙기기'로 잡히는 대상 강조 + 버튼 문구
@@ -352,8 +353,11 @@ function scavengeDrawFrame() {
     label = `방공호에 넣기 (${s.carrying.length}개)`;
     enabled = true;
   } else if (s.target && s.target.kind === 'family') {
-    label = '구하기';
-    enabled = true;
+    const fam = s.family.find((f) => f.key === s.target.key);
+    const c = window.GameState.getCharacter(state, fam.characterId);
+    const n = E.entrySlots(fam);
+    label = s.target.fits ? `구하기 · ${c.name} (${n}칸)` : `칸 부족 · ${c.name} (${n}칸)`;
+    enabled = s.target.fits;
   } else if (s.target) {
     const it = s.items.find((i) => i.key === s.target.key);
     const name = window.ItemsAPI.getItem(it.itemId).name;
@@ -375,6 +379,10 @@ function scavengeDrawFrame() {
     d.inventory.innerHTML =
       s.carrying
         .map((c) => {
+          if (c.characterId) {
+            const ch = window.GameState.getCharacter(state, c.characterId);
+            return `<div class="inv-slot filled family" style="flex:${E.entrySlots(c)}">${personSearchIcon()}<span>${ch.name}</span></div>`;
+          }
           const item = window.ItemsAPI.getItem(c.itemId);
           return `<div class="inv-slot filled" style="flex:${E.slotsOf(c.itemId)}">${itemIcon(c.itemId)}<span>${item.name}</span></div>`;
         })
