@@ -581,13 +581,25 @@ body.modal-open { overflow: hidden; }
   border-radius: 50%;
   z-index: 5;
 }
-.scavenge-carry-badge {
-  position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%);
-  width: 34px; height: 34px;
+.scavenge-slot-badge {
+  position: absolute; top: -6px; right: -6px;
+  min-width: 16px; height: 16px; padding: 0 3px;
   display: flex; align-items: center; justify-content: center;
-  background: var(--ink); color: var(--hazard);
+  background: var(--danger); color: var(--paper);
+  font-family: var(--font-ui); font-size: 0.65em; line-height: 1;
 }
-.scavenge-carry-badge svg { width: 70%; height: 70%; }
+.scavenge-bag { max-width: 520px; margin: 14px auto 0; padding: 0 8px; }
+.scavenge-bag-title { font-family: var(--font-ui); margin-bottom: 4px; }
+.scavenge-bag-title i { font-style: normal; }
+.scavenge-inventory { display: flex; gap: 4px; }
+.inv-slot {
+  flex: 1; min-height: 52px;
+  background: var(--paper-dim); border: 3px dashed var(--metal);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+}
+.inv-slot.filled { background: var(--ink); border: 3px solid var(--ink); color: var(--hazard); }
+.inv-slot svg { width: 26px; height: 26px; }
+.inv-slot span { font-family: var(--font-ui); font-size: 0.65em; white-space: nowrap; }
 .collected i { font-style: normal; font-family: var(--font-ui); }
 
 .scavenge-controls {

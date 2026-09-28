@@ -133,7 +133,7 @@ function renderTitle() {
       </p>
       <button id="titleStartBtn" class="go-btn">시작하기</button>
       <p class="title-screen-hint">
-        조이스틱(또는 방향키)으로 움직여 물건을 줍고, 대피소 입구까지 날라라.
+        조이스틱(또는 방향키)으로 움직여 '챙기기'로 물건을 가방(4칸)에 담고, 방공호에서 '넣기'로 비워라.
       </p>
     </div>
   `;
@@ -182,7 +182,8 @@ function renderScavenge() {
       (it) => `
     <div class="scavenge-item" data-key="${it.key}" style="left:${pct(it.x, W)};top:${pct(it.y, H)};" title="${window.ItemsAPI.getItem(it.itemId).name}">
       ${itemIcon(it.itemId)}
-      <span class="scavenge-item-name">${window.ItemsAPI.getItem(it.itemId).name}</span>
+      ${window.ScavengeEngine.slotsOf(it.itemId) > 1 ? `<span class="scavenge-slot-badge">${window.ScavengeEngine.slotsOf(it.itemId)}</span>` : ''}
+      <span class="scavenge-item-name">${window.ItemsAPI.getItem(it.itemId).name} ${window.ScavengeEngine.slotsOf(it.itemId)}칸</span>
     </div>`
     )
     .join('');
@@ -217,14 +218,17 @@ function renderScavenge() {
       <div class="scavenge-stage" id="scavengeStage">
         <div class="scavenge-corridor" style="${rectStyle(S.corridor, W, H)}"><span class="scavenge-corridor-label">복도</span></div>
         ${roomsHtml}
-        <div class="scavenge-dropzone" style="${rectStyle(S.dropzone, W, H)}">방공호 — 물건을 들고 들어와라!</div>
+        <div class="scavenge-dropzone" style="${rectStyle(S.dropzone, W, H)}">방공호 — 안에서 '넣기'를 눌러 가방을 비워라!</div>
         ${doorsHtml}
         ${itemsHtml}
         ${familyHtml}
-        <div class="scavenge-player" id="scavengePlayer">
-          <span class="scavenge-carry-badge hidden" id="scavengeCarryBadge"></span>
-        </div>
+        <div class="scavenge-player" id="scavengePlayer"></div>
       </div>
+    </div>
+
+    <div class="scavenge-bag">
+      <div class="scavenge-bag-title"><b>가방</b> <i id="scavengeBagCount">0</i>/${window.ScavengeEngine.BAG_CAPACITY}칸</div>
+      <div class="scavenge-inventory" id="scavengeInventory"></div>
     </div>
 
     <div class="collected">
@@ -248,14 +252,15 @@ function renderScavenge() {
 
   scavengeDom = {
     player: document.getElementById('scavengePlayer'),
-    carryBadge: document.getElementById('scavengeCarryBadge'),
+    inventory: document.getElementById('scavengeInventory'),
+    bagCount: document.getElementById('scavengeBagCount'),
     timer: document.getElementById('scavengeTimer'),
     collected: document.getElementById('scavengeCollectedCount'),
     found: document.getElementById('scavengeFoundCount'),
     actionBtn: document.getElementById('actionBtn'),
     itemEls,
     familyEls,
-    lastCarryId: null,
+    lastBagKey: null,
     lastTargetKey: null,
     lastActionLabel: null,
   };
@@ -321,8 +326,6 @@ function scavengeDrawFrame() {
   s.items.forEach((it) => {
     const el = d.itemEls[it.key];
     el.classList.toggle('hidden', it.taken);
-    el.style.left = pct(it.x, W); // 내려놓기로 위치가 바뀔 수 있음
-    el.style.top = pct(it.y, H);
   });
   s.family.forEach((fam) =>
     d.familyEls[fam.key].classList.toggle('hidden', s.foundFamily.includes(fam.characterId))
@@ -342,18 +345,21 @@ function scavengeDrawFrame() {
     d.lastTargetKey = targetKey;
   }
 
+  const E = window.ScavengeEngine;
   let label = '챙기기';
   let enabled = false;
-  if (s.target && s.target.kind === 'family') {
-    label = '구하기';
+  if (E.inShelter(s) && s.carrying.length > 0) {
+    label = `방공호에 넣기 (${s.carrying.length}개)`;
     enabled = true;
-  } else if (s.carrying) {
-    label = '내려놓기';
+  } else if (s.target && s.target.kind === 'family') {
+    label = '구하기';
     enabled = true;
   } else if (s.target) {
     const it = s.items.find((i) => i.key === s.target.key);
-    label = `챙기기 · ${window.ItemsAPI.getItem(it.itemId).name}`;
-    enabled = true;
+    const name = window.ItemsAPI.getItem(it.itemId).name;
+    const n = E.slotsOf(it.itemId);
+    label = s.target.fits ? `챙기기 · ${name} (${n}칸)` : `칸 부족 · ${name} (${n}칸)`;
+    enabled = s.target.fits;
   }
   if (label !== d.lastActionLabel) {
     d.lastActionLabel = label;
@@ -361,11 +367,19 @@ function scavengeDrawFrame() {
   }
   d.actionBtn.disabled = !enabled;
 
-  const carryId = s.carrying ? s.carrying.itemId : null;
-  if (carryId !== d.lastCarryId) {
-    d.lastCarryId = carryId;
-    d.carryBadge.classList.toggle('hidden', !carryId);
-    d.carryBadge.innerHTML = carryId ? itemIcon(carryId) : '';
+  // 가방 4칸 표시: 물자마다 차지하는 칸 수만큼 넓게
+  const bagKey = s.carrying.map((c) => c.key).join(',');
+  if (bagKey !== d.lastBagKey) {
+    d.lastBagKey = bagKey;
+    const used = E.usedSlots(s);
+    d.inventory.innerHTML =
+      s.carrying
+        .map((c) => {
+          const item = window.ItemsAPI.getItem(c.itemId);
+          return `<div class="inv-slot filled" style="flex:${E.slotsOf(c.itemId)}">${itemIcon(c.itemId)}<span>${item.name}</span></div>`;
+        })
+        .join('') + '<div class="inv-slot"></div>'.repeat(E.BAG_CAPACITY - used);
+    d.bagCount.textContent = used;
   }
 
   const secs = Math.ceil(s.timeLeft);

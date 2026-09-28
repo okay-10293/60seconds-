@@ -4,8 +4,9 @@
 // 가운데 세로 복도를 중심으로 위쪽 방 1개 + 양옆 방 4개가 붙어 있고, 맨 아래가
 // 방공호(대피소 입구)인 집 구조. 어느 방이 어느 자리에 오는지는 판마다 랜덤.
 //
-// 조작: 조이스틱으로 이동 → 가까이 가서 '챙기기' 버튼으로 원하는 물자를 집어든다
-// (한 번에 하나만). 방공호 안으로 들고 들어가면 확정. 가족도 '구조하기' 버튼.
+// 조작: 조이스틱으로 이동 → 가까이 가서 '챙기기' 버튼으로 원하는 물자를 가방에 담는다.
+// 가방은 원작처럼 4칸이고 물자마다 차지하는 칸 수가 다르다(items.js의 slots).
+// 방공호 안에서 같은 버튼('넣기')을 눌러야 가방을 비우고 물자가 확정된다. 가족은 '구하기'.
 // 벽이 있어서 문(door)으로만 복도와 방을 오갈 수 있다.
 
 const SCAVENGE_TIME_LIMIT = 60; // 초
@@ -14,6 +15,7 @@ const WORLD_W = 720;
 const WORLD_H = 900;
 const PICKUP_RADIUS = 62; // 이 거리 안이면 '챙기기' 버튼으로 집을 수 있다
 const PLAYER_RADIUS = 14; // 벽 충돌 반경
+const BAG_CAPACITY = 4; // 원작 기준 가방 칸 수
 
 // 방에 놓일 아이템 & 가족 스폰 테이블 (방이 5개 = 자리 5곳: 위 1 + 양옆 4)
 // 식량(canned_food)/물(water_bottle)만 여러 개, 나머지 물자는 집 전체에 딱 하나씩
@@ -150,7 +152,7 @@ function startScavenge(state) {
       return c && c.location === 'missing';
     }),
     player: { x: SHELTER.x + SHELTER.w / 2, y: SHELTER.y + SHELTER.h / 2 },
-    carrying: null, // { key, itemId } | null — 한 번에 하나만 들 수 있음
+    carrying: [], // 가방에 든 물자 [{ key, itemId }] — 칸 수 합이 BAG_CAPACITY 이하
     target: null, // 지금 '챙기기'를 누르면 잡히는 대상 { kind:'item'|'family', key }
   };
 }
@@ -178,60 +180,74 @@ function movePlayer(scavengeState, dx, dy) {
   if (canStand(scavengeState.walkable, p.x, p.y + dy)) p.y += dy;
 }
 
+function slotsOf(itemId) {
+  const item = window.ItemsAPI.getItem(itemId);
+  return (item && item.slots) || 1;
+}
+
+function usedSlots(scavengeState) {
+  return scavengeState.carrying.reduce((sum, c) => sum + slotsOf(c.itemId), 0);
+}
+
+function inShelter(scavengeState) {
+  return inRect(scavengeState.player.x, scavengeState.player.y, scavengeState.dropzone);
+}
+
 // 지금 '챙기기'를 누르면 잡힐 대상: 범위 안에서 가장 가까운 것
-// (물건은 손이 비어 있을 때만, 가족은 언제든)
+// 물건은 가방 칸이 모자라도 대상으로 잡히지만 fits=false (버튼이 비활성화됨)
 function findTarget(scavengeState) {
   const p = scavengeState.player;
+  const used = usedSlots(scavengeState);
   let best = null;
   let bestD = PICKUP_RADIUS;
-  if (!scavengeState.carrying) {
-    scavengeState.items.forEach((it) => {
-      if (it.taken) return;
-      const d = dist(p.x, p.y, it.x, it.y);
-      if (d <= bestD) { bestD = d; best = { kind: 'item', key: it.key }; }
-    });
-  }
+  scavengeState.items.forEach((it) => {
+    if (it.taken) return;
+    const d = dist(p.x, p.y, it.x, it.y);
+    if (d <= bestD) {
+      bestD = d;
+      best = { kind: 'item', key: it.key, fits: used + slotsOf(it.itemId) <= BAG_CAPACITY };
+    }
+  });
   scavengeState.family.forEach((fam) => {
     if (scavengeState.foundFamily.includes(fam.characterId)) return;
     const d = dist(p.x, p.y, fam.x, fam.y);
-    if (d <= bestD) { bestD = d; best = { kind: 'family', key: fam.key }; }
+    if (d <= bestD) {
+      bestD = d;
+      best = { kind: 'family', key: fam.key, fits: true };
+    }
   });
   return best;
 }
 
-// '챙기기' 버튼: 대상이 있으면 집어들기/구하기, 없는데 뭔가 들고 있으면 그 자리에 내려놓기
+// '챙기기' 버튼: 방공호 안이면 가방 비우기(넣기), 아니면 가까운 대상 담기/구하기
 function actionScavenge(scavengeState) {
-  const t = findTarget(scavengeState);
-  if (t && t.kind === 'item') {
-    const it = scavengeState.items.find((i) => i.key === t.key);
-    scavengeState.carrying = { key: it.key, itemId: it.itemId };
-    it.taken = true;
-  } else if (t && t.kind === 'family') {
-    const fam = scavengeState.family.find((f) => f.key === t.key);
-    scavengeState.foundFamily.push(fam.characterId);
-  } else if (scavengeState.carrying) {
-    const it = scavengeState.items.find((i) => i.key === scavengeState.carrying.key);
-    it.x = scavengeState.player.x;
-    it.y = scavengeState.player.y;
-    it.taken = false;
-    scavengeState.carrying = null;
+  if (inShelter(scavengeState)) {
+    if (scavengeState.carrying.length > 0) {
+      scavengeState.carrying.forEach((c) => scavengeState.collected.push(c.itemId));
+      scavengeState.carrying = [];
+    }
+  } else {
+    const t = findTarget(scavengeState);
+    if (t && t.kind === 'item' && t.fits) {
+      const it = scavengeState.items.find((i) => i.key === t.key);
+      scavengeState.carrying.push({ key: it.key, itemId: it.itemId });
+      it.taken = true;
+    } else if (t && t.kind === 'family') {
+      const fam = scavengeState.family.find((f) => f.key === t.key);
+      scavengeState.foundFamily.push(fam.characterId);
+    }
   }
   scavengeState.target = findTarget(scavengeState);
 }
 
-// 매 프레임: 방공호 안에 들고 들어오면 납품, 그리고 지금 잡힐 대상 갱신
+// 매 프레임: 지금 잡힐 대상 갱신 (납품은 자동이 아니라 버튼으로만)
 function updateScavenge(scavengeState) {
-  const p = scavengeState.player;
-  if (scavengeState.carrying && inRect(p.x, p.y, scavengeState.dropzone)) {
-    scavengeState.collected.push(scavengeState.carrying.itemId);
-    scavengeState.carrying = null;
-  }
   scavengeState.target = findTarget(scavengeState);
 }
 
 // 타이머 종료 -> 주운 아이템들을 실제 게임 상태 인벤토리/자원으로 반영
 // + 찾은/못 찾은 가족을 shelter/missing으로 확정
-// (시간 종료 시 손에 들고 있던 것(carrying)은 납품 전이라 사라짐)
+// (시간 종료 시 가방에 든 채 방공호에 못 넣은 것(carrying)은 사라짐)
 function finishScavenge(state, scavengeState) {
   scavengeState.collected.forEach((itemId) => {
     const item = window.ItemsAPI.getItem(itemId);
@@ -264,6 +280,10 @@ window.ScavengeEngine = {
   WORLD_W,
   WORLD_H,
   PICKUP_RADIUS,
+  BAG_CAPACITY,
+  slotsOf,
+  usedSlots,
+  inShelter,
   startScavenge,
   movePlayer,
   actionScavenge,
