@@ -283,6 +283,19 @@ function finishScavenge(state, scavengeState) {
   });
 
   const diedNames = [];
+
+  // 조작 중이던 플레이어(테드)가 시간 끝날 때 방공호 밖(방/복도)에 남아있으면
+  // 그도 함께 사망 처리한다. (이게 빠져있어서 폭발 이펙트가 안 뜨던 원인)
+  if (!inShelter(scavengeState)) {
+    const player = state.characters.find((c) => c.id === 'dad' && c.location !== 'dead');
+    if (player) {
+      player.health = 'dead';
+      player.location = 'dead';
+      diedNames.push(player.name);
+      window.GameState.addLog(state, `${player.name}이(가) 방공호 밖에 남겨진 채 시간이 끝나 사망했다.`);
+    }
+  }
+
   state.characters
     .filter((c) => c.location === 'missing')
     .forEach((c) => {
