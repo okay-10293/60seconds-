@@ -18,7 +18,9 @@ document.addEventListener(
   'touchend',
   (e) => {
     const now = Date.now();
-    if (now - lastTouchEndAt <= 350) {
+    // 브라우저 자체의 더블탭 인식 간격이 350ms보다 넓은 경우가 있어서
+    // (기기/버전마다 다름) 여유 있게 500ms까지 잡는다.
+    if (now - lastTouchEndAt <= 500) {
       e.preventDefault();
     }
     lastTouchEndAt = now;
