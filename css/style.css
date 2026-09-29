@@ -517,6 +517,9 @@ body.modal-open { overflow: hidden; }
    ============================================================ */
 .hidden { display: none !important; }
 
+/* 사파리에서 버튼을 빠르게 두 번 누르면 화면이 확대되는 것 방지 (뷰포트 설정과 함께) */
+html, body { touch-action: manipulation; }
+
 /* 세 조각(조이스틱/맵/버튼): 세로 화면에선 맵 아래 조이스틱+버튼이 나란히,
    가로(태블릿 랜드스케이프) 화면에선 맵 좌우로 갈라져 붙는다 */
 .scavenge-play-area {

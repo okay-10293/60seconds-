@@ -183,7 +183,7 @@ function renderScavenge() {
     <div class="scavenge-item" data-key="${it.key}" style="left:${pct(it.x, W)};top:${pct(it.y, H)};" title="${window.ItemsAPI.getItem(it.itemId).name}">
       ${itemIcon(it.itemId)}
       ${window.ScavengeEngine.slotsOf(it.itemId) > 1 ? `<span class="scavenge-slot-badge">${window.ScavengeEngine.slotsOf(it.itemId)}</span>` : ''}
-      <span class="scavenge-item-name">${window.ItemsAPI.getItem(it.itemId).name} ${window.ScavengeEngine.slotsOf(it.itemId)}칸</span>
+      <span class="scavenge-item-name">${window.ItemsAPI.getItem(it.itemId).name}</span>
     </div>`
     )
     .join('');
@@ -195,7 +195,7 @@ function renderScavenge() {
     <div class="scavenge-family" data-key="${fam.key}" style="left:${pct(fam.x, W)};top:${pct(fam.y, H)};">
       ${personSearchIcon()}
       <span class="scavenge-slot-badge">${window.ScavengeEngine.entrySlots(fam)}</span>
-      <span class="scavenge-item-name family">${c ? c.name : '?'} ${window.ScavengeEngine.entrySlots(fam)}칸</span>
+      <span class="scavenge-item-name family">${c ? c.name : '?'}</span>
     </div>`;
     })
     .join('');
@@ -358,14 +358,12 @@ function scavengeDrawFrame() {
   } else if (s.target && s.target.kind === 'family') {
     const fam = s.family.find((f) => f.key === s.target.key);
     const c = window.GameState.getCharacter(state, fam.characterId);
-    const n = E.entrySlots(fam);
-    label = s.target.fits ? `구하기 · ${c.name} (${n}칸)` : `칸 부족 · ${c.name} (${n}칸)`;
+    label = s.target.fits ? `구하기 · ${c.name}` : `칸 부족 · ${c.name}`;
     enabled = s.target.fits;
   } else if (s.target) {
     const it = s.items.find((i) => i.key === s.target.key);
     const name = window.ItemsAPI.getItem(it.itemId).name;
-    const n = E.slotsOf(it.itemId);
-    label = s.target.fits ? `챙기기 · ${name} (${n}칸)` : `칸 부족 · ${name} (${n}칸)`;
+    label = s.target.fits ? `챙기기 · ${name}` : `칸 부족 · ${name}`;
     enabled = s.target.fits;
   }
   if (label !== d.lastActionLabel) {
