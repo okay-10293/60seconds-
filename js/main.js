@@ -215,6 +215,10 @@ function renderScavenge() {
       </div>
     </div>
 
+    <div class="scavenge-play-area">
+    <div class="scavenge-side scavenge-side-left">
+      <div class="joystick-base" id="joystickBase"><div class="joystick-knob" id="joystickKnob"></div></div>
+    </div>
     <div class="scavenge-stage-wrap">
       <div class="scavenge-stage" id="scavengeStage">
         <div class="scavenge-corridor" style="${rectStyle(S.corridor, W, H)}"><span class="scavenge-corridor-label">복도</span></div>
@@ -226,6 +230,10 @@ function renderScavenge() {
         <div class="scavenge-player" id="scavengePlayer"></div>
       </div>
     </div>
+    <div class="scavenge-side scavenge-side-right">
+      <button id="actionBtn" class="scavenge-action-btn" disabled>챙기기</button>
+    </div>
+    </div>
 
     <div class="scavenge-bag">
       <div class="scavenge-bag-title"><b>가방</b> <i id="scavengeBagCount">0</i>/${window.ScavengeEngine.BAG_CAPACITY}칸</div>
@@ -235,11 +243,6 @@ function renderScavenge() {
     <div class="collected">
       <span><b>챙긴 물건</b><i id="scavengeCollectedCount">0</i>개</span>
       <span><b>찾은 가족</b><i id="scavengeFoundCount">0</i>명</span>
-    </div>
-
-    <div class="scavenge-controls">
-      <div class="joystick-base" id="joystickBase"><div class="joystick-knob" id="joystickKnob"></div></div>
-      <button id="actionBtn" class="scavenge-action-btn" disabled>챙기기</button>
     </div>
 
     <button id="finishBtn">지금 대피소로 (탈출 종료) →</button>

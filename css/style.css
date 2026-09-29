@@ -517,7 +517,28 @@ body.modal-open { overflow: hidden; }
    ============================================================ */
 .hidden { display: none !important; }
 
-.scavenge-stage-wrap { margin-top: 16px; }
+/* 세 조각(조이스틱/맵/버튼): 세로 화면에선 맵 아래 조이스틱+버튼이 나란히,
+   가로(태블릿 랜드스케이프) 화면에선 맵 좌우로 갈라져 붙는다 */
+.scavenge-play-area {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 16px;
+}
+.scavenge-stage-wrap { order: 1; flex-basis: 100%; display: flex; justify-content: center; margin-top: 0; }
+.scavenge-side-left { order: 2; }
+.scavenge-side-right { order: 3; }
+.scavenge-side { display: flex; align-items: center; justify-content: center; }
+
+@media (min-width: 700px) and (orientation: landscape) {
+  .scavenge-play-area { flex-wrap: nowrap; align-items: center; }
+  .scavenge-stage-wrap { flex-basis: auto; flex: 1 1 auto; max-width: 640px; }
+  .scavenge-side-left, .scavenge-side-right { flex: 0 0 auto; }
+  .scavenge-action-btn { width: 170px; min-height: 140px; }
+}
+
 .scavenge-stage {
   position: relative;
   /* 세로로 긴 집이라, 폰에서 조이스틱까지 한 화면에 보이도록 높이를 화면 비율로 제한 */
@@ -591,22 +612,21 @@ body.modal-open { overflow: hidden; }
 .scavenge-bag { max-width: 520px; margin: 14px auto 0; padding: 0 8px; }
 .scavenge-bag-title { font-family: var(--font-ui); margin-bottom: 4px; }
 .scavenge-bag-title i { font-style: normal; }
-.scavenge-inventory { display: flex; gap: 4px; }
+.scavenge-inventory { display: flex; gap: 4px; height: 58px; }
 .inv-slot {
-  flex: 1; min-height: 52px;
+  flex: 1; height: 100%; min-width: 0; overflow: hidden;
   background: var(--paper-dim); border: 3px dashed var(--metal);
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
 }
 .inv-slot.filled { background: var(--ink); border: 3px solid var(--ink); color: var(--hazard); }
 .inv-slot.filled.family { background: var(--danger); border-color: var(--danger); color: var(--paper); }
 .inv-slot svg { width: 26px; height: 26px; }
-.inv-slot span { font-family: var(--font-ui); font-size: 0.65em; white-space: nowrap; }
+.inv-slot span {
+  font-family: var(--font-ui); font-size: 0.65em; white-space: nowrap;
+  max-width: 92%; overflow: hidden; text-overflow: ellipsis;
+}
 .collected i { font-style: normal; font-family: var(--font-ui); }
 
-.scavenge-controls {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 16px; max-width: 520px; margin: 16px auto 8px; padding: 0 8px;
-}
 .joystick-base {
   position: relative;
   width: 140px; height: 140px; flex: none;
