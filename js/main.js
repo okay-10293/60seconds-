@@ -82,6 +82,23 @@ function personSearchIcon() {
   return `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="7" r="3.2"/><path d="M5 21 v-2 a7 7 0 0 1 14 0 v2"/></svg>`;
 }
 
+// 탈출 파트 아날로그 시계 문자판의 12개 눈금선 (12시 방향부터 시계방향)
+function clockTicksSvg() {
+  let out = '';
+  for (let i = 0; i < 12; i++) {
+    const angle = (i * 30 * Math.PI) / 180;
+    const isMajor = i % 3 === 0;
+    const outerR = 46;
+    const innerR = isMajor ? 38 : 41;
+    const x1 = 50 + Math.sin(angle) * outerR;
+    const y1 = 50 - Math.cos(angle) * outerR;
+    const x2 = 50 + Math.sin(angle) * innerR;
+    const y2 = 50 - Math.cos(angle) * innerR;
+    out += `<line class="clock-tick${isMajor ? ' major' : ''}" x1="${x1.toFixed(2)}" y1="${y1.toFixed(2)}" x2="${x2.toFixed(2)}" y2="${y2.toFixed(2)}"></line>`;
+  }
+  return out;
+}
+
 const app = document.getElementById('app');
 
 // ---------------- 공용 장식 요소 ----------------
@@ -225,20 +242,6 @@ function renderScavenge() {
     .join('');
 
   app.innerHTML = `
-    <div class="topbar scavenge-bar">
-      <div class="topbar-title">
-        ${cdBadge()}
-        <div class="title-text">
-          <span class="eyebrow">EVACUATION PROTOCOL</span>
-          <h1>탈출: 60초 안에 챙겨라</h1>
-        </div>
-      </div>
-      <div class="timer-unit">
-        <span class="timer-label">남은 시간</span>
-        <div class="timer" id="scavengeTimer">${S.timeLeft}</div>
-      </div>
-    </div>
-
     <div class="scavenge-play-area">
     <div class="scavenge-side scavenge-side-left">
       <div class="joystick-base" id="joystickBase"><div class="joystick-knob" id="joystickKnob"></div></div>
@@ -252,6 +255,14 @@ function renderScavenge() {
         ${itemsHtml}
         ${familyHtml}
         <div class="scavenge-player" id="scavengePlayer"></div>
+        <div class="scavenge-clock" id="scavengeClock" aria-label="남은 시간">
+          <svg viewBox="0 0 100 100">
+            <circle class="clock-face" cx="50" cy="50" r="46"></circle>
+            ${clockTicksSvg()}
+            <line id="scavengeClockHand" class="clock-hand" x1="50" y1="50" x2="50" y2="14"></line>
+            <circle class="clock-pin" cx="50" cy="50" r="4.5"></circle>
+          </svg>
+        </div>
       </div>
     </div>
     <div class="scavenge-side scavenge-side-right">
@@ -282,7 +293,8 @@ function renderScavenge() {
     player: document.getElementById('scavengePlayer'),
     inventory: document.getElementById('scavengeInventory'),
     bagCount: document.getElementById('scavengeBagCount'),
-    timer: document.getElementById('scavengeTimer'),
+    clock: document.getElementById('scavengeClock'),
+    clockHand: document.getElementById('scavengeClockHand'),
     collected: document.getElementById('scavengeCollectedCount'),
     found: document.getElementById('scavengeFoundCount'),
     actionBtn: document.getElementById('actionBtn'),
@@ -415,9 +427,23 @@ function scavengeDrawFrame() {
     d.bagCount.textContent = used;
   }
 
-  const secs = Math.ceil(s.timeLeft);
-  d.timer.textContent = secs;
-  d.timer.classList.toggle('critical', secs <= 10);
+  // 아날로그 시계: 경과한 비율만큼 12시 방향에서 시계방향으로 한 바퀴(60초 = 360도) 돈다
+  const elapsedFraction = 1 - s.timeLeft / E.SCAVENGE_TIME_LIMIT;
+  const angle = Math.max(0, Math.min(1, elapsedFraction)) * 360;
+  d.clockHand.setAttribute('transform', `rotate(${angle} 50 50)`);
+
+  // 10초 이하로 남으면 시계가 점점(선형으로 커지며) 흔들린다
+  if (s.timeLeft <= 10) {
+    const t = (10 - s.timeLeft) / 10; // 0(10초 남음) → 1(0초, 최대 흔들림)
+    const amplitude = t * 6; // 도(deg) 단위, 점점 커짐
+    const wobble = Math.sin(performance.now() / 65) * amplitude;
+    d.clock.style.transform = `rotate(${wobble.toFixed(2)}deg)`;
+    d.clock.classList.add('critical');
+  } else {
+    d.clock.style.transform = '';
+    d.clock.classList.remove('critical');
+  }
+
   d.collected.textContent = s.collected.length;
   d.found.textContent = s.foundFamily.length;
 }

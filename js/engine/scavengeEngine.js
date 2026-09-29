@@ -86,21 +86,40 @@ function shuffle(arr) {
   return a;
 }
 
-// 방 사각형 안에 n개의 점을 격자로 고르게 배치 (벽에서 살짝 띄움)
-function gridPoints(rect, n, padding = 46) {
+// 방 사각형 안에 n개의 점을 서로 겹치지 않게 자유롭게(랜덤) 배치한다.
+// 기존엔 줄맞춰진 격자에 놓았는데, 방 안에 흩어진 느낌을 주기 위해 거부 샘플링으로
+// 최소 간격(minDist) 이상 떨어진 위치를 무작위로 고른다. 자리가 너무 부족해서
+// (방이 작거나 아이템이 몰릴 때) 정해진 시도 안에 못 찾으면, 겹치지 않는 것만은
+// 보장하도록 격자로 대체 배치한다.
+function scatterPoints(rect, n, padding = 46, minDist = 66) {
   if (n <= 0) return [];
-  const cols = Math.ceil(Math.sqrt(n));
-  const rows = Math.ceil(n / cols);
-  const usableW = rect.w - padding * 2;
-  const usableH = rect.h - padding * 2;
+  const usableW = Math.max(0, rect.w - padding * 2);
+  const usableH = Math.max(0, rect.h - padding * 2);
   const points = [];
+  const MAX_ATTEMPTS = 200;
+
   for (let i = 0; i < n; i++) {
-    const col = i % cols;
-    const row = Math.floor(i / cols);
-    points.push({
-      x: rect.x + padding + (cols === 1 ? usableW / 2 : (usableW * col) / (cols - 1)),
-      y: rect.y + padding + (rows === 1 ? usableH / 2 : (usableH * row) / (rows - 1)),
-    });
+    let placed = false;
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+      const x = rect.x + padding + Math.random() * usableW;
+      const y = rect.y + padding + Math.random() * usableH;
+      if (points.every((p) => dist(p.x, p.y, x, y) >= minDist)) {
+        points.push({ x, y });
+        placed = true;
+        break;
+      }
+    }
+    if (!placed) {
+      // 폴백: 격자 좌표로 채워서 최소한 겹치지 않게는 보장한다.
+      const cols = Math.max(1, Math.ceil(Math.sqrt(n)));
+      const rows = Math.ceil(n / cols);
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      points.push({
+        x: rect.x + padding + (cols === 1 ? usableW / 2 : (usableW * col) / (cols - 1)),
+        y: rect.y + padding + (rows === 1 ? usableH / 2 : (usableH * row) / (rows - 1)),
+      });
+    }
   }
   return points;
 }
@@ -123,7 +142,7 @@ function buildLayout() {
       ...room.spawns.map((itemId, i) => ({ type: 'item', itemId, i })),
       ...room.familySpawns.map((characterId, i) => ({ type: 'family', characterId, i })),
     ];
-    const points = shuffle(gridPoints(room.rect, entities.length));
+    const points = scatterPoints(room.rect, entities.length);
     entities.forEach((e, idx) => {
       if (e.type === 'item') {
         items.push({ key: `${room.id}_item_${e.i}`, itemId: e.itemId, roomId: room.id, x: points[idx].x, y: points[idx].y, taken: false });
