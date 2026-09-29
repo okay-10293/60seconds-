@@ -6,9 +6,13 @@ let state = window.GameState.createInitialState();
 let scavengeState = null;
 let scavengeRafId = null;
 let scavengeJoystick = null;
-// 사파리는 CSS touch-action만으로 더블탭 확대가 안 막히는 경우가 있어서,
-// 짧은 시간 안에 연속으로 탭이 끝나면(touchend) 강제로 막아버린다.
-// (passive:false로 등록해야 preventDefault가 실제로 먹는다)
+// 화면 어디를 두 번 눌러도 확대가 아예 안 되게 막는다 (버튼 여부와 무관하게 전체 페이지).
+// 1) 사파리(특히 iPad)의 확대/축소 제스처 자체를 원천 차단 — 공식적인 방법.
+['gesturestart', 'gesturechange', 'gestureend'].forEach((type) => {
+  document.addEventListener(type, (e) => e.preventDefault(), { passive: false });
+});
+// 2) 그래도 남는 구형/타 브라우저 대비: 짧은 시간 안에 연속으로 탭이 끝나면(더블탭) 막는다.
+//    (passive:false로 등록해야 preventDefault가 실제로 먹는다)
 let lastTouchEndAt = 0;
 document.addEventListener(
   'touchend',
@@ -21,6 +25,8 @@ document.addEventListener(
   },
   { passive: false }
 );
+// 3) 더블탭이 dblclick으로 합성되어 확대를 유발하는 경우까지 대비.
+document.addEventListener('dblclick', (e) => e.preventDefault());
 
 let scavengeLastTs = null;
 let scavengeKeyHandler = null;
