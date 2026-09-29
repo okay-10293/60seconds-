@@ -91,7 +91,10 @@ function shuffle(arr) {
 // 최소 간격(minDist) 이상 떨어진 위치를 무작위로 고른다. 자리가 너무 부족해서
 // (방이 작거나 아이템이 몰릴 때) 정해진 시도 안에 못 찾으면, 겹치지 않는 것만은
 // 보장하도록 격자로 대체 배치한다.
-function scatterPoints(rect, n, padding = 46, minDist = 66) {
+// minDist/padding은 화면에 보이는 아이템 아이콘 크기(CSS 기준)보다 넉넉히 크게
+// 잡아야 서로 안 겹친다 — 아이콘을 작게 줄인 만큼 이 값도 함께 줄여서, 방이
+// 넓어 보이는 여유를 실제 배치 간격에 반영했다 (여전히 아이콘 지름보다는 크다).
+function scatterPoints(rect, n, padding = 34, minDist = 46) {
   if (n <= 0) return [];
   const usableW = Math.max(0, rect.w - padding * 2);
   const usableH = Math.max(0, rect.h - padding * 2);

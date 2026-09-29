@@ -582,7 +582,7 @@ body.modal-open { overflow: hidden; }
 }
 .scavenge-item, .scavenge-family {
   position: absolute;
-  width: 7%; aspect-ratio: 1; max-width: 50px;
+  width: 5%; aspect-ratio: 1; max-width: 36px;
   transform: translate(-50%, -50%);
   display: flex; align-items: center; justify-content: center;
   background: var(--ink); color: var(--hazard);
@@ -644,11 +644,11 @@ body.modal-open { overflow: hidden; }
 }
 
 .scavenge-slot-badge {
-  position: absolute; top: -6px; right: -6px;
-  min-width: 16px; height: 16px; padding: 0 3px;
+  position: absolute; top: -5px; right: -5px;
+  min-width: 13px; height: 13px; padding: 0 2px;
   display: flex; align-items: center; justify-content: center;
   background: var(--danger); color: var(--paper);
-  font-family: var(--font-ui); font-size: 0.65em; line-height: 1;
+  font-family: var(--font-ui); font-size: 0.6em; line-height: 1;
 }
 .scavenge-bag { max-width: 520px; margin: 14px auto 0; padding: 0 8px; }
 .scavenge-bag-title { font-family: var(--font-ui); margin-bottom: 4px; }
