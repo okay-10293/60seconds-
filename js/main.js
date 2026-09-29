@@ -6,6 +6,22 @@ let state = window.GameState.createInitialState();
 let scavengeState = null;
 let scavengeRafId = null;
 let scavengeJoystick = null;
+// 사파리는 CSS touch-action만으로 더블탭 확대가 안 막히는 경우가 있어서,
+// 짧은 시간 안에 연속으로 탭이 끝나면(touchend) 강제로 막아버린다.
+// (passive:false로 등록해야 preventDefault가 실제로 먹는다)
+let lastTouchEndAt = 0;
+document.addEventListener(
+  'touchend',
+  (e) => {
+    const now = Date.now();
+    if (now - lastTouchEndAt <= 350) {
+      e.preventDefault();
+    }
+    lastTouchEndAt = now;
+  },
+  { passive: false }
+);
+
 let scavengeLastTs = null;
 let scavengeKeyHandler = null;
 let scavengeDom = null; // 프레임마다 갱신할 DOM 참조 캐시
