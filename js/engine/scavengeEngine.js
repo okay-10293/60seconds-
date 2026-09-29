@@ -258,8 +258,10 @@ function updateScavenge(scavengeState) {
 }
 
 // 타이머 종료 -> 주운 아이템들을 실제 게임 상태 인벤토리/자원으로 반영
-// + 찾은/못 찾은 가족을 shelter/missing으로 확정
-// (시간 종료 시 가방에 든 채 방공호에 못 넣은 것(carrying)은 사라지고, 업고 있던 가족은 못 구한 것으로 처리)
+// + 60초가 다 됐을 때 방공호 안에 없는 캐릭터는 전부 사망 처리
+// (가방에 든 채 못 넣은 물자는 사라지고, 업기만 하고 방공호까지 못 데려온 가족도
+//  방공호 밖이므로 함께 사망 처리된다)
+// 반환값 { diedNames } — 화면에 폭발 연출/사망 문구를 띄우기 위해 main.js에 넘겨준다.
 function finishScavenge(state, scavengeState) {
   scavengeState.collected.forEach((itemId) => {
     const item = window.ItemsAPI.getItem(itemId);
@@ -272,19 +274,28 @@ function finishScavenge(state, scavengeState) {
     }
   });
 
-  const stillMissing = state.characters.filter((c) => c.location === 'missing');
-  stillMissing.forEach((c) => {
-    if (scavengeState.foundFamily.includes(c.id)) {
+  scavengeState.foundFamily.forEach((characterId) => {
+    const c = state.characters.find((ch) => ch.id === characterId);
+    if (c) {
       c.location = 'shelter';
       window.GameState.addLog(state, `${c.name}을(를) 찾아서 함께 대피소로 향했다.`);
-    } else {
-      state.flags[`_lost_${c.id}`] = true;
-      window.GameState.addLog(state, `${c.name}을(를) 끝내 찾지 못했다... 실종되었다.`);
     }
   });
 
+  const diedNames = [];
+  state.characters
+    .filter((c) => c.location === 'missing')
+    .forEach((c) => {
+      c.health = 'dead';
+      c.location = 'dead';
+      diedNames.push(c.name);
+      window.GameState.addLog(state, `${c.name}이(가) 방공호 밖에 남겨진 채 시간이 끝나 사망했다.`);
+    });
+
   window.GameState.addLog(state, `탈출하며 ${scavengeState.collected.length}개의 아이템을 챙겼다.`);
   state.phase = 'shelter';
+
+  return { diedNames };
 }
 
 window.ScavengeEngine = {

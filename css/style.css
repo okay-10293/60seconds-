@@ -654,3 +654,48 @@ html, body { touch-action: manipulation; }
 }
 .scavenge-action-btn:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 3px 0 var(--danger-deep); }
 .scavenge-action-btn:disabled { background: var(--metal); color: var(--paper-dim); box-shadow: 0 7px 0 var(--ink-soft); cursor: not-allowed; }
+
+/* ============================================================
+   탈출 시간 종료 시 방공호 밖 사망 연출
+   ============================================================ */
+.death-effect-overlay {
+  position: fixed; inset: 0; z-index: 999;
+  background: #000;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  overflow: hidden;
+  animation: death-flash 0.35s ease-out;
+}
+@keyframes death-flash {
+  0% { background: #fff; }
+  30% { background: #fff; }
+  100% { background: #000; }
+}
+.death-effect-boom {
+  position: absolute;
+  width: 60px; height: 60px; border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, var(--hazard) 35%, var(--danger) 65%, transparent 75%);
+  animation: death-boom 0.7s ease-out forwards;
+}
+@keyframes death-boom {
+  0% { transform: scale(0.2); opacity: 1; }
+  60% { transform: scale(9); opacity: 0.9; }
+  100% { transform: scale(13); opacity: 0; }
+}
+.death-effect-text {
+  position: relative; z-index: 1;
+  text-align: center;
+  animation: death-text-in 0.4s ease-out 0.5s both;
+}
+@keyframes death-text-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.9); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.death-effect-name {
+  font-family: var(--font-ui); font-size: 1.3em; color: var(--paper);
+  margin: 0 0 6px;
+}
+.death-effect-title {
+  font-family: var(--font-display); font-size: 2.6em; color: var(--danger);
+  margin: 0; letter-spacing: 0.04em;
+  text-shadow: 0 0 18px var(--danger-glow, var(--danger));
+}

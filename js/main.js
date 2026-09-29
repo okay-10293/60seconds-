@@ -427,9 +427,33 @@ function endScavenge() {
   scavengeJoystick = null;
   scavengeKeyHandler = null;
   scavengeDom = null;
-  window.ScavengeEngine.finishScavenge(state, scavengeState);
+
+  const { diedNames } = window.ScavengeEngine.finishScavenge(state, scavengeState);
   scavengeState = null;
-  render();
+
+  if (diedNames.length > 0) {
+    showDeathEffect(diedNames, render);
+  } else {
+    render();
+  }
+}
+
+// 60초가 끝났을 때 방공호 밖에 남겨진 사람이 있으면 폭발 연출과 함께 사망을 알린다.
+function showDeathEffect(names, onDone) {
+  const overlay = document.createElement('div');
+  overlay.className = 'death-effect-overlay';
+  overlay.innerHTML = `
+    <div class="death-effect-boom"></div>
+    <div class="death-effect-text">
+      ${names.map((n) => `<p class="death-effect-name">${n}</p>`).join('')}
+      <h2 class="death-effect-title">사망했습니다</h2>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  setTimeout(() => {
+    overlay.remove();
+    onDone();
+  }, 2400);
 }
 
 // ---------------- 대피소 파트 ----------------
