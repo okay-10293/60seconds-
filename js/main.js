@@ -82,6 +82,18 @@ function personSearchIcon() {
   return `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="7" r="3.2"/><path d="M5 21 v-2 a7 7 0 0 1 14 0 v2"/></svg>`;
 }
 
+// 탈출 파트 이동을 막는 가구(오브젝트) 아이콘
+function obstacleIcon(key) {
+  const icons = {
+    bed: `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M3 18 V9 a2 2 0 0 1 2-2 h5 v5"/><path d="M3 14 h18 v4"/><path d="M14 12 h5 a2 2 0 0 1 2 2 v2"/><path d="M3 18 v2"/><path d="M21 18 v2"/></svg>`,
+    sofa: `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M4 13 v-2 a2 2 0 0 1 2-2 h12 a2 2 0 0 1 2 2 v2"/><path d="M3 13 h18 v4 a1 1 0 0 1-1 1 h-1 v2 h-2 v-2 H7 v2 H5 v-2 H4 a1 1 0 0 1-1-1 z"/></svg>`,
+    counter: `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M3 9 h18 v3 H3 z"/><path d="M4 12 v8 M20 12 v8"/><circle cx="9" cy="6" r="1.4"/><circle cx="15" cy="6" r="1.4"/></svg>`,
+    bench: `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="8" width="18" height="4"/><path d="M5 12 v8 M19 12 v8"/><path d="M9 4 l3 4 l3-4"/></svg>`,
+    shelf: `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M4 4 h16 v16 H4 z"/><path d="M4 10 h16 M4 16 h16"/></svg>`,
+  };
+  return icons[key] || icons.shelf;
+}
+
 // 탈출 파트 아날로그 시계 문자판의 12개 눈금선 (12시 방향부터 시계방향)
 function clockTicksSvg() {
   let out = '';
@@ -218,6 +230,16 @@ function renderScavenge() {
     .join('');
   const doorsHtml = S.doors.map((d) => `<div class="scavenge-door" style="${rectStyle(d, W, H)}"></div>`).join('');
 
+  const obstaclesHtml = (S.obstacles || [])
+    .map(
+      (ob) => `
+    <div class="scavenge-obstacle" style="${rectStyle(ob.rect, W, H)}">
+      <span class="scavenge-obstacle-icon">${obstacleIcon(ob.icon)}</span>
+      <span class="scavenge-obstacle-label">${ob.label}</span>
+    </div>`
+    )
+    .join('');
+
   const itemsHtml = S.items
     .map(
       (it) => `
@@ -252,6 +274,7 @@ function renderScavenge() {
         ${roomsHtml}
         <div class="scavenge-dropzone" style="${rectStyle(S.dropzone, W, H)}">방공호 — 안에서 '넣기'를 눌러 가방을 비워라!</div>
         ${doorsHtml}
+        ${obstaclesHtml}
         ${itemsHtml}
         ${familyHtml}
         <div class="scavenge-player" id="scavengePlayer"></div>
@@ -432,12 +455,17 @@ function scavengeDrawFrame() {
   const angle = Math.max(0, Math.min(1, elapsedFraction)) * 360;
   d.clockHand.setAttribute('transform', `rotate(${angle} 50 50)`);
 
-  // 10초 이하로 남으면 시계가 점점(선형으로 커지며) 흔들린다
+  // 10초 이하로 남으면 시계 틀이 점점(선형으로 커지며) 흔들린다.
+  // 주의: 여기서 시계 '틀'(부모)까지 회전(rotate)시키면 그 안에서 독자적으로
+  // 회전 중인 시침과 회전이 겹쳐 보여 시침이 튀어 보인다. 그래서 틀은
+  // 회전이 아니라 이동(translate)으로만 흔들어서 시침의 회전과 섞이지 않게 한다.
   if (s.timeLeft <= 10) {
     const t = (10 - s.timeLeft) / 10; // 0(10초 남음) → 1(0초, 최대 흔들림)
-    const amplitude = t * 6; // 도(deg) 단위, 점점 커짐
-    const wobble = Math.sin(performance.now() / 65) * amplitude;
-    d.clock.style.transform = `rotate(${wobble.toFixed(2)}deg)`;
+    const amplitude = t * 3.2; // px 단위, 점점 커짐
+    const now = performance.now();
+    const dx = Math.sin(now / 55) * amplitude;
+    const dy = Math.cos(now / 71) * amplitude * 0.6;
+    d.clock.style.transform = `translate(${dx.toFixed(2)}px, ${dy.toFixed(2)}px)`;
     d.clock.classList.add('critical');
   } else {
     d.clock.style.transform = '';

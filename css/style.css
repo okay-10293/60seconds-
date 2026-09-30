@@ -567,6 +567,22 @@ body.modal-open { overflow: hidden; }
   writing-mode: vertical-rl; font-size: clamp(0.6em, 2.2vw, 1em); opacity: 0.8;
 }
 .scavenge-door { background: var(--paper-dim); z-index: 1; }
+
+/* 방 안에서 이동을 막는 가구(침대/선반/소파 등). 물자보다 아래, 방 바닥보다는 위 */
+.scavenge-obstacle {
+  position: absolute;
+  z-index: 2;
+  background: repeating-linear-gradient(135deg, var(--ink-soft) 0 8px, var(--panel) 8px 16px);
+  border: 2px solid var(--ink);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  color: var(--paper);
+  overflow: hidden;
+}
+.scavenge-obstacle-icon svg { width: clamp(16px, 3.2vw, 26px); height: clamp(16px, 3.2vw, 26px); opacity: 0.9; }
+.scavenge-obstacle-label {
+  font-family: var(--font-ui); font-size: clamp(0.55em, 1.6vw, 0.78em);
+  letter-spacing: 0.04em; opacity: 0.85; white-space: nowrap;
+}
 .scavenge-room-label {
   position: absolute; top: 0; left: 0;
   display: flex; align-items: center; gap: 4px;
