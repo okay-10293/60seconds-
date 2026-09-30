@@ -7,9 +7,10 @@
 //   joy.destroy();              // 화면 나갈 때 이벤트 리스너 정리
 //
 // mode: 'fixed'(고정형, 기본값) — 조이스틱이 항상 zone 한가운데 고정.
-//       'dynamic'(유동형) — zone 안 아무 데나 손가락을 짚으면 그 자리에
-//       조이스틱이 나타나 따라다닌다. 단, zone 밖(맵 쪽)으로는 절대 못
-//       나가도록 zoneEl 안에서만 중심 좌표를 clamp 한다.
+//       'dynamic'(유동형) — 브롤스타즈/로블록스 스타일. zone 안 손가락을
+//       짚으면 그 자리에 조이스틱이 나타나고, 손가락을 최대 반경 밖으로
+//       계속 끌고 가면 조이스틱 본체가 손가락을 슬금슬금 따라온다(트레일링).
+//       단, 본체가 zone 밖(맵 쪽)으로 삐져나가지는 못하도록 clamp 한다.
 
 function createJoystick({ mode = 'fixed', zoneEl, baseEl, knobEl }) {
   const vector = { x: 0, y: 0 };
@@ -19,6 +20,9 @@ function createJoystick({ mode = 'fixed', zoneEl, baseEl, knobEl }) {
   // 유동형에서 pointerdown을 받을 영역은 조이스틱 원판(baseEl)이 아니라 그보다
   // 넓은 zoneEl 전체다 — 그래야 "일정 범위 안 아무 데나" 짚었을 때 반응한다.
   const listenEl = isDynamic ? zoneEl : baseEl;
+  // 유동형에서 지금 베이스 중심이 zoneEl 기준 어디에 있는지 (px). pointerdown마다
+  // 새로 잡고, 드래그 중엔 이 값을 기준으로 "손가락을 따라오는" 계산을 한다.
+  let baseCenter = { x: 0, y: 0 };
 
   if (isDynamic) {
     baseEl.classList.add('joystick-dynamic');
@@ -28,18 +32,55 @@ function createJoystick({ mode = 'fixed', zoneEl, baseEl, knobEl }) {
     return baseEl.offsetWidth / 2 - knobEl.offsetWidth / 2;
   }
 
+  // zoneEl 안쪽(half만큼 여유)으로만 베이스 중심이 있을 수 있게 clamp
+  function clampToZone(x, y) {
+    const zoneRect = zoneEl.getBoundingClientRect();
+    const half = baseEl.offsetWidth / 2;
+    return {
+      x: Math.max(half, Math.min(zoneRect.width - half, x)),
+      y: Math.max(half, Math.min(zoneRect.height - half, y)),
+    };
+  }
+
+  function setBaseCenter(x, y) {
+    baseCenter = clampToZone(x, y);
+    baseEl.style.left = `${baseCenter.x}px`;
+    baseEl.style.top = `${baseCenter.y}px`;
+  }
+
   function setFromPointer(clientX, clientY) {
-    const rect = baseEl.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
+    const max = maxRadius();
+    let cx;
+    let cy;
+
+    if (isDynamic) {
+      const zoneRect = zoneEl.getBoundingClientRect();
+      cx = zoneRect.left + baseCenter.x;
+      cy = zoneRect.top + baseCenter.y;
+    } else {
+      const rect = baseEl.getBoundingClientRect();
+      cx = rect.left + rect.width / 2;
+      cy = rect.top + rect.height / 2;
+    }
+
     let dx = clientX - cx;
     let dy = clientY - cy;
-    const dist = Math.hypot(dx, dy);
-    const max = maxRadius();
-    if (dist > max && dist > 0) {
-      dx = (dx / dist) * max;
-      dy = (dy / dist) * max;
+    const d = Math.hypot(dx, dy);
+
+    if (isDynamic && d > max && d > 0) {
+      // 최대 반경을 넘어간 만큼 베이스 자체를 손가락 쪽으로 옮긴다
+      // (브롤스타즈처럼 조이스틱 본체가 손가락을 따라 슬금슬금 이동)
+      const ux = dx / d;
+      const uy = dy / d;
+      const zoneRect = zoneEl.getBoundingClientRect();
+      setBaseCenter(clientX - zoneRect.left - ux * max, clientY - zoneRect.top - uy * max);
+      dx = ux * max;
+      dy = uy * max;
+    } else if (d > max && d > 0) {
+      dx = (dx / d) * max;
+      dy = (dy / d) * max;
     }
+
     knobEl.style.transform = `translate(${dx}px, ${dy}px)`;
     vector.x = max > 0 ? dx / max : 0;
     vector.y = max > 0 ? dy / max : 0;
@@ -51,26 +92,13 @@ function createJoystick({ mode = 'fixed', zoneEl, baseEl, knobEl }) {
     knobEl.style.transform = 'translate(0px, 0px)';
   }
 
-  // 유동형 전용: zoneEl 기준 좌표로 baseEl을 옮겨 그 자리에 띄운다.
-  // baseEl 반지름만큼은 항상 zoneEl 안쪽에 있도록 clamp해서, 조이스틱
-  // 원판 자체가 zone 밖(=맵 쪽)으로 삐져나가는 일이 없게 한다.
-  function placeBaseAt(clientX, clientY) {
-    const zoneRect = zoneEl.getBoundingClientRect();
-    const half = baseEl.offsetWidth / 2;
-    let x = clientX - zoneRect.left;
-    let y = clientY - zoneRect.top;
-    x = Math.max(half, Math.min(zoneRect.width - half, x));
-    y = Math.max(half, Math.min(zoneRect.height - half, y));
-    baseEl.style.left = `${x}px`;
-    baseEl.style.top = `${y}px`;
-  }
-
   function onPointerDown(e) {
     dragging = true;
     activePointerId = e.pointerId;
     baseEl.classList.add('joystick-active');
     if (isDynamic) {
-      placeBaseAt(e.clientX, e.clientY);
+      const zoneRect = zoneEl.getBoundingClientRect();
+      setBaseCenter(e.clientX - zoneRect.left, e.clientY - zoneRect.top);
       baseEl.classList.add('joystick-visible');
     }
     listenEl.setPointerCapture(e.pointerId);
