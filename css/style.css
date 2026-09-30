@@ -551,7 +551,7 @@ body.modal-open { overflow: hidden; }
    못 나간다. */
 .scavenge-side-left {
   position: relative;
-  width: 190px; height: 190px;
+  width: min(300px, 62vw); height: min(300px, 62vw);
   touch-action: none;
 }
 
@@ -560,7 +560,7 @@ body.modal-open { overflow: hidden; }
   /* 세로 모드에서 맵을 order:1로 강제 배치한 게 그대로 남아 있으면
      가로 모드에서도 맵이 맨 앞(왼쪽)으로 와서 조이스틱/버튼이 둘 다
      오른쪽에 몰리므로, 여기서 순서를 왼쪽부터 조이스틱-맵-버튼으로 다시 지정한다 */
-  .scavenge-side-left { order: 1; flex: 0 0 auto; }
+  .scavenge-side-left { order: 1; flex: 0 0 auto; width: 340px; height: 340px; }
   .scavenge-stage-wrap { order: 2; flex-basis: auto; flex: 1 1 auto; max-width: 760px; }
   .scavenge-side-right { order: 3; flex: 0 0 auto; }
   .scavenge-action-btn { width: 170px; min-height: 140px; }
