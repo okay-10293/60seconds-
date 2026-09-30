@@ -161,7 +161,27 @@ function render() {
 
 // ---------------- 타이틀(시작) 화면 ----------------
 
+// 조이스틱 고정형/유동형 선택 — 한 번 고르면 다음에 들어와도 그대로 기억한다.
+const JOYSTICK_MODE_KEY = 'taeker60_joystick_mode';
+
+function getJoystickMode() {
+  try {
+    return localStorage.getItem(JOYSTICK_MODE_KEY) === 'dynamic' ? 'dynamic' : 'fixed';
+  } catch (e) {
+    return 'fixed';
+  }
+}
+
+function setJoystickMode(mode) {
+  try {
+    localStorage.setItem(JOYSTICK_MODE_KEY, mode);
+  } catch (e) {
+    /* 저장 안 돼도(사파리 시크릿 모드 등) 게임 진행엔 지장 없음 */
+  }
+}
+
 function renderTitle() {
+  const mode = getJoystickMode();
   app.innerHTML = `
     <div class="title-screen">
       <div class="title-screen-badge">${cdBadge()}</div>
@@ -172,12 +192,38 @@ function renderTitle() {
         60초 안에 챙길 수 있는 건 전부 챙겨서<br>
         가족과 함께 대피소로 들어가라.
       </p>
+
+      <div class="title-joystick-mode">
+        <span class="title-joystick-mode-label">조이스틱 방식</span>
+        <div class="title-joystick-mode-options">
+          <button type="button" class="joystick-mode-btn${mode === 'fixed' ? ' active' : ''}" data-mode="fixed">고정형</button>
+          <button type="button" class="joystick-mode-btn${mode === 'dynamic' ? ' active' : ''}" data-mode="dynamic">유동형</button>
+        </div>
+        <p class="title-joystick-mode-desc" id="joystickModeDesc"></p>
+      </div>
+
       <button id="titleStartBtn" class="go-btn">시작하기</button>
       <p class="title-screen-hint">
         조이스틱(또는 방향키)으로 움직여 '챙기기'로 물건을, '구하기'로 가족을 가방(4칸)에 담고, 방공호에서 '넣기'로 비워라.
       </p>
     </div>
   `;
+
+  const modeDescEl = document.getElementById('joystickModeDesc');
+  const modeDescText = {
+    fixed: '조이스틱이 항상 같은 자리에 고정돼 있어요.',
+    dynamic: '화면 왼쪽 아무 데나 짚으면 그 자리에 조이스틱이 떠요 (일정 범위 안에서만).',
+  };
+  modeDescEl.textContent = modeDescText[mode];
+
+  app.querySelectorAll('.joystick-mode-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const picked = btn.dataset.mode;
+      setJoystickMode(picked);
+      app.querySelectorAll('.joystick-mode-btn').forEach((b) => b.classList.toggle('active', b === btn));
+      modeDescEl.textContent = modeDescText[picked];
+    });
+  });
 
   document.getElementById('titleStartBtn').addEventListener('click', () => {
     state.phase = 'scavenge';
@@ -305,10 +351,12 @@ function renderScavenge() {
     lastActionLabel: null,
   };
 
-  scavengeJoystick = window.Joystick.create(
-    document.getElementById('joystickBase'),
-    document.getElementById('joystickKnob')
-  );
+  scavengeJoystick = window.Joystick.create({
+    mode: getJoystickMode(),
+    zoneEl: document.querySelector('.scavenge-side-left'),
+    baseEl: document.getElementById('joystickBase'),
+    knobEl: document.getElementById('joystickKnob'),
+  });
 
   // 챙기기 버튼 (터치는 pointerdown으로 즉각 반응) + 키보드 Space/E
   const doAction = (e) => {

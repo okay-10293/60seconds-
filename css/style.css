@@ -509,6 +509,17 @@ body.modal-open { overflow: hidden; }
   letter-spacing: 0.01em;
 }
 .title-screen-tagline { font-family: var(--font-body); font-size: 1.08em; line-height: 1.8; margin: 4px 0 10px; }
+.title-joystick-mode { width: 100%; margin: 4px 0 2px; }
+.title-joystick-mode-label { font-family: var(--font-ui); font-size: 0.85em; color: var(--text-dim); }
+.title-joystick-mode-options { display: flex; gap: 8px; margin-top: 6px; }
+.joystick-mode-btn {
+  flex: 1; padding: 10px 0;
+  font-family: var(--font-ui); font-size: 0.95em;
+  background: var(--paper-dim); color: var(--ink);
+  border: 3px solid var(--ink); cursor: pointer;
+}
+.joystick-mode-btn.active { background: var(--danger); color: var(--paper); }
+.title-joystick-mode-desc { margin: 6px 0 0; font-family: var(--font-mono); font-size: 0.75em; color: var(--text-dim); min-height: 1.4em; }
 .title-screen .go-btn { width: 100%; }
 .title-screen-hint { font-family: var(--font-mono); font-size: 0.8em; color: var(--text-dim); margin: 0; }
 
@@ -535,6 +546,14 @@ body.modal-open { overflow: hidden; }
 .scavenge-side-left { order: 2; }
 .scavenge-side-right { order: 3; }
 .scavenge-side { display: flex; align-items: center; justify-content: center; }
+/* 조이스틱이 움직일 수 있는 한계 영역. 고정형은 이 가운데에 계속 떠 있고,
+   유동형은 이 사각형 안 아무 데나 짚은 자리로 옮겨 다니되 이 밖(맵 쪽)으로는
+   못 나간다. */
+.scavenge-side-left {
+  position: relative;
+  width: 190px; height: 190px;
+  touch-action: none;
+}
 
 @media (min-width: 700px) and (orientation: landscape) {
   .scavenge-play-area { flex-wrap: nowrap; align-items: center; }
@@ -669,7 +688,8 @@ body.modal-open { overflow: hidden; }
 .collected i { font-style: normal; font-family: var(--font-ui); }
 
 .joystick-base {
-  position: relative;
+  position: absolute;
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
   width: 140px; height: 140px; flex: none;
   border-radius: 50%;
   background: var(--paper-dim);
@@ -678,6 +698,12 @@ body.modal-open { overflow: hidden; }
   display: flex; align-items: center; justify-content: center;
 }
 .joystick-base.joystick-active { background: var(--hazard); }
+/* 유동형: 평소엔 숨겨뒀다가, zone 안을 짚는 순간 그 자리에 나타난다 */
+.joystick-base.joystick-dynamic {
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+.joystick-base.joystick-dynamic.joystick-visible { opacity: 1; }
 .joystick-knob { width: 60px; height: 60px; border-radius: 50%; background: var(--ink); pointer-events: none; }
 .scavenge-action-btn {
   flex: 1; min-height: 110px;
