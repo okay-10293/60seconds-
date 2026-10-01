@@ -164,6 +164,10 @@ function resetShelterUi() {
 
 function render() {
   if (state.phase !== 'shelter') document.body.classList.remove('modal-open');
+  // 게시판/글 등 읽기용 화면은 #app을 좁게(920px) 유지해야 읽기 편한데,
+  // 탈출 화면은 가로가 넓은 태블릿일 때 그 제한 때문에 맵 옆에 큰 빈 공간이
+  // 생겼다 — 탈출 화면일 때만 #app 폭 제한을 풀어준다.
+  app.classList.toggle('app-wide', state.phase === 'scavenge');
   if (state.phase === 'title') renderTitle();
   else if (state.phase === 'scavenge') renderScavenge();
   else if (state.phase === 'shelter') renderShelter();

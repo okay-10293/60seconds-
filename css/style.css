@@ -48,6 +48,9 @@ body {
 }
 
 #app { max-width: 920px; margin: 0 auto; position: relative; }
+/* 탈출 화면은 읽기용 폭 제한이 필요 없어서, 넓은(태블릿 가로 등) 화면에서
+   맵 옆에 큰 빈 공간이 남지 않도록 폭 제한을 풀어준다. */
+#app.app-wide { max-width: 1400px; }
 ::selection { background: var(--danger); color: var(--paper); }
 button { font-family: var(--font-ui); letter-spacing: 0.02em; }
 :focus-visible { outline: 4px solid var(--hazard); outline-offset: 3px; }
@@ -553,6 +556,17 @@ body.modal-open { overflow: hidden; }
   position: relative;
   width: min(300px, 62vw); height: min(300px, 62vw);
   touch-action: none;
+}
+/* 유동형일 땐 평소 조이스틱이 숨겨져 있어서 이 자리가 그냥 빈 공간처럼
+   보이기 쉬우므로, 테두리만 살짝 보여줘서 "조이스틱이 움직일 수 있는
+   범위"라는 걸 알 수 있게 한다. */
+.scavenge-side-left::after {
+  content: '';
+  position: absolute; inset: 0;
+  border: 2px dashed var(--metal);
+  border-radius: 50%;
+  opacity: 0.35;
+  pointer-events: none;
 }
 
 @media (min-width: 700px) and (orientation: landscape) {
