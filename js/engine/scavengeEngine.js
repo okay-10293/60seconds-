@@ -159,15 +159,31 @@ function scatterPoints(rect, n, padding = 34, minDist = 46, avoidRects = [], avo
       }
     }
     if (!placed) {
-      // 폴백: 격자 좌표로 채워서 최소한 겹치지 않게는 보장한다 (가구 회피는 생략).
+      // 폴백: 격자 좌표로 채워서 최소한 겹치지 않게는 보장한다.
+      // (예전엔 여기서 가구 회피를 생략했는데, 그래서 가구 영역 안/바로 옆에
+      // 아이템이 끼어 "저건 어떻게 줍냐" 싶은 자리에 놓이는 경우가 있었다.
+      // 격자 칸이 가구(+여유분)와 겹치면 가장 가까운 방향으로 밀어낸다.)
       const cols = Math.max(1, Math.ceil(Math.sqrt(n)));
       const rows = Math.ceil(n / cols);
       const col = i % cols;
       const row = Math.floor(i / cols);
-      points.push({
-        x: rect.x + padding + (cols === 1 ? usableW / 2 : (usableW * col) / (cols - 1)),
-        y: rect.y + padding + (rows === 1 ? usableH / 2 : (usableH * row) / (rows - 1)),
-      });
+      let x = rect.x + padding + (cols === 1 ? usableW / 2 : (usableW * col) / (cols - 1));
+      let y = rect.y + padding + (rows === 1 ? usableH / 2 : (usableH * row) / (rows - 1));
+      const hit = expandedAvoid.find((r) => inRect(x, y, r));
+      if (hit) {
+        const pushes = [
+          Math.abs(y - hit.y), // 위로
+          Math.abs(hit.y + hit.h - y), // 아래로
+          Math.abs(x - hit.x), // 왼쪽으로
+          Math.abs(hit.x + hit.w - x), // 오른쪽으로
+        ];
+        const dir = pushes.indexOf(Math.min(...pushes));
+        if (dir === 0) y = Math.max(rect.y + 4, hit.y - 4);
+        else if (dir === 1) y = Math.min(rect.y + rect.h - 4, hit.y + hit.h + 4);
+        else if (dir === 2) x = Math.max(rect.x + 4, hit.x - 4);
+        else x = Math.min(rect.x + rect.w - 4, hit.x + hit.w + 4);
+      }
+      points.push({ x, y });
     }
   }
   return points;

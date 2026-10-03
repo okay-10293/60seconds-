@@ -574,11 +574,11 @@ body.modal-open { overflow: hidden; }
   /* 세로 모드에서 맵을 order:1로 강제 배치한 게 그대로 남아 있으면
      가로 모드에서도 맵이 맨 앞(왼쪽)으로 와서 조이스틱/버튼이 둘 다
      오른쪽에 몰리므로, 여기서 순서를 왼쪽부터 조이스틱-맵-버튼으로 다시 지정한다 */
-  /* 태블릿처럼 화면이 큰 가로 모드에서는 조이스틱을 왼쪽 중앙이 아니라
-     왼쪽 아래로 내려야 엄지로 잡기 편하다 — align-self로 이 항목만 아래로 붙인다 */
+  /* 태블릿처럼 화면이 큰 가로 모드에서는 조이스틱도, 챙기기 버튼도
+     중앙이 아니라 아래쪽에 있어야 양손으로 잡았을 때 엄지로 누르기 편하다 */
   .scavenge-side-left { order: 1; flex: 0 0 auto; width: 340px; height: 340px; align-self: flex-end; }
   .scavenge-stage-wrap { order: 2; flex-basis: auto; flex: 1 1 auto; max-width: 760px; }
-  .scavenge-side-right { order: 3; flex: 0 0 auto; }
+  .scavenge-side-right { order: 3; flex: 0 0 auto; align-self: flex-end; }
   .scavenge-action-btn { width: 170px; min-height: 140px; }
 }
 
@@ -607,7 +607,11 @@ body.modal-open { overflow: hidden; }
 .scavenge-obstacle {
   position: absolute;
   z-index: 2;
-  background: repeating-linear-gradient(135deg, var(--ink-soft) 0 8px, var(--panel) 8px 16px);
+  /* 전에는 var(--panel)이 정의돼 있지 않아서 background 선언 자체가
+     무효화돼 그냥 투명(=방 바닥색 그대로)하게 보였고, 그 위의 크림색
+     글자/아이콘도 똑같이 밝은 바탕이라 안 보였던 것 — 실제로 정의된
+     변수로 교체해서 가구가 눈에 띄게 (나무색 바탕 + 어두운 줄무늬) 고침 */
+  background: repeating-linear-gradient(135deg, var(--metal) 0 8px, var(--ink-soft) 8px 16px);
   border: 2px solid var(--ink);
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
   color: var(--paper);
