@@ -89,6 +89,49 @@ const ROOM_OBSTACLES = {
 };
 const OBSTACLE_WALL_PADDING = 14;
 
+// 방이 어느 슬롯에 배정되느냐에 따라 "문이 어느 쪽 벽에 있는지"가 달라진다
+// (위 슬롯은 아래쪽 벽에 문, 왼쪽 슬롯들은 오른쪽 벽에 문, 오른쪽 슬롯들은
+// 왼쪽 벽에 문). 가구를 문과 같은 벽에 붙이면 입구 자체를 막아버릴 수 있어서
+// (예: 작업대가 'left' 고정인데 방이 right_top/right_bottom에 배정되면 문도
+// 왼쪽이라 막혀버림), 가구의 벽이 그 판의 문 벽과 겹치면 반대쪽 벽으로 돌린다.
+const DOOR_WALL_BY_SLOT = {
+  top: 'bottom',
+  left_top: 'right',
+  left_bottom: 'right',
+  right_top: 'left',
+  right_bottom: 'left',
+};
+const OPPOSITE_WALL = { top: 'bottom', bottom: 'top', left: 'right', right: 'left' };
+
+// 가구 정의의 wall이 이번 판 이 방의 문 벽과 겹치면 반대쪽 벽으로 바꿔서 돌려준다
+function resolveObstacleWall(def, slot) {
+  const doorWall = DOOR_WALL_BY_SLOT[slot];
+  if (def.wall === doorWall) {
+    return OPPOSITE_WALL[def.wall] || def.wall;
+  }
+  return def.wall;
+}
+
+// 가구와 그 뒤쪽 벽 사이(OBSTACLE_WALL_PADDING만큼의 틈)는 폭이 플레이어
+// 지름(28)보다 좁아서 실제로는 서 있을 수 없는 자투리 공간이다. 아이템/가족을
+// 흩뿌릴 때는 가구 자체뿐 아니라 이 틈까지 통째로 피해야, "가구랑 벽 사이에
+// 끼어서 못 줍는" 자리가 안 나온다. (충돌 판정·렌더링에 쓰는 실제 가구
+// 사각형은 그대로 두고, 배치 회피용으로만 벽까지 넓힌 사각형을 따로 쓴다.)
+function extendObstacleToWall(rect, wall, roomRect) {
+  switch (wall) {
+    case 'bottom':
+      return { x: rect.x, y: rect.y, w: rect.w, h: roomRect.y + roomRect.h - rect.y };
+    case 'top':
+      return { x: rect.x, y: roomRect.y, w: rect.w, h: rect.y + rect.h - roomRect.y };
+    case 'left':
+      return { x: roomRect.x, y: rect.y, w: rect.x + rect.w - roomRect.x, h: rect.h };
+    case 'right':
+      return { x: rect.x, y: rect.y, w: roomRect.x + roomRect.w - rect.x, h: rect.h };
+    default:
+      return rect;
+  }
+}
+
 // 방 사각형 + 벽 지정으로 실제 오브젝트 사각형을 계산 (방이 어느 슬롯에 배정되든
 // 비율 기반이라 항상 방 크기에 맞게 들어간다)
 function computeObstacleRect(roomRect, def) {
@@ -219,7 +262,10 @@ function buildLayout() {
 
   rooms.forEach((room) => {
     const obDef = ROOM_OBSTACLES[room.id];
-    const obstacleRect = obDef ? computeObstacleRect(room.rect, obDef) : null;
+    const resolvedWall = obDef ? resolveObstacleWall(obDef, room.slot) : null;
+    const obstacleRect = obDef ? computeObstacleRect(room.rect, { ...obDef, wall: resolvedWall }) : null;
+    // 배치(스캐터) 전용 회피 영역 — 가구 + 벽까지의 자투리 틈을 합친 것
+    const obstacleAvoidRect = obstacleRect ? extendObstacleToWall(obstacleRect, resolvedWall, room.rect) : null;
     if (obstacleRect) {
       obstacles.push({ roomId: room.id, label: obDef.label, icon: obDef.icon, rect: obstacleRect });
     }
@@ -237,7 +283,7 @@ function buildLayout() {
     const scattered = allEntities.filter((e) => !onSurface.includes(e));
 
     const surfacePts = surfacePoints(obstacleRect, onSurface.length);
-    const scatteredPts = scatterPoints(room.rect, scattered.length, undefined, undefined, obstacleRect ? [obstacleRect] : []);
+    const scatteredPts = scatterPoints(room.rect, scattered.length, undefined, undefined, obstacleAvoidRect ? [obstacleAvoidRect] : []);
 
     const place = (e, pt) => {
       if (e.type === 'item') {
