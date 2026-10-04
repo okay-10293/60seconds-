@@ -283,7 +283,7 @@ function renderScavenge() {
   const obstaclesHtml = (S.obstacles || [])
     .map(
       (ob) => `
-    <div class="scavenge-obstacle" style="${rectStyle(ob.rect, W, H)}">
+    <div class="scavenge-obstacle ${ob.rect.h > ob.rect.w ? 'is-tall' : 'is-wide'}" style="${rectStyle(ob.rect, W, H)}">
       <span class="scavenge-obstacle-icon">${obstacleIcon(ob.icon)}</span>
       <span class="scavenge-obstacle-label">${ob.label}</span>
     </div>`
