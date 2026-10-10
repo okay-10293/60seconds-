@@ -517,7 +517,9 @@ body.modal-open { overflow: hidden; }
 .title-joystick-mode-options { display: flex; gap: 8px; margin-top: 6px; }
 .joystick-mode-btn {
   flex: 1; padding: 10px 0;
-  font-family: var(--font-ui); font-size: 0.95em;
+  /* Do Hyeon 폰트는 작은 글씨에서 '동'의 ㄷ이 ㅌ처럼 뭉개져 '유통형'으로 읽혔다.
+     획이 또렷한 고딕(Nanum Gothic Coding)으로 바꿔서 구분되게 한다. */
+  font-family: var(--font-mono); font-weight: 700; font-size: 1em; letter-spacing: 0.06em;
   background: var(--paper-dim); color: var(--ink);
   border: 3px solid var(--ink); cursor: pointer;
 }
