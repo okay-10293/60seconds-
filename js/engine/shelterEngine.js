@@ -92,7 +92,7 @@ function useFirstAid(state, characterId) {
 }
 
 // 하루 경과: 배급 결과 반영 → 배고픔/목마름/정신력 갱신 → 사망 체크
-//          → 원정 복귀 처리 → 목표일수 도달 시 엔딩 → 아니면 오늘의 이벤트 뽑기
+//          → 원정 복귀 처리 → 오늘의 이벤트 뽑기
 function advanceDay(state) {
   if (state.phase !== 'shelter') return { event: null };
 
@@ -209,16 +209,6 @@ function advanceDay(state) {
   }
 
   const expeditionResults = window.ExpeditionEngine.processReturns(state);
-
-  if (state.day > window.GAME_CONFIG.goalDay) {
-    state.phase = 'ending';
-    state.endingResult = window.EndingEngine.determineEnding(state);
-    window.GameState.addLog(
-      state,
-      `[Day ${state.day}] 목표 생존일수 ${window.GAME_CONFIG.goalDay}일을 달성했다.`
-    );
-    return { event: null, expeditionResults, ended: true };
-  }
 
   const event = window.EventEngine.pickEventForToday(state);
   return { event, expeditionResults };

@@ -689,8 +689,6 @@ function renderShelter() {
     })
     .join('');
 
-  const dayPct = Math.min(100, Math.round((state.day / window.GAME_CONFIG.goalDay) * 100));
-
   const views = [
     { id: 'diary', label: '벙커 안', icon: viewIcon('diary') },
     { id: 'rations', label: '보급품', icon: viewIcon('rations') },
@@ -710,7 +708,7 @@ function renderShelter() {
         ${cdBadge()}
         <div class="title-text">
           <span class="eyebrow">대피소 로그</span>
-          <h1>Day ${state.day} <span class="goal">/ 목표 ${window.GAME_CONFIG.goalDay}일</span></h1>
+          <h1>Day ${state.day}</h1>
         </div>
       </div>
       <div class="resources">
@@ -718,7 +716,6 @@ function renderShelter() {
         <span class="res-chip water"><i>식수</i>${state.resources.water}</span>
       </div>
     </div>
-    <div class="day-progress"><div class="day-progress-fill" style="width:${dayPct}%"></div></div>
     <div class="tally-wall">${tallyMarks(state.day)}</div>
 
     <div class="panel-section">
@@ -1001,7 +998,7 @@ function renderGameOver() {
 // ---------------- 엔딩 ----------------
 
 function renderEnding() {
-  const ending = state.endingResult || { title: '생존', description: '목표 일수를 달성했다.' };
+  const ending = state.endingResult || { title: '생존', description: '끝까지 살아남았다.' };
   const survivorsHtml = window.GameState.shelterCharacters(state)
     .map((c) => `<span class="inv-chip">${c.name}</span>`)
     .join('') || '(없음)';
@@ -1011,7 +1008,7 @@ function renderEnding() {
       <div class="gameover-badge">${cdBadge()}</div>
       <h1>ENDING: ${ending.title}</h1>
       <p>${ending.description}</p>
-      <p>생존 일수: Day ${state.day - 1} (목표 ${window.GAME_CONFIG.goalDay}일 달성)</p>
+      <p>생존 일수: Day ${state.day - 1}</p>
       <div class="characters-row">
         <div>대피소에 남은 사람: ${survivorsHtml}</div>
       </div>

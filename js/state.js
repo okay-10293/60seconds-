@@ -5,11 +5,6 @@
 // 캐릭터 위치값: 'shelter' | 'scavenging' | 'missing' | 'dead'
 //   - 'missing': 짐싸기에서 못 찾았거나, 원정 나갔다가 안 돌아온 경우 (영구 실종)
 
-// 게임 전체 설정값
-window.GAME_CONFIG = {
-  goalDay: 45, // 이 날짜를 넘기면(생존) 엔딩 판정
-};
-
 function createCharacter({ id, name, age, isChild = false, startLocation = 'shelter' }) {
   return {
     id,
@@ -50,7 +45,7 @@ function createInitialState() {
     log: [],       // 이벤트/선택 히스토리 { day, text }
     flags: {},     // 이벤트 조건용 임의 플래그 저장소 { flagName: true/값 }
     gameOverReason: null,
-    endingResult: null, // 목표 생존일수 달성 시 { id, title, description }
+    endingResult: null, // 엔딩 판정 결과 { id, title, description }
   };
 }
 
