@@ -804,3 +804,32 @@ body.modal-open { overflow: hidden; }
   margin: 0; letter-spacing: 0.04em;
   text-shadow: 0 0 18px var(--danger-glow, var(--danger));
 }
+
+/* ============================================================
+   첫 플레이 튜토리얼
+   ============================================================ */
+.tutorial-overlay {
+  position: fixed; inset: 0; z-index: 998;
+  background: rgba(0, 0, 0, 0.72);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.tutorial-card {
+  width: min(460px, 100%);
+  background: var(--paper);
+  box-shadow: 8px 8px 0 var(--ink);
+  padding: 24px 22px 20px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.tutorial-title { font-family: var(--font-display); font-weight: 400; font-size: 1.9em; margin: 0; color: var(--danger); }
+.tutorial-text { font-family: var(--font-body); font-size: 1.05em; line-height: 1.7; margin: 0; min-height: 5.2em; }
+.tutorial-dots { display: flex; gap: 6px; justify-content: center; margin: 4px 0; }
+.tutorial-dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--paper-dim); border: 2px solid var(--ink); }
+.tutorial-dots i.on { background: var(--danger); }
+.tutorial-actions { display: flex; gap: 10px; align-items: stretch; }
+.tutorial-skip {
+  flex: 0 0 auto; padding: 0 16px;
+  font-family: var(--font-ui); background: var(--paper-dim); color: var(--ink);
+  border: 3px solid var(--ink); cursor: pointer;
+}
+.tutorial-next { flex: 1; }

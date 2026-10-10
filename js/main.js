@@ -242,9 +242,82 @@ function renderTitle() {
   });
 
   document.getElementById('titleStartBtn').addEventListener('click', () => {
-    state.phase = 'scavenge';
-    render();
+    const begin = () => {
+      state.phase = 'scavenge';
+      render();
+    };
+    // 이 기기에서 처음 하는 경우에만 튜토리얼을 보여준다
+    if (hasSeenTutorial()) begin();
+    else showTutorial(begin);
   });
+}
+
+// ---------------- 첫 플레이 튜토리얼 ----------------
+// 기기(브라우저)마다 한 번만 보여준다. 튜토리얼이 끝나기 전에는 탈출 화면(60초 타이머)이
+// 시작되지 않으므로 읽는 동안 시간이 흐르지 않는다.
+const TUTORIAL_KEY = 'taeker60_tutorial_seen';
+
+function hasSeenTutorial() {
+  try {
+    return localStorage.getItem(TUTORIAL_KEY) === '1';
+  } catch (e) {
+    return false;
+  }
+}
+
+function markTutorialSeen() {
+  try {
+    localStorage.setItem(TUTORIAL_KEY, '1');
+  } catch (e) {
+    /* 저장이 안 되는 환경이면 다음에도 보일 수 있지만 게임엔 지장 없음 */
+  }
+}
+
+const TUTORIAL_STEPS = [
+  { title: '60초 안에 탈출하라', text: '경보가 울렸다. 60초 동안 집 안의 물자를 챙기고 가족을 구해서 방공호로 돌아와야 한다.' },
+  { title: '움직이기', text: '화면 왼쪽 아래 조이스틱으로 움직인다. 벽과 가구는 지나갈 수 없고, 문으로만 방을 드나들 수 있다.' },
+  { title: '챙기기', text: '물건 가까이 가면 오른쪽 버튼이 "챙기기"로 바뀐다. 가방은 4칸이고, 물건마다 차지하는 칸 수가 다르다(모서리의 숫자).' },
+  { title: '가족 구하기', text: '가족 앞에서는 "구하기"가 뜬다. 가족도 가방 칸을 차지하며, 방공호까지 데려가야 구조가 확정된다.' },
+  { title: '방공호에 넣기', text: '방공호 안에서 버튼을 누르면 가방이 비워지고 확정된다. 시간이 끝날 때 방공호 밖에 있는 사람은 사망한다.' },
+];
+
+function showTutorial(onDone) {
+  let step = 0;
+  const overlay = document.createElement('div');
+  overlay.className = 'tutorial-overlay';
+  document.body.appendChild(overlay);
+
+  const finish = () => {
+    markTutorialSeen();
+    overlay.remove();
+    onDone();
+  };
+
+  const draw = () => {
+    const t = TUTORIAL_STEPS[step];
+    const last = step === TUTORIAL_STEPS.length - 1;
+    overlay.innerHTML = `
+      <div class="tutorial-card">
+        <span class="eyebrow">튜토리얼 ${step + 1} / ${TUTORIAL_STEPS.length}</span>
+        <h2 class="tutorial-title">${t.title}</h2>
+        <p class="tutorial-text">${t.text}</p>
+        <div class="tutorial-dots">${TUTORIAL_STEPS.map((_, i) => `<i class="${i === step ? 'on' : ''}"></i>`).join('')}</div>
+        <div class="tutorial-actions">
+          <button type="button" class="tutorial-skip" id="tutorialSkip">건너뛰기</button>
+          <button type="button" class="go-btn tutorial-next" id="tutorialNext">${last ? '시작!' : '다음'}</button>
+        </div>
+      </div>
+    `;
+    overlay.querySelector('#tutorialSkip').addEventListener('click', finish);
+    overlay.querySelector('#tutorialNext').addEventListener('click', () => {
+      if (last) finish();
+      else {
+        step += 1;
+        draw();
+      }
+    });
+  };
+  draw();
 }
 
 // ---------------- 탈출 파트 (조이스틱 2D) ----------------
@@ -326,7 +399,7 @@ function renderScavenge() {
       <div class="scavenge-stage" id="scavengeStage">
         <div class="scavenge-corridor" style="${rectStyle(S.corridor, W, H)}"><span class="scavenge-corridor-label">복도</span></div>
         ${roomsHtml}
-        <div class="scavenge-dropzone" style="${rectStyle(S.dropzone, W, H)}">방공호 — 안에서 '넣기'를 눌러 가방을 비워라!</div>
+        <div class="scavenge-dropzone" style="${rectStyle(S.dropzone, W, H)}">방공호</div>
         ${doorsHtml}
         ${obstaclesHtml}
         ${itemsHtml}
