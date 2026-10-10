@@ -273,9 +273,7 @@ function renderScavenge() {
   const roomsHtml = S.rooms
     .map(
       (room) => `
-    <div class="scavenge-room" style="${rectStyle(room.rect, W, H)}">
-      <span class="scavenge-room-label"><span class="room-icon">${roomIcon(room.id)}</span>${room.name}</span>
-    </div>`
+    <div class="scavenge-room" style="${rectStyle(room.rect, W, H)}"></div>`
     )
     .join('');
   const doorsHtml = S.doors.map((d) => `<div class="scavenge-door" style="${rectStyle(d, W, H)}"></div>`).join('');
@@ -315,8 +313,14 @@ function renderScavenge() {
 
   app.innerHTML = `
     <div class="scavenge-play-area">
-    <div class="scavenge-side scavenge-side-left">
-      <div class="joystick-base" id="joystickBase"><div class="joystick-knob" id="joystickKnob"></div></div>
+    <div class="scavenge-left-col">
+      <div class="scavenge-bag">
+        <div class="scavenge-bag-title"><b>가방</b> <i id="scavengeBagCount">0</i>/${window.ScavengeEngine.BAG_CAPACITY}칸</div>
+        <div class="scavenge-inventory" id="scavengeInventory"></div>
+      </div>
+      <div class="scavenge-side scavenge-side-left">
+        <div class="joystick-base" id="joystickBase"><div class="joystick-knob" id="joystickKnob"></div></div>
+      </div>
     </div>
     <div class="scavenge-stage-wrap">
       <div class="scavenge-stage" id="scavengeStage">
@@ -341,11 +345,6 @@ function renderScavenge() {
     <div class="scavenge-side scavenge-side-right">
       <button id="actionBtn" class="scavenge-action-btn" disabled>챙기기</button>
     </div>
-    </div>
-
-    <div class="scavenge-bag">
-      <div class="scavenge-bag-title"><b>가방</b> <i id="scavengeBagCount">0</i>/${window.ScavengeEngine.BAG_CAPACITY}칸</div>
-      <div class="scavenge-inventory" id="scavengeInventory"></div>
     </div>
 
     <div class="collected">
