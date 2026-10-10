@@ -275,8 +275,8 @@ function markTutorialSeen() {
 
 const TUTORIAL_STEPS = [
   { title: '60초 안에 탈출하라', text: '경보가 울렸다. 60초 동안 집 안의 물자를 챙기고 가족을 구해서 방공호로 돌아와야 한다.' },
-  { title: '움직이기', text: '화면 왼쪽 아래 조이스틱으로 움직인다. 벽과 가구는 지나갈 수 없고, 문으로만 방을 드나들 수 있다.' },
-  { title: '챙기기', text: '물건 가까이 가면 오른쪽 버튼이 "챙기기"로 바뀐다. 가방은 4칸이고, 물건마다 차지하는 칸 수가 다르다(모서리의 숫자).' },
+  { title: '움직이기', text: '화면 왼쪽 아래 조이스틱으로 움직인다(PC: WASD 또는 방향키). 벽과 가구는 지나갈 수 없고, 문으로만 방을 드나들 수 있다.' },
+  { title: '챙기기', text: '물건 가까이 가면 오른쪽 버튼이 "챙기기"로 바뀐다(PC: Enter). 가방은 4칸이고, 물건마다 차지하는 칸 수가 다르다(모서리의 숫자).' },
   { title: '가족 구하기', text: '가족 앞에서는 "구하기"가 뜬다. 가족도 가방 칸을 차지하며, 방공호까지 데려가야 구조가 확정된다.' },
   { title: '방공호에 넣기', text: '방공호 안에서 버튼을 누르면 가방이 비워지고 확정된다. 시간이 끝날 때 방공호 밖에 있는 사람은 사망한다.' },
 ];
@@ -465,8 +465,16 @@ function renderScavenge() {
     scavengeDrawFrame();
   };
   scavengeDom.actionBtn.addEventListener('pointerdown', doAction);
+  // PC: Enter(또는 Space/E)로 챙기기·구하기·넣기. 한글 입력 상태에서도 되도록 e.code 사용.
+  // 키를 꾹 누르고 있어도(반복 입력) 한 번만 동작하도록 e.repeat는 무시한다.
   scavengeKeyHandler = (e) => {
-    if (e.code === 'Space' || e.key === 'e' || e.key === 'E') doAction(e);
+    if (e.code === 'Enter' || e.code === 'NumpadEnter' || e.code === 'Space' || e.code === 'KeyE') {
+      if (e.repeat) {
+        e.preventDefault();
+        return;
+      }
+      doAction(e);
+    }
   };
   window.addEventListener('keydown', scavengeKeyHandler);
 

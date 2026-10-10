@@ -126,26 +126,45 @@ function createJoystick({ mode = 'fixed', zoneEl, baseEl, knobEl }) {
   window.addEventListener('pointerup', onPointerUp);
   window.addEventListener('pointercancel', onPointerUp);
 
-  // 키보드 방향키(데스크톱 테스트용) — 조이스틱 값에 함께 반영
-  const keys = new Set();
+  // 키보드(PC): WASD 또는 방향키로 이동 — 조이스틱 값에 함께 반영한다.
+  // e.key 대신 e.code(물리 키 위치)를 쓰는 이유: 한글 입력 상태에서는 W가 'ㅈ'으로
+  // 들어와 e.key로는 못 알아보기 때문.
+  const KEY_DIRS = {
+    KeyW: 'up', ArrowUp: 'up',
+    KeyS: 'down', ArrowDown: 'down',
+    KeyA: 'left', ArrowLeft: 'left',
+    KeyD: 'right', ArrowRight: 'right',
+  };
+  const keys = new Set(); // 지금 눌려 있는 물리 키
   function onKeyDown(e) {
-    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-      keys.add(e.key);
-      updateFromKeys();
-    }
+    if (!KEY_DIRS[e.code]) return;
+    e.preventDefault(); // 방향키로 페이지가 스크롤되는 것 방지
+    keys.add(e.code);
+    updateFromKeys();
   }
   function onKeyUp(e) {
-    keys.delete(e.key);
+    if (!KEY_DIRS[e.code]) return;
+    keys.delete(e.code);
+    if (!dragging) updateFromKeys();
+  }
+  function onBlur() {
+    // 창을 벗어난 사이 키를 뗐다면 keyup을 못 받아 계속 걸어가는 걸 방지
+    keys.clear();
     if (!dragging) updateFromKeys();
   }
   function updateFromKeys() {
     if (dragging) return;
     let kx = 0;
     let ky = 0;
-    if (keys.has('ArrowLeft')) kx -= 1;
-    if (keys.has('ArrowRight')) kx += 1;
-    if (keys.has('ArrowUp')) ky -= 1;
-    if (keys.has('ArrowDown')) ky += 1;
+    keys.forEach((code) => {
+      const dir = KEY_DIRS[code];
+      if (dir === 'left') kx -= 1;
+      else if (dir === 'right') kx += 1;
+      else if (dir === 'up') ky -= 1;
+      else if (dir === 'down') ky += 1;
+    });
+    kx = Math.max(-1, Math.min(1, kx));
+    ky = Math.max(-1, Math.min(1, ky));
     if (kx === 0 && ky === 0) {
       reset();
       return;
@@ -157,6 +176,7 @@ function createJoystick({ mode = 'fixed', zoneEl, baseEl, knobEl }) {
   }
   window.addEventListener('keydown', onKeyDown);
   window.addEventListener('keyup', onKeyUp);
+  window.addEventListener('blur', onBlur);
 
   function destroy() {
     listenEl.removeEventListener('pointerdown', onPointerDown);
@@ -165,6 +185,7 @@ function createJoystick({ mode = 'fixed', zoneEl, baseEl, knobEl }) {
     window.removeEventListener('pointercancel', onPointerUp);
     window.removeEventListener('keydown', onKeyDown);
     window.removeEventListener('keyup', onKeyUp);
+    window.removeEventListener('blur', onBlur);
   }
 
   return { vector, destroy };
