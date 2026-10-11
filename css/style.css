@@ -808,17 +808,23 @@ body.modal-open { overflow: hidden; }
    첫 플레이 튜토리얼 (직접 해보는 연습 판)
    ============================================================ */
 .tutorial-banner {
-  position: sticky; top: 0; z-index: 60;
-  background: var(--paper);
+  /* 화면 위에 띄워 두는(고정) 안내 상자 — 레이아웃 흐름 밖이라 조이스틱/챙기기
+     버튼/맵을 아래로 밀지 않는다. (예전엔 맨 위에 끼워 넣어서 전부 밀렸음) */
+  position: fixed; z-index: 60;
+  top: 6px; left: 50%; transform: translateX(-50%);
+  width: min(94vw, 520px);
+  background: rgba(241, 234, 208, 0.97);
   border: 3px solid var(--ink);
   box-shadow: 5px 5px 0 var(--ink);
-  padding: 10px 14px 12px;
-  margin: 0 auto 12px;
-  max-width: 620px;
+  padding: 8px 12px 10px;
+}
+/* 가로로 넓은 화면(태블릿 가로 등)에선 맵 옆 빈 공간(왼쪽 위)에 놓아서 맵을 안 가린다 */
+@media (min-width: 700px) and (orientation: landscape) {
+  .tutorial-banner { top: 12px; left: 12px; transform: none; width: 300px; }
 }
 .tutorial-banner-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-.tutorial-title { font-family: var(--font-display); font-weight: 400; font-size: 1.45em; margin: 2px 0 0; color: var(--danger); }
-.tutorial-text { font-family: var(--font-body); font-size: 0.98em; line-height: 1.55; margin: 4px 0 6px; }
+.tutorial-title { font-family: var(--font-display); font-weight: 400; font-size: 1.3em; margin: 2px 0 0; color: var(--danger); }
+.tutorial-text { font-family: var(--font-body); font-size: 0.9em; line-height: 1.5; margin: 3px 0 6px; }
 .tutorial-dots { display: flex; gap: 6px; }
 .tutorial-dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--paper-dim); border: 2px solid var(--ink); }
 .tutorial-dots i.on { background: var(--danger); }
@@ -828,7 +834,7 @@ body.modal-open { overflow: hidden; }
   font-family: var(--font-ui); font-size: 0.85em; background: var(--paper-dim); color: var(--ink);
   border: 2px solid var(--ink); cursor: pointer;
 }
-.tutorial-next { width: 100%; margin-top: 10px; }
+.tutorial-next { width: 100%; margin-top: 8px; }
 
 /* 해야 할 대상을 깜빡여서 알려준다 */
 .tutorial-hint {

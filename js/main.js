@@ -252,7 +252,7 @@ function renderTitle() {
 
 // ---------------- 첫 플레이 튜토리얼 (직접 해보는 연습 판) ----------------
 // 기기(브라우저)마다 한 번만. 실제 탈출 화면과 똑같은 맵에서 시간 제한 없이(타이머 정지,
-// 사망 없음) 안내 문구대로 직접 해보면 다음 단계로 넘어간다. 마지막에 '진짜 시작'을
+// 사망 없음) 안내 문구대로 직접 해보면 다음 단계로 넘어간다. 마지막에 '시작하기!'를
 // 누르면 연습 중 바뀐 상태를 전부 새로 만들고 실제 60초 판이 시작된다.
 const TUTORIAL_KEY = 'taeker60_tutorial_seen';
 
@@ -280,30 +280,30 @@ let tutorialStartPos = null; // 이동 단계 판정용 시작 위치
 const TUTORIAL_STEPS = [
   {
     title: '움직여 보세요',
-    text: '왼쪽 아래 조이스틱을 움직여서 캐릭터를 걸어 보세요. (PC: WASD 또는 방향키)',
+    text: '왼쪽 아래 조이스틱으로 걸어 보세요. (PC: WASD/방향키)',
     done: (s) => Math.hypot(s.player.x - tutorialStartPos.x, s.player.y - tutorialStartPos.y) > 110,
   },
   {
     title: '물건을 챙겨 보세요',
-    text: '깜빡이는 물건 가까이 가서 오른쪽 버튼 [챙기기]를 눌러 보세요. (PC: Enter) 방은 문으로만 들어갈 수 있어요. 가방은 4칸이고 물건마다 차지하는 칸(모서리 숫자)이 달라요.',
+    text: '깜빡이는 물건 가까이 가서 [챙기기]를 눌러 보세요. (PC: Enter) 방은 문으로만 들어가요. 가방은 4칸, 물건마다 차지하는 칸(모서리 숫자)이 달라요.',
     hint: 'item',
     done: (s) => s.carrying.length > 0 || s.collected.length > 0,
   },
   {
     title: '방공호에 넣어 보세요',
-    text: '가방에 담은 물건은 노란 줄무늬 방공호 안에서 [방공호에 넣기]를 눌러야 챙긴 걸로 확정돼요.',
+    text: '방공호(노란 줄무늬) 안에서 [넣기]를 눌러야 챙긴 게 확정돼요.',
     hint: 'shelter',
     done: (s) => s.collected.length > 0,
   },
   {
     title: '가족을 구해 보세요',
-    text: '깜빡이는 가족 앞에서 [구하기]를 눌러 업고, 방공호까지 데려가 [넣기]로 확정하세요. 가족은 가방 칸을 여러 개 차지해요. 가방이 차 있으면 먼저 넣고 오세요.',
+    text: '깜빡이는 가족 앞에서 [구하기]로 업고 방공호에서 [넣기]로 확정하세요. 가족은 칸을 여러 개 차지하니 가방이 차 있으면 먼저 비우세요.',
     hint: 'family',
     done: (s) => s.foundFamily.length > 0,
   },
   {
-    title: '연습 끝! 진짜 시작',
-    text: '실제로는 60초 안에 이걸 해야 해요. 시간이 끝났을 때 방공호 밖에 있는 가족은 사망해요. 준비됐으면 시작하세요!',
+    title: '연습 끝!',
+    text: '실제로는 60초 안에 이걸 해야 해요. 시간이 끝났을 때 방공호 밖에 있는 가족은 사망해요.',
     final: true,
   },
 ];
@@ -349,7 +349,7 @@ function tutorialApplyStep() {
     <h2 class="tutorial-title">${step.title}</h2>
     <p class="tutorial-text">${step.text}</p>
     <div class="tutorial-dots">${TUTORIAL_STEPS.map((_, i) => `<i class="${i < tutorialStep ? 'done' : i === tutorialStep ? 'on' : ''}"></i>`).join('')}</div>
-    ${step.final ? '<button type="button" class="go-btn tutorial-next" id="tutorialStartReal">진짜 시작</button>' : ''}
+    ${step.final ? '<button type="button" class="go-btn tutorial-next" id="tutorialStartReal">시작하기!</button>' : ''}
   `;
   const skip = document.getElementById('tutorialSkip');
   if (skip) skip.addEventListener('click', finishTutorial);
