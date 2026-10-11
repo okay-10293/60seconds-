@@ -805,30 +805,45 @@ body.modal-open { overflow: hidden; }
 }
 
 /* ============================================================
-   첫 플레이 튜토리얼
+   첫 플레이 튜토리얼 (직접 해보는 연습 판)
    ============================================================ */
-.tutorial-overlay {
-  position: fixed; inset: 0; z-index: 998;
-  background: rgba(0, 0, 0, 0.72);
-  display: flex; align-items: center; justify-content: center;
-  padding: 20px;
-}
-.tutorial-card {
-  width: min(460px, 100%);
+.tutorial-banner {
+  position: sticky; top: 0; z-index: 60;
   background: var(--paper);
-  box-shadow: 8px 8px 0 var(--ink);
-  padding: 24px 22px 20px;
-  display: flex; flex-direction: column; gap: 10px;
+  border: 3px solid var(--ink);
+  box-shadow: 5px 5px 0 var(--ink);
+  padding: 10px 14px 12px;
+  margin: 0 auto 12px;
+  max-width: 620px;
 }
-.tutorial-title { font-family: var(--font-display); font-weight: 400; font-size: 1.9em; margin: 0; color: var(--danger); }
-.tutorial-text { font-family: var(--font-body); font-size: 1.05em; line-height: 1.7; margin: 0; min-height: 5.2em; }
-.tutorial-dots { display: flex; gap: 6px; justify-content: center; margin: 4px 0; }
+.tutorial-banner-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.tutorial-title { font-family: var(--font-display); font-weight: 400; font-size: 1.45em; margin: 2px 0 0; color: var(--danger); }
+.tutorial-text { font-family: var(--font-body); font-size: 0.98em; line-height: 1.55; margin: 4px 0 6px; }
+.tutorial-dots { display: flex; gap: 6px; }
 .tutorial-dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--paper-dim); border: 2px solid var(--ink); }
 .tutorial-dots i.on { background: var(--danger); }
-.tutorial-actions { display: flex; gap: 10px; align-items: stretch; }
+.tutorial-dots i.done { background: var(--ink); }
 .tutorial-skip {
-  flex: 0 0 auto; padding: 0 16px;
-  font-family: var(--font-ui); background: var(--paper-dim); color: var(--ink);
-  border: 3px solid var(--ink); cursor: pointer;
+  padding: 4px 12px;
+  font-family: var(--font-ui); font-size: 0.85em; background: var(--paper-dim); color: var(--ink);
+  border: 2px solid var(--ink); cursor: pointer;
 }
-.tutorial-next { flex: 1; }
+.tutorial-next { width: 100%; margin-top: 10px; }
+
+/* 해야 할 대상을 깜빡여서 알려준다 */
+.tutorial-hint {
+  outline: 4px solid var(--hazard); outline-offset: 4px;
+  animation: tutorial-pulse 0.55s infinite alternate;
+  z-index: 6;
+}
+.scavenge-item.tutorial-hint::before,
+.scavenge-family.tutorial-hint::before {
+  content: '여기!';
+  position: absolute; bottom: 118%; left: 50%; transform: translateX(-50%);
+  background: var(--hazard); color: var(--ink);
+  font-family: var(--font-ui); font-size: 0.75em; padding: 1px 6px; white-space: nowrap;
+}
+.scavenge-dropzone.tutorial-hint { outline-offset: -8px; }
+@keyframes tutorial-pulse { from { outline-color: var(--hazard); } to { outline-color: var(--danger); } }
+.scavenge-action-btn.tutorial-pulse { animation: tutorial-btn-pulse 0.6s infinite alternate; }
+@keyframes tutorial-btn-pulse { from { box-shadow: 0 7px 0 var(--danger-deep); } to { box-shadow: 0 7px 0 var(--danger-deep), 0 0 0 6px var(--hazard); } }

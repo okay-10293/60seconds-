@@ -242,19 +242,18 @@ function renderTitle() {
   });
 
   document.getElementById('titleStartBtn').addEventListener('click', () => {
-    const begin = () => {
-      state.phase = 'scavenge';
-      render();
-    };
-    // 이 기기에서 처음 하는 경우에만 튜토리얼을 보여준다
-    if (hasSeenTutorial()) begin();
-    else showTutorial(begin);
+    // 이 기기에서 처음이면 글 설명 대신 '직접 해보는 연습 판'부터 시작한다
+    tutorialMode = !hasSeenTutorial();
+    tutorialStep = 0;
+    state.phase = 'scavenge';
+    render();
   });
 }
 
-// ---------------- 첫 플레이 튜토리얼 ----------------
-// 기기(브라우저)마다 한 번만 보여준다. 튜토리얼이 끝나기 전에는 탈출 화면(60초 타이머)이
-// 시작되지 않으므로 읽는 동안 시간이 흐르지 않는다.
+// ---------------- 첫 플레이 튜토리얼 (직접 해보는 연습 판) ----------------
+// 기기(브라우저)마다 한 번만. 실제 탈출 화면과 똑같은 맵에서 시간 제한 없이(타이머 정지,
+// 사망 없음) 안내 문구대로 직접 해보면 다음 단계로 넘어간다. 마지막에 '진짜 시작'을
+// 누르면 연습 중 바뀐 상태를 전부 새로 만들고 실제 60초 판이 시작된다.
 const TUTORIAL_KEY = 'taeker60_tutorial_seen';
 
 function hasSeenTutorial() {
@@ -273,51 +272,117 @@ function markTutorialSeen() {
   }
 }
 
+let tutorialMode = false; // 지금 연습 판인가
+let tutorialStep = 0;
+let tutorialStartPos = null; // 이동 단계 판정용 시작 위치
+
+// done(s): 이 단계를 해냈는지(탈출 상태 s 기준), hint: 깜빡여서 알려줄 대상
 const TUTORIAL_STEPS = [
-  { title: '60초 안에 탈출하라', text: '경보가 울렸다. 60초 동안 집 안의 물자를 챙기고 가족을 구해서 방공호로 돌아와야 한다.' },
-  { title: '움직이기', text: '화면 왼쪽 아래 조이스틱으로 움직인다(PC: WASD 또는 방향키). 벽과 가구는 지나갈 수 없고, 문으로만 방을 드나들 수 있다.' },
-  { title: '챙기기', text: '물건 가까이 가면 오른쪽 버튼이 "챙기기"로 바뀐다(PC: Enter). 가방은 4칸이고, 물건마다 차지하는 칸 수가 다르다(모서리의 숫자).' },
-  { title: '가족 구하기', text: '가족 앞에서는 "구하기"가 뜬다. 가족도 가방 칸을 차지하며, 방공호까지 데려가야 구조가 확정된다.' },
-  { title: '방공호에 넣기', text: '방공호 안에서 버튼을 누르면 가방이 비워지고 확정된다. 시간이 끝날 때 방공호 밖에 있는 사람은 사망한다.' },
+  {
+    title: '움직여 보세요',
+    text: '왼쪽 아래 조이스틱을 움직여서 캐릭터를 걸어 보세요. (PC: WASD 또는 방향키)',
+    done: (s) => Math.hypot(s.player.x - tutorialStartPos.x, s.player.y - tutorialStartPos.y) > 110,
+  },
+  {
+    title: '물건을 챙겨 보세요',
+    text: '깜빡이는 물건 가까이 가서 오른쪽 버튼 [챙기기]를 눌러 보세요. (PC: Enter) 방은 문으로만 들어갈 수 있어요. 가방은 4칸이고 물건마다 차지하는 칸(모서리 숫자)이 달라요.',
+    hint: 'item',
+    done: (s) => s.carrying.length > 0 || s.collected.length > 0,
+  },
+  {
+    title: '방공호에 넣어 보세요',
+    text: '가방에 담은 물건은 노란 줄무늬 방공호 안에서 [방공호에 넣기]를 눌러야 챙긴 걸로 확정돼요.',
+    hint: 'shelter',
+    done: (s) => s.collected.length > 0,
+  },
+  {
+    title: '가족을 구해 보세요',
+    text: '깜빡이는 가족 앞에서 [구하기]를 눌러 업고, 방공호까지 데려가 [넣기]로 확정하세요. 가족은 가방 칸을 여러 개 차지해요. 가방이 차 있으면 먼저 넣고 오세요.',
+    hint: 'family',
+    done: (s) => s.foundFamily.length > 0,
+  },
+  {
+    title: '연습 끝! 진짜 시작',
+    text: '실제로는 60초 안에 이걸 해야 해요. 시간이 끝났을 때 방공호 밖에 있는 가족은 사망해요. 준비됐으면 시작하세요!',
+    final: true,
+  },
 ];
 
-function showTutorial(onDone) {
-  let step = 0;
-  const overlay = document.createElement('div');
-  overlay.className = 'tutorial-overlay';
-  document.body.appendChild(overlay);
+function tutorialNearest(list, from) {
+  let best = null;
+  let bestD = Infinity;
+  list.forEach((e) => {
+    const d = Math.hypot(e.x - from.x, e.y - from.y);
+    if (d < bestD) {
+      bestD = d;
+      best = e;
+    }
+  });
+  return best;
+}
 
-  const finish = () => {
-    markTutorialSeen();
-    overlay.remove();
-    onDone();
-  };
+// 단계가 바뀔 때: 배너 문구를 다시 그리고 깜빡일 대상을 새로 고른다
+function tutorialApplyStep() {
+  const d = scavengeDom;
+  const s = scavengeState;
+  const step = TUTORIAL_STEPS[tutorialStep];
 
-  const draw = () => {
-    const t = TUTORIAL_STEPS[step];
-    const last = step === TUTORIAL_STEPS.length - 1;
-    overlay.innerHTML = `
-      <div class="tutorial-card">
-        <span class="eyebrow">튜토리얼 ${step + 1} / ${TUTORIAL_STEPS.length}</span>
-        <h2 class="tutorial-title">${t.title}</h2>
-        <p class="tutorial-text">${t.text}</p>
-        <div class="tutorial-dots">${TUTORIAL_STEPS.map((_, i) => `<i class="${i === step ? 'on' : ''}"></i>`).join('')}</div>
-        <div class="tutorial-actions">
-          <button type="button" class="tutorial-skip" id="tutorialSkip">건너뛰기</button>
-          <button type="button" class="go-btn tutorial-next" id="tutorialNext">${last ? '시작!' : '다음'}</button>
-        </div>
-      </div>
-    `;
-    overlay.querySelector('#tutorialSkip').addEventListener('click', finish);
-    overlay.querySelector('#tutorialNext').addEventListener('click', () => {
-      if (last) finish();
-      else {
-        step += 1;
-        draw();
-      }
-    });
-  };
-  draw();
+  document.querySelectorAll('.tutorial-hint').forEach((el) => el.classList.remove('tutorial-hint'));
+  d.actionBtn.classList.remove('tutorial-pulse');
+
+  if (step.hint === 'item') {
+    const it = tutorialNearest(s.items.filter((i) => !i.taken), s.player);
+    if (it) d.itemEls[it.key].classList.add('tutorial-hint');
+  } else if (step.hint === 'family') {
+    const fam = tutorialNearest(s.family.filter((f) => !f.taken && !s.foundFamily.includes(f.characterId)), s.player);
+    if (fam) d.familyEls[fam.key].classList.add('tutorial-hint');
+  } else if (step.hint === 'shelter') {
+    document.querySelector('.scavenge-dropzone').classList.add('tutorial-hint');
+  }
+
+  const total = TUTORIAL_STEPS.length;
+  document.getElementById('tutorialBanner').innerHTML = `
+    <div class="tutorial-banner-head">
+      <span class="eyebrow">연습 ${tutorialStep + 1} / ${total} · 시간 제한 없음</span>
+      ${step.final ? '' : '<button type="button" class="tutorial-skip" id="tutorialSkip">건너뛰기</button>'}
+    </div>
+    <h2 class="tutorial-title">${step.title}</h2>
+    <p class="tutorial-text">${step.text}</p>
+    <div class="tutorial-dots">${TUTORIAL_STEPS.map((_, i) => `<i class="${i < tutorialStep ? 'done' : i === tutorialStep ? 'on' : ''}"></i>`).join('')}</div>
+    ${step.final ? '<button type="button" class="go-btn tutorial-next" id="tutorialStartReal">진짜 시작</button>' : ''}
+  `;
+  const skip = document.getElementById('tutorialSkip');
+  if (skip) skip.addEventListener('click', finishTutorial);
+  const startReal = document.getElementById('tutorialStartReal');
+  if (startReal) startReal.addEventListener('click', finishTutorial);
+}
+
+// 매 프레임: 현재 단계를 해냈는지 확인하고 해냈으면 다음 단계로
+function tutorialUpdate() {
+  const step = TUTORIAL_STEPS[tutorialStep];
+  if (!step || step.final) return;
+  if (step.done(scavengeState)) {
+    tutorialStep += 1;
+    tutorialApplyStep();
+  }
+}
+
+// 연습 종료(끝까지 했든 건너뛰었든): 연습 상태를 전부 버리고 실제 판을 새로 시작한다
+function finishTutorial() {
+  markTutorialSeen();
+  cancelAnimationFrame(scavengeRafId);
+  if (scavengeJoystick) scavengeJoystick.destroy();
+  if (scavengeKeyHandler) window.removeEventListener('keydown', scavengeKeyHandler);
+  scavengeJoystick = null;
+  scavengeKeyHandler = null;
+  scavengeDom = null;
+  scavengeState = null;
+  tutorialMode = false;
+  tutorialStep = 0;
+  state = window.GameState.createInitialState();
+  resetShelterUi();
+  state.phase = 'scavenge';
+  render();
 }
 
 // ---------------- 탈출 파트 (조이스틱 2D) ----------------
@@ -385,6 +450,7 @@ function renderScavenge() {
     .join('');
 
   app.innerHTML = `
+    ${tutorialMode ? '<div class="tutorial-banner" id="tutorialBanner"></div>' : ''}
     <div class="scavenge-play-area">
     <div class="scavenge-left-col">
       <div class="scavenge-bag">
@@ -425,7 +491,7 @@ function renderScavenge() {
       <span><b>찾은 가족</b><i id="scavengeFoundCount">0</i>명</span>
     </div>
 
-    <button id="finishBtn">지금 대피소로 (탈출 종료) →</button>
+    ${tutorialMode ? '' : '<button id="finishBtn">지금 대피소로 (탈출 종료) →</button>'}
   `;
 
   // 프레임마다 쓸 DOM 참조를 한 번만 캐시
@@ -478,11 +544,16 @@ function renderScavenge() {
   };
   window.addEventListener('keydown', scavengeKeyHandler);
 
-  document.getElementById('finishBtn').addEventListener('click', endScavenge);
+  const finishBtnEl = document.getElementById('finishBtn');
+  if (finishBtnEl) finishBtnEl.addEventListener('click', endScavenge);
 
   scavengeLastTs = null;
   window.ScavengeEngine.updateScavenge(scavengeState);
   scavengeDrawFrame();
+  if (tutorialMode) {
+    tutorialStartPos = { x: scavengeState.player.x, y: scavengeState.player.y };
+    tutorialApplyStep();
+  }
   scavengeRafId = requestAnimationFrame(scavengeTick);
 }
 
@@ -497,12 +568,17 @@ function scavengeTick(ts) {
   window.ScavengeEngine.movePlayer(scavengeState, vec.x * SCAVENGE_SPEED * dt, vec.y * SCAVENGE_SPEED * dt);
   window.ScavengeEngine.updateScavenge(scavengeState);
 
-  scavengeState.timeLeft -= dt;
-  if (scavengeState.timeLeft <= 0) {
-    scavengeState.timeLeft = 0;
-    scavengeDrawFrame();
-    endScavenge();
-    return;
+  if (tutorialMode) {
+    // 연습 판: 시간은 흐르지 않고, 해냈는지만 확인한다
+    tutorialUpdate();
+  } else {
+    scavengeState.timeLeft -= dt;
+    if (scavengeState.timeLeft <= 0) {
+      scavengeState.timeLeft = 0;
+      scavengeDrawFrame();
+      endScavenge();
+      return;
+    }
   }
 
   scavengeDrawFrame();
@@ -562,6 +638,12 @@ function scavengeDrawFrame() {
     d.actionBtn.textContent = label;
   }
   d.actionBtn.disabled = !enabled;
+  if (tutorialMode) {
+    // 해야 할 행동이 가능해진 순간 버튼도 깜빡여 준다
+    const stp = TUTORIAL_STEPS[tutorialStep];
+    const wantsButton = !!stp && !!stp.hint && (stp.hint === 'shelter' ? E.inShelter(s) : true);
+    d.actionBtn.classList.toggle('tutorial-pulse', wantsButton && enabled);
+  }
 
   // 가방 4칸 표시: 물자마다 차지하는 칸 수만큼 넓게
   const bagKey = s.carrying.map((c) => c.key).join(',');
