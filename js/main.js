@@ -219,6 +219,7 @@ function renderTitle() {
       </div>
 
       <button id="titleStartBtn" class="go-btn">시작하기</button>
+      ${hasSeenTutorial() ? '<button type="button" id="titleTutorialBtn" class="title-tutorial-btn">튜토리얼 다시 하기</button>' : ''}
       <p class="title-screen-hint">
         조이스틱(또는 방향키)으로 움직여 '챙기기'로 물건을, '구하기'로 가족을 가방(4칸)에 담고, 방공호에서 '넣기'로 비워라.
       </p>
@@ -248,11 +249,20 @@ function renderTitle() {
     state.phase = 'scavenge';
     render();
   });
+  const replayBtn = document.getElementById('titleTutorialBtn');
+  if (replayBtn) {
+    replayBtn.addEventListener('click', () => {
+      tutorialMode = true;
+      tutorialStep = 0;
+      state.phase = 'scavenge';
+      render();
+    });
+  }
 }
 
 // ---------------- 첫 플레이 튜토리얼 (직접 해보는 연습 판) ----------------
 // 기기(브라우저)마다 한 번만. 실제 탈출 화면과 똑같은 맵에서 시간 제한 없이(타이머 정지,
-// 사망 없음) 안내 문구대로 직접 해보면 다음 단계로 넘어간다. 마지막에 '시작하기!'를
+// 사망 없음) 안내 문구대로 직접 해보면 다음 단계로 넘어간다. (위쪽 방을 안내 문구로 가린다) 마지막에 '시작하기!'를
 // 누르면 연습 중 바뀐 상태를 전부 새로 만들고 실제 60초 판이 시작된다.
 const TUTORIAL_KEY = 'taeker60_tutorial_seen';
 
@@ -401,7 +411,7 @@ function renderScavenge() {
   // 이미 진행 중이면 다시 그리지 않는다 (프레임 루프가 DOM을 직접 갱신함)
   if (scavengeState) return;
 
-  scavengeState = window.ScavengeEngine.startScavenge(state);
+  scavengeState = window.ScavengeEngine.startScavenge(state, { tutorial: tutorialMode });
 
   const W = window.ScavengeEngine.WORLD_W;
   const H = window.ScavengeEngine.WORLD_H;
@@ -450,7 +460,6 @@ function renderScavenge() {
     .join('');
 
   app.innerHTML = `
-    ${tutorialMode ? '<div class="tutorial-banner" id="tutorialBanner"></div>' : ''}
     <div class="scavenge-play-area">
     <div class="scavenge-left-col">
       <div class="scavenge-bag">
@@ -471,6 +480,7 @@ function renderScavenge() {
         ${itemsHtml}
         ${familyHtml}
         <div class="scavenge-player" id="scavengePlayer"></div>
+        ${tutorialMode ? `<div class="tutorial-banner" id="tutorialBanner" style="${rectStyle(S.tutorialCover, W, H)}"></div>` : ''}
         <div class="scavenge-clock" id="scavengeClock" aria-label="남은 시간">
           <svg viewBox="0 0 100 100">
             <circle class="clock-face" cx="50" cy="50" r="46"></circle>

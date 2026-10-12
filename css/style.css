@@ -807,34 +807,38 @@ body.modal-open { overflow: hidden; }
 /* ============================================================
    첫 플레이 튜토리얼 (직접 해보는 연습 판)
    ============================================================ */
+.scavenge-stage { container-type: inline-size; } /* 안내 상자 글씨를 맵 폭에 맞춰 키우기 위해 */
 .tutorial-banner {
-  /* 화면 위에 띄워 두는(고정) 안내 상자 — 레이아웃 흐름 밖이라 조이스틱/챙기기
-     버튼/맵을 아래로 밀지 않는다. (예전엔 맨 위에 끼워 넣어서 전부 밀렸음) */
-  position: fixed; z-index: 60;
-  top: 6px; left: 50%; transform: translateX(-50%);
-  width: min(94vw, 520px);
-  background: rgba(241, 234, 208, 0.97);
-  border: 3px solid var(--ink);
-  box-shadow: 5px 5px 0 var(--ink);
-  padding: 8px 12px 10px;
+  /* 맵 맨 위 띠(위쪽 방 자리)를 가리고 그 안에 안내 문구를 띄운다. 맵 안에 들어 있어서
+     조이스틱/버튼/맵을 아래로 밀지 않고, 튜토리얼에선 위쪽 방을 안 쓰니 가려도 된다. */
+  position: absolute; z-index: 8; box-sizing: border-box;
+  background: var(--paper);
+  border-bottom: 3px solid var(--ink);
+  padding: 1.6cqw 2.6cqw;
+  display: flex; flex-direction: column; justify-content: center; gap: 0.7cqw;
+  overflow: hidden;
+  font-size: 10px; /* cqw 미지원 브라우저용 폴백 */
+  font-size: clamp(8px, 2.3cqw, 16px);
 }
-/* 가로로 넓은 화면(태블릿 가로 등)에선 맵 옆 빈 공간(왼쪽 위)에 놓아서 맵을 안 가린다 */
-@media (min-width: 700px) and (orientation: landscape) {
-  .tutorial-banner { top: 12px; left: 12px; transform: none; width: 300px; }
-}
-.tutorial-banner-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-.tutorial-title { font-family: var(--font-display); font-weight: 400; font-size: 1.3em; margin: 2px 0 0; color: var(--danger); }
-.tutorial-text { font-family: var(--font-body); font-size: 0.9em; line-height: 1.5; margin: 3px 0 6px; }
-.tutorial-dots { display: flex; gap: 6px; }
-.tutorial-dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--paper-dim); border: 2px solid var(--ink); }
+.tutorial-banner .eyebrow { font-size: 0.85em; }
+.tutorial-banner-head { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+.tutorial-title { font-family: var(--font-display); font-weight: 400; font-size: 1.55em; line-height: 1.1; margin: 0; color: var(--danger); }
+.tutorial-text { font-family: var(--font-body); font-size: 1em; line-height: 1.35; margin: 0; }
+.tutorial-dots { display: flex; gap: 0.5em; }
+.tutorial-dots i { width: 0.8em; height: 0.8em; border-radius: 50%; background: var(--paper-dim); border: 2px solid var(--ink); }
 .tutorial-dots i.on { background: var(--danger); }
 .tutorial-dots i.done { background: var(--ink); }
 .tutorial-skip {
-  padding: 4px 12px;
-  font-family: var(--font-ui); font-size: 0.85em; background: var(--paper-dim); color: var(--ink);
+  padding: 0.1em 0.8em;
+  font-family: var(--font-ui); font-size: 0.9em; background: var(--paper-dim); color: var(--ink);
   border: 2px solid var(--ink); cursor: pointer;
 }
-.tutorial-next { width: 100%; margin-top: 8px; }
+.tutorial-next { width: 100%; margin-top: 0.2em; padding: 0.3em 0; font-size: 1.2em; }
+.title-tutorial-btn {
+  width: 100%; margin-top: 6px; padding: 8px 0;
+  font-family: var(--font-mono); font-weight: 700; font-size: 0.85em;
+  background: transparent; color: var(--text-dim); border: 2px dashed var(--metal); cursor: pointer;
+}
 
 /* 해야 할 대상을 깜빡여서 알려준다 */
 .tutorial-hint {

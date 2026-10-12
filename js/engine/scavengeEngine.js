@@ -248,8 +248,19 @@ function surfacePoints(obstacleRect, n) {
 }
 
 // 방을 랜덤 자리에 배치하고, 방마다 아이템/가족 좌표를 만든다.
-function buildLayout() {
+// 튜토리얼 판: 위쪽 방을 안내 문구로 가리기 위해, 가족이 없는 방(지하실)을 위쪽 자리에
+// 고정하고 그 방(과 위쪽 문)은 못 들어가게 + 물자도 안 놓는다. 가리는 영역은 맵 맨 위 띠.
+const TUTORIAL_COVER_ROOM_ID = 'basement';
+const TUTORIAL_COVER = { x: 0, y: 0, w: WORLD_W, h: CORRIDOR.y - 2 };
+
+function buildLayout(opts = {}) {
+  const tutorial = !!opts.tutorial;
   const slots = shuffle(ROOM_SLOTS);
+  if (tutorial) {
+    const forcedIdx = window.SCAVENGE_ROOMS.findIndex((r) => r.id === TUTORIAL_COVER_ROOM_ID);
+    const topIdx = slots.findIndex((sl) => sl.slot === 'top');
+    [slots[forcedIdx], slots[topIdx]] = [slots[topIdx], slots[forcedIdx]];
+  }
   const rooms = window.SCAVENGE_ROOMS.map((room, idx) => ({
     ...room,
     slot: slots[idx].slot,
@@ -296,19 +307,32 @@ function buildLayout() {
     scattered.forEach((e, idx) => place(e, scatteredPts[idx]));
   });
 
-  const walkable = [SHELTER, CORRIDOR, ...DOORS, ...rooms.map((r) => r.rect)];
-  return { rooms, items, family, walkable, obstacles };
+  if (tutorial) {
+    // 가려진 방 안의 물자/가구는 없앤다 (안 보이는 곳에 물건이 있으면 안 되니까)
+    const hide = (e) => e.roomId === TUTORIAL_COVER_ROOM_ID;
+    for (let i = items.length - 1; i >= 0; i--) if (hide(items[i])) items.splice(i, 1);
+    for (let i = family.length - 1; i >= 0; i--) if (hide(family[i])) family.splice(i, 1);
+    for (let i = obstacles.length - 1; i >= 0; i--) if (hide(obstacles[i])) obstacles.splice(i, 1);
+  }
+  const walkable = [
+    SHELTER,
+    CORRIDOR,
+    ...DOORS.filter((d, i) => !(tutorial && i === 0)), // DOORS[0] = 위쪽 방 문
+    ...rooms.filter((r) => !(tutorial && r.id === TUTORIAL_COVER_ROOM_ID)).map((r) => r.rect),
+  ];
+  return { rooms, items, family, walkable, obstacles, tutorialCover: tutorial ? TUTORIAL_COVER : null };
 }
 
-function startScavenge(state) {
-  const layout = buildLayout();
+function startScavenge(state, opts = {}) {
+  const layout = buildLayout(opts);
   return {
     timeLeft: SCAVENGE_TIME_LIMIT,
     collected: [], // itemId 배열 (방공호까지 날라 확정된 것)
     foundFamily: [], // characterId 배열 (이번 판에서 구한 가족)
     rooms: layout.rooms,
     corridor: CORRIDOR,
-    doors: DOORS,
+    doors: opts.tutorial ? DOORS.slice(1) : DOORS,
+    tutorialCover: layout.tutorialCover, // 튜토리얼 안내 문구가 가리는 영역 (일반 판은 null)
     dropzone: SHELTER, // 방공호
     walkable: layout.walkable,
     obstacles: layout.obstacles, // 이동을 막는 가구 (침대/선반 등)
