@@ -286,37 +286,105 @@ let tutorialMode = false; // 지금 연습 판인가
 let tutorialStep = 0;
 let tutorialStartPos = null; // 이동 단계 판정용 시작 위치
 
-// done(s): 이 단계를 해냈는지(탈출 상태 s 기준), hint: 깜빡여서 알려줄 대상
+let tutorialFlags = {}; // 대피소 연습 단계 진행 표시 (탭을 봤는지, 배급했는지, 선택했는지 ...)
+
+// 연습용 사건 — 랜덤 사건 대신 항상 이 사건이 나온다(선택지 고르는 법 연습용, 실제 효과 없음)
+const TUTORIAL_EVENT = {
+  id: 'tutorial_knock',
+  title: '[연습] 문 두드리는 소리',
+  description: '밤중에 대피소 문을 두드리는 소리가 들린다. 문을 열어줄까?',
+  once: true,
+  choices: [
+    { text: '문을 연다', outcomes: [{ weight: 1, resultText: '문 밖에는 지쳐 보이는 낯선 사람이 서 있었다. 이렇게 사건마다 무엇을 고르느냐에 따라 결과가 갈린다.', effects: [] }] },
+    { text: '모른 척한다', outcomes: [{ weight: 1, resultText: '숨을 죽이고 있자 두드리는 소리가 멎었다. 안전했지만, 도울 기회를 놓친 걸지도 모른다.', effects: [] }] },
+  ],
+};
+
+// where 생략 = 탈출 화면 단계, 'shelter' = 대피소 화면 단계
+// done: 탈출 단계는 done(탈출 상태), 대피소 단계는 tutorialFlags로 판정
+// hint: 깜빡여서 알려줄 대상
 const TUTORIAL_STEPS = [
   {
+    id: 'move',
     title: '움직여 보세요',
     text: '왼쪽 아래 조이스틱으로 걸어 보세요. (PC: WASD/방향키)',
     done: (s) => Math.hypot(s.player.x - tutorialStartPos.x, s.player.y - tutorialStartPos.y) > 110,
   },
   {
+    id: 'pick',
     title: '물건을 챙겨 보세요',
     text: '깜빡이는 물건 가까이 가서 [챙기기]를 눌러 보세요. (PC: Enter) 방은 문으로만 들어가요. 가방은 4칸, 물건마다 차지하는 칸(모서리 숫자)이 달라요.',
     hint: 'item',
     done: (s) => s.carrying.length > 0 || s.collected.length > 0,
   },
   {
+    id: 'deposit',
     title: '방공호에 넣어 보세요',
     text: '방공호(노란 줄무늬) 안에서 [넣기]를 눌러야 챙긴 게 확정돼요.',
     hint: 'shelter',
     done: (s) => s.collected.length > 0,
   },
   {
+    id: 'rescue',
     title: '가족을 구해 보세요',
     text: '깜빡이는 가족 앞에서 [구하기]로 업고 방공호에서 [넣기]로 확정하세요. 가족은 칸을 여러 개 차지하니 가방이 차 있으면 먼저 비우세요.',
     hint: 'family',
     done: (s) => s.foundFamily.length > 0,
   },
   {
-    title: '연습 끝!',
-    text: '실제로는 60초 안에 이걸 해야 해요. 시간이 끝났을 때 방공호 밖에 있는 가족은 사망해요.',
+    id: 'tab-rations',
+    where: 'shelter',
+    title: '보급품 탭을 눌러 보세요',
+    text: '탈출이 끝나면 대피소예요. 아래 [보급품] 탭은 가족에게 식량·식수를 나눠주는 곳이에요.',
+    done: () => !!tutorialFlags.viewedRations,
+  },
+  {
+    id: 'ration',
+    where: 'shelter',
+    title: '가족에게 배급하세요',
+    text: '식량·식수는 한 사람당 하루에 한 번 나눠줘요. 굶거나 목마르면 상태가 나빠져요. 배급해 보세요.',
+    done: () => !!tutorialFlags.rationed,
+  },
+  {
+    id: 'tab-expedition',
+    where: 'shelter',
+    title: '지상으로 탭을 눌러 보세요',
+    text: '[지상으로] 탭에서는 가족을 밖으로 원정 보내 물자를 구해 올 수 있어요. 대신 위험해요.',
+    done: () => !!tutorialFlags.viewedExpedition,
+  },
+  {
+    id: 'advance',
+    where: 'shelter',
+    title: '다음 날로 넘겨 보세요',
+    text: '할 일을 마쳤으면 [다음 날로 진행]을 눌러요. 하루가 지나면 사건이 하나 일어나요.',
+    done: () => !!tutorialFlags.advanced,
+  },
+  {
+    id: 'choose',
+    where: 'shelter',
+    title: '선택지를 골라 보세요',
+    text: '사건마다 선택지가 나오고, 뭘 고르느냐에 따라 결과가 갈려요. 하나를 골라 보세요.',
+    done: () => !!tutorialFlags.chose,
+  },
+  {
+    id: 'close',
+    where: 'shelter',
+    title: '결과를 확인하세요',
+    text: '선택의 결과가 나와요. [벙커로 돌아가기]를 눌러 이어가요.',
+    done: () => !!tutorialFlags.closed,
+  },
+  {
+    id: 'final',
+    where: 'shelter',
     final: true,
+    title: '연습 끝!',
+    text: '실제 탈출은 60초 안에 해야 하고, 시간이 끝났을 때 방공호 밖에 있는 가족은 사망해요.',
   },
 ];
+
+function tutorialStepIdx(id) {
+  return TUTORIAL_STEPS.findIndex((st) => st.id === id);
+}
 
 function tutorialNearest(list, from) {
   let best = null;
@@ -331,29 +399,16 @@ function tutorialNearest(list, from) {
   return best;
 }
 
-// 단계가 바뀔 때: 배너 문구를 다시 그리고 깜빡일 대상을 새로 고른다
-function tutorialApplyStep() {
-  const d = scavengeDom;
-  const s = scavengeState;
+// 안내 상자(#tutorialBanner)에 현재 단계 문구를 그린다 (탈출 화면/대피소 화면 공용)
+function tutorialDrawBanner() {
+  const banner = document.getElementById('tutorialBanner');
+  if (!banner) return;
   const step = TUTORIAL_STEPS[tutorialStep];
-
-  document.querySelectorAll('.tutorial-hint').forEach((el) => el.classList.remove('tutorial-hint'));
-  d.actionBtn.classList.remove('tutorial-pulse');
-
-  if (step.hint === 'item') {
-    const it = tutorialNearest(s.items.filter((i) => !i.taken), s.player);
-    if (it) d.itemEls[it.key].classList.add('tutorial-hint');
-  } else if (step.hint === 'family') {
-    const fam = tutorialNearest(s.family.filter((f) => !f.taken && !s.foundFamily.includes(f.characterId)), s.player);
-    if (fam) d.familyEls[fam.key].classList.add('tutorial-hint');
-  } else if (step.hint === 'shelter') {
-    document.querySelector('.scavenge-dropzone').classList.add('tutorial-hint');
-  }
-
   const total = TUTORIAL_STEPS.length;
-  document.getElementById('tutorialBanner').innerHTML = `
+  const sub = step.where === 'shelter' ? '' : ' · 시간 제한 없음';
+  banner.innerHTML = `
     <div class="tutorial-banner-head">
-      <span class="eyebrow">연습 ${tutorialStep + 1} / ${total} · 시간 제한 없음</span>
+      <span class="eyebrow">연습 ${tutorialStep + 1} / ${total}${sub}</span>
       ${step.final ? '' : '<button type="button" class="tutorial-skip" id="tutorialSkip">건너뛰기</button>'}
     </div>
     <h2 class="tutorial-title">${step.title}</h2>
@@ -367,14 +422,92 @@ function tutorialApplyStep() {
   if (startReal) startReal.addEventListener('click', finishTutorial);
 }
 
-// 매 프레임: 현재 단계를 해냈는지 확인하고 해냈으면 다음 단계로
+// 탈출 화면 단계가 바뀔 때: 깜빡일 대상을 새로 고르고 문구를 다시 그린다.
+// 다음 단계가 대피소 단계면 탈출 화면을 정리하고 연습용 대피소로 넘어간다.
+function tutorialApplyStep() {
+  const step = TUTORIAL_STEPS[tutorialStep];
+  if (step.where === 'shelter') {
+    enterTutorialShelter();
+    return;
+  }
+  const d = scavengeDom;
+  const s = scavengeState;
+
+  document.querySelectorAll('.tutorial-hint').forEach((el) => el.classList.remove('tutorial-hint'));
+  d.actionBtn.classList.remove('tutorial-pulse');
+
+  if (step.hint === 'item') {
+    const it = tutorialNearest(s.items.filter((i) => !i.taken), s.player);
+    if (it) d.itemEls[it.key].classList.add('tutorial-hint');
+  } else if (step.hint === 'family') {
+    const fam = tutorialNearest(s.family.filter((f) => !f.taken && !s.foundFamily.includes(f.characterId)), s.player);
+    if (fam) d.familyEls[fam.key].classList.add('tutorial-hint');
+  } else if (step.hint === 'shelter') {
+    document.querySelector('.scavenge-dropzone').classList.add('tutorial-hint');
+  }
+  tutorialDrawBanner();
+}
+
+// 매 프레임(탈출 화면): 현재 단계를 해냈는지 확인하고 해냈으면 다음 단계로
 function tutorialUpdate() {
   const step = TUTORIAL_STEPS[tutorialStep];
-  if (!step || step.final) return;
+  if (!step || step.final || step.where === 'shelter') return;
   if (step.done(scavengeState)) {
     tutorialStep += 1;
     tutorialApplyStep();
   }
+}
+
+// 탈출 연습을 마치면: 탈출 화면을 정리하고, 가족이 모두 대피소에 있는 연습용 상태로 대피소를 연다
+function enterTutorialShelter() {
+  cancelAnimationFrame(scavengeRafId);
+  if (scavengeJoystick) scavengeJoystick.destroy();
+  if (scavengeKeyHandler) window.removeEventListener('keydown', scavengeKeyHandler);
+  scavengeJoystick = null;
+  scavengeKeyHandler = null;
+  scavengeDom = null;
+  scavengeState = null;
+  state = window.GameState.createInitialState();
+  state.characters.forEach((c) => {
+    c.location = 'shelter';
+  });
+  state.resources.food = 4;
+  state.resources.water = 4;
+  resetShelterUi();
+  tutorialFlags = {};
+  state.phase = 'shelter';
+  render();
+}
+
+// 대피소 화면을 그리기 직전에 호출: 이미 해낸 단계는 건너뛴다(순서가 어긋나게 해도 안 막히도록)
+function tutorialAutoAdvance() {
+  if (!tutorialMode) return;
+  let step = TUTORIAL_STEPS[tutorialStep];
+  while (step && step.where === 'shelter' && !step.final && step.done()) {
+    tutorialStep += 1;
+    step = TUTORIAL_STEPS[tutorialStep];
+  }
+}
+
+// 대피소 화면을 그린 직후에 호출: 해야 할 버튼을 깜빡이고 안내 상자를 그린다
+function tutorialShelterDecorate() {
+  document.querySelectorAll('.tutorial-hint').forEach((el) => el.classList.remove('tutorial-hint'));
+  const step = TUTORIAL_STEPS[tutorialStep];
+  const tab = (v) => app.querySelector(`.view-tab[data-view="${v}"]`);
+  let targets = [];
+  if (step.id === 'tab-rations') targets = [tab('rations')];
+  else if (step.id === 'ration') {
+    if (shelterView !== 'rations') targets = [tab('rations')];
+    else {
+      const all = document.getElementById('rationAllBtn');
+      targets = all && !all.disabled ? [all] : [app.querySelector('.ration-give-btn:not(:disabled)')];
+    }
+  } else if (step.id === 'tab-expedition') targets = [tab('expedition')];
+  else if (step.id === 'advance') targets = [document.getElementById('advanceDayBtn')];
+  else if (step.id === 'choose') targets = [...document.querySelectorAll('.choice-btn:not(:disabled)')];
+  else if (step.id === 'close') targets = [document.getElementById('closeEventBtn')];
+  targets.filter(Boolean).forEach((el) => el.classList.add('tutorial-hint'));
+  tutorialDrawBanner();
 }
 
 // 연습 종료(끝까지 했든 건너뛰었든): 연습 상태를 전부 버리고 실제 판을 새로 시작한다
@@ -389,6 +522,7 @@ function finishTutorial() {
   scavengeState = null;
   tutorialMode = false;
   tutorialStep = 0;
+  tutorialFlags = {};
   state = window.GameState.createInitialState();
   resetShelterUi();
   state.phase = 'scavenge';
@@ -581,6 +715,7 @@ function scavengeTick(ts) {
   if (tutorialMode) {
     // 연습 판: 시간은 흐르지 않고, 해냈는지만 확인한다
     tutorialUpdate();
+    if (!scavengeState) return; // 대피소 연습으로 넘어가며 탈출 화면이 정리됐다
   } else {
     scavengeState.timeLeft -= dt;
     if (scavengeState.timeLeft <= 0) {
@@ -739,6 +874,7 @@ function showDeathEffect(names, onDone) {
 // ---------------- 대피소 파트 ----------------
 
 function renderShelter() {
+  tutorialAutoAdvance();
   const healthLabel = { healthy: '건강함', injured: '부상', sick: '병약', dead: '사망' };
   const WATER_LABEL = { normal: null, thirsty: '목마름', dehydrated: '탈수' };
   const FOOD_LABEL = { normal: null, hungry: '배고픔', starving: '굶주림' };
@@ -795,6 +931,7 @@ function renderShelter() {
     .join('');
 
   app.innerHTML = `
+    ${tutorialMode ? '<div class="tutorial-banner is-flow" id="tutorialBanner"></div>' : ''}
     <div class="topbar">
       <div class="topbar-title">
         ${cdBadge()}
@@ -825,7 +962,7 @@ function renderShelter() {
 
     <div class="day-footer">
       <span class="day-footer-hint">둘러볼 만큼 둘러봤으면 잠자리에 든다.</span>
-      <button class="step-next-btn advance-day" id="advanceDayBtn">다음 날로 진행 →</button>
+      <button class="step-next-btn advance-day" id="advanceDayBtn" ${tutorialMode && tutorialStep < tutorialStepIdx('advance') ? 'disabled' : ''}>다음 날로 진행 →</button>
     </div>
 
     <div class="log-box">
@@ -842,6 +979,7 @@ function renderShelter() {
 
   renderStepArea(people);
   renderEventModal();
+  if (tutorialMode) tutorialShelterDecorate();
 }
 
 // 원작처럼 오늘의 사건은 화면 위에 카드로 덮어씌운다. 선택하기 전까지는 다른 조작이 막힌다.
@@ -871,6 +1009,7 @@ function renderEventModal() {
         ${cdBadge()}
         <h2>${pendingEvent.title}</h2>
         <p class="event-desc">${pendingEvent.description}</p>
+        ${tutorialMode ? `<p class="tutorial-modal-hint"><b>연습 ${tutorialStep + 1} / ${TUTORIAL_STEPS.length}</b> ${TUTORIAL_STEPS[tutorialStep].title} — ${TUTORIAL_STEPS[tutorialStep].text}</p>` : ''}
         ${body}
       </div>
     </div>`;
@@ -880,6 +1019,7 @@ function renderEventModal() {
       const outcome = window.EventEngine.resolveChoice(state, pendingEvent, Number(btn.dataset.idx));
       pendingEventOutcome = outcome.resultText;
       dayOutcomeText = outcome.resultText;
+      if (tutorialMode) tutorialFlags.chose = true;
       renderShelter();
     });
   });
@@ -888,6 +1028,7 @@ function renderEventModal() {
     closeBtn.addEventListener('click', () => {
       pendingEvent = null;
       pendingEventOutcome = null;
+      if (tutorialMode) tutorialFlags.closed = true;
       renderShelter();
     });
   }
@@ -962,6 +1103,7 @@ function renderStepArea(people) {
         const characterId = btn.dataset.character;
         if (btn.dataset.give === 'food') window.ShelterEngine.rationFood(state, characterId);
         else window.ShelterEngine.rationWater(state, characterId);
+        if (tutorialMode) tutorialFlags.rationed = true;
         renderShelter();
       });
     });
@@ -975,6 +1117,7 @@ function renderStepArea(people) {
     if (allBtn) {
       allBtn.addEventListener('click', () => {
         window.ShelterEngine.rationAll(state);
+        if (tutorialMode) tutorialFlags.rationed = true;
         renderShelter();
       });
     }
@@ -1045,11 +1188,25 @@ function renderStepArea(people) {
 function goToView(view) {
   if (pendingEvent) return; // 사건을 처리하기 전에는 다른 화면으로 못 넘어간다
   shelterView = view;
+  if (tutorialMode) {
+    if (view === 'rations') tutorialFlags.viewedRations = true;
+    if (view === 'expedition') tutorialFlags.viewedExpedition = true;
+  }
   renderShelter();
 }
 
 function handleAdvanceDay() {
   if (pendingEvent) return;
+  if (tutorialMode) {
+    // 연습: 진짜 하루 처리 대신, 항상 연습용 사건을 띄운다
+    if (tutorialStep < tutorialStepIdx('advance')) return;
+    tutorialFlags.advanced = true;
+    pendingEventOutcome = null;
+    pendingEvent = TUTORIAL_EVENT;
+    shelterView = 'diary';
+    renderShelter();
+    return;
+  }
   const result = window.ShelterEngine.advanceDay(state);
   if (state.phase === 'gameover' || state.phase === 'ending') {
     render();

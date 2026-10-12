@@ -546,7 +546,7 @@ body.modal-open { overflow: hidden; }
 }
 .scavenge-stage-wrap { order: 1; flex-basis: 100%; display: flex; justify-content: center; margin-top: 0; }
 .scavenge-left-col { order: 2; display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.scavenge-side-right { order: 3; }
+.scavenge-side-right { order: 3; align-self: stretch; align-items: stretch; } /* 세로 화면: 옆 조이스틱/가방 높이만큼 위로 늘어남 */
 .scavenge-side { display: flex; align-items: center; justify-content: center; }
 /* 조이스틱이 움직일 수 있는 한계 영역. 고정형은 이 가운데에 계속 떠 있고,
    유동형은 이 사각형 안 아무 데나 짚은 자리로 옮겨 다니되 이 밖(맵 쪽)으로는
@@ -579,7 +579,8 @@ body.modal-open { overflow: hidden; }
   .scavenge-side-left { width: 340px; height: 340px; }
   .scavenge-stage-wrap { order: 2; flex-basis: auto; flex: 1 1 auto; max-width: 760px; }
   .scavenge-side-right { order: 3; flex: 0 0 auto; align-self: flex-end; }
-  .scavenge-action-btn { width: 170px; min-height: 140px; }
+  /* 챙기기 버튼은 아래에서 위로 쭉 길게 — 엄지로 어디를 눌러도 되게 */
+  .scavenge-action-btn { width: 170px; min-height: 400px; }
 }
 
 .scavenge-stage {
@@ -857,3 +858,22 @@ body.modal-open { overflow: hidden; }
 @keyframes tutorial-pulse { from { outline-color: var(--hazard); } to { outline-color: var(--danger); } }
 .scavenge-action-btn.tutorial-pulse { animation: tutorial-btn-pulse 0.6s infinite alternate; }
 @keyframes tutorial-btn-pulse { from { box-shadow: 0 7px 0 var(--danger-deep); } to { box-shadow: 0 7px 0 var(--danger-deep), 0 0 0 6px var(--hazard); } }
+
+/* 대피소 화면의 연습 안내 상자 (탈출 화면과 달리 일반 흐름 안, 위에 붙어 따라다님) */
+.tutorial-banner.is-flow {
+  position: sticky; top: 0; left: auto; right: auto;
+  width: auto; max-width: 640px; margin: 0 auto 12px;
+  border: 3px solid var(--ink); box-shadow: 5px 5px 0 var(--ink);
+  padding: 10px 14px 12px; gap: 5px;
+  font-size: 15px; z-index: 40;
+}
+/* 선택지 모달 안에 같이 띄우는 연습 안내 */
+.tutorial-modal-hint {
+  margin: 10px 0 0; padding: 8px 10px;
+  background: var(--hazard); color: var(--ink);
+  font-family: var(--font-ui); font-size: 0.9em; line-height: 1.45;
+}
+.tutorial-hint.view-tab, .tutorial-hint.choice-btn, .tutorial-hint.step-next-btn,
+.tutorial-hint.ration-all-btn, .tutorial-hint.ration-give-btn { position: relative; z-index: 6; }
+/* 연습 중 아직 못 누르는 '다음 날로 진행' 버튼 */
+.step-next-btn.advance-day:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
