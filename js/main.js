@@ -54,7 +54,7 @@ function itemIcon(itemId) {
     playing_cards: `<rect x="3" y="5" width="12" height="16" rx="1.5" transform="rotate(-8 9 13)"/><rect x="8" y="4" width="12" height="16" rx="1.5"/><circle cx="14" cy="10" r="1.4"/>`,
     gas_mask: `<circle cx="12" cy="11" r="7"/><circle cx="9" cy="10" r="1.6"/><circle cx="15" cy="10" r="1.6"/><rect x="10" y="15" width="4" height="3" rx="1"/><rect x="10.5" y="18" width="3" height="4" rx="1"/>`,
     map: `<path d="M4 5 L9 3 L15 5 L20 3 V19 L15 21 L9 19 L4 21 Z"/><line x1="9" y1="3" x2="9" y2="19"/><line x1="15" y1="5" x2="15" y2="21"/>`,
-    axe: `<path d=\"M5 21 L15 8.5\"/><path d=\"M10.5 8 L15.5 3.5 Q22 6 20.5 13.5 L15 11 Z\"/><path d=\"M10.5 8 L13.3 11\"/>`,
+    axe: `<g transform=\"rotate(35 12 12) translate(-1 1.5) scale(0.95)\"><path d=\"M9.5 4 H13 L21 2.5 Q23.2 7.2 21 12 L13 10.5 H9.5 Z\"/><path d=\"M12 10.5 V22\"/></g>`,
     ammo: `<path d=\"M12 2.5 C9.6 4.6 8.5 7 8.5 9.8 V11 H15.5 V9.8 C15.5 7 14.4 4.6 12 2.5 Z\"/><path d=\"M8 11 H16 V21 H8 Z\"/><line x1=\"8\" y1=\"18\" x2=\"16\" y2=\"18\"/>`,
     survival_book: `<rect x=\"5\" y=\"3\" width=\"14\" height=\"18\" rx=\"1.5\"/><line x1=\"9\" y1=\"3\" x2=\"9\" y2=\"21\"/><line x1=\"12\" y1=\"8\" x2=\"16\" y2=\"8\"/><line x1=\"12\" y1=\"11.5\" x2=\"16\" y2=\"11.5\"/>`,
     pesticide: `<rect x=\"7\" y=\"10\" width=\"10\" height=\"11\" rx=\"1.5\"/><path d=\"M7 10 L9.5 7.5 H14.5 L17 10\"/><rect x=\"10.2\" y=\"3.8\" width=\"3.6\" height=\"3.7\" rx=\"0.8\"/><path d=\"M9.5 4.8 L6 3.8 M9.5 6.4 L5.5 6.8\"/><circle cx=\"12\" cy=\"15.5\" r=\"2\"/>`,
