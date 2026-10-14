@@ -531,6 +531,8 @@ function finishTutorial() {
 
 // ---------------- 탈출 파트 (조이스틱 2D) ----------------
 
+const ACTION_COOLDOWN_MS = 300; // 챙기기 버튼 쿨타임
+let scavengeLastActionAt = 0;
 const SCAVENGE_SPEED = 276; // 월드 좌표 단위 / 초 (기존 240에서 15% 빠르게)
 
 function pct(v, total) {
@@ -671,7 +673,20 @@ function renderScavenge() {
   const doAction = (e) => {
     if (!scavengeState) return;
     e.preventDefault();
-    window.ScavengeEngine.actionScavenge(scavengeState);
+    // 쿨타임(0.3초): 방금 챙기기/구하기/넣기가 실제로 이뤄졌다면 그 직후엔 무시한다
+    // (연타로 옆 물건까지 같이 집히는 걸 막는다). 아무 일도 안 일어난 입력은 쿨타임을 걸지 않는다.
+    const now = performance.now();
+    if (now - scavengeLastActionAt < ACTION_COOLDOWN_MS) return;
+    const s = scavengeState;
+    const sig = () => `${s.carrying.length}|${s.collected.length}|${s.foundFamily.length}`;
+    const before = sig();
+    window.ScavengeEngine.actionScavenge(s);
+    if (sig() !== before) {
+      scavengeLastActionAt = now;
+      const btn = scavengeDom.actionBtn;
+      btn.classList.add('cooling');
+      setTimeout(() => btn.classList.remove('cooling'), ACTION_COOLDOWN_MS);
+    }
     scavengeDrawFrame();
   };
   scavengeDom.actionBtn.addEventListener('pointerdown', doAction);
@@ -692,6 +707,7 @@ function renderScavenge() {
   if (finishBtnEl) finishBtnEl.addEventListener('click', endScavenge);
 
   scavengeLastTs = null;
+  scavengeLastActionAt = 0;
   window.ScavengeEngine.updateScavenge(scavengeState);
   scavengeDrawFrame();
   if (tutorialMode) {

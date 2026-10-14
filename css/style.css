@@ -778,7 +778,8 @@ body.modal-open { overflow: hidden; }
 .death-effect-boom {
   position: absolute;
   width: 60px; height: 60px; border-radius: 50%;
-  background: radial-gradient(circle, #fff 0%, var(--hazard) 35%, var(--danger) 65%, transparent 75%);
+  /* 빨간 고리를 빼고 흰색→노란색으로만 터지게 함 */
+  background: radial-gradient(circle, #fff 0%, #fff 30%, var(--hazard) 55%, transparent 72%);
   animation: death-boom 0.7s ease-out forwards;
 }
 @keyframes death-boom {
@@ -800,9 +801,9 @@ body.modal-open { overflow: hidden; }
   margin: 0 0 6px;
 }
 .death-effect-title {
-  font-family: var(--font-display); font-size: 2.6em; color: var(--danger);
+  /* 빨간 글씨와 빨간 번짐(glow)을 없애고 흰색으로 */
+  font-family: var(--font-display); font-size: 2.6em; color: var(--paper);
   margin: 0; letter-spacing: 0.04em;
-  text-shadow: 0 0 18px var(--danger-glow, var(--danger));
 }
 
 /* ============================================================
@@ -877,3 +878,6 @@ body.modal-open { overflow: hidden; }
 .tutorial-hint.ration-all-btn, .tutorial-hint.ration-give-btn { position: relative; z-index: 6; }
 /* 연습 중 아직 못 누르는 '다음 날로 진행' 버튼 */
 .step-next-btn.advance-day:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+
+/* 챙기기 쿨타임 중(0.3초)엔 버튼을 살짝 흐리게 */
+.scavenge-action-btn.cooling { opacity: 0.55; filter: grayscale(0.4); }
