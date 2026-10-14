@@ -26,7 +26,7 @@ window.SCAVENGE_ROOMS = [
   {
     id: 'kitchen',
     name: '주방',
-    spawns: ['canned_food', 'canned_food', 'canned_food', 'water_bottle', 'water_bottle', 'first_aid', 'pesticide'],
+    spawns: ['canned_food', 'canned_food', 'water_bottle', 'water_bottle', 'first_aid', 'pesticide'],
     familySpawns: [],
   },
   {
@@ -50,7 +50,7 @@ window.SCAVENGE_ROOMS = [
   {
     id: 'basement',
     name: '지하실',
-    spawns: ['suitcase', 'lock', 'canned_food', 'water_bottle', 'water_bottle'],
+    spawns: ['suitcase', 'lock', 'canned_food', 'water_bottle'],
     familySpawns: [],
   },
 ];

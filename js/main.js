@@ -531,7 +531,7 @@ function finishTutorial() {
 
 // ---------------- 탈출 파트 (조이스틱 2D) ----------------
 
-const SCAVENGE_SPEED = 240; // 월드 좌표 단위 / 초
+const SCAVENGE_SPEED = 276; // 월드 좌표 단위 / 초 (기존 240에서 15% 빠르게)
 
 function pct(v, total) {
   return `${(v / total) * 100}%`;
