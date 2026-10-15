@@ -578,9 +578,12 @@ body.modal-open { overflow: hidden; }
   .scavenge-left-col { order: 1; flex: 0 0 auto; align-self: flex-end; }
   .scavenge-side-left { width: 340px; height: 340px; }
   .scavenge-stage-wrap { order: 2; flex-basis: auto; flex: 1 1 auto; max-width: 760px; }
-  /* 챙기기 버튼은 맵 높이만큼 위까지 쭉 — 줄 전체 높이로 늘려서 엄지로 어디를 눌러도 되게
-     (stretch라 화면 크기에 맞춰 자동으로 맞고, 아주 낮은 화면에서도 최소 400px) */
-  .scavenge-side-right { order: 3; flex: 0 0 auto; align-self: stretch; }
+  /* 챙기기 버튼: 크기는 170 x 400px 고정. 맵 옆에서의 세로 위치는 타이틀에서 고른 값
+     (위/가운데/아래)에 따라 정한다. 기본은 위. (stretch로 늘리는 방식은 사파리가
+     버튼을 안 늘려서 그냥 위로 붙는 것처럼 보였기 때문에 쓰지 않는다) */
+  .scavenge-side-right { order: 3; flex: 0 0 auto; align-self: flex-start; }
+  .scavenge-play-area[data-action-pos="center"] .scavenge-side-right { align-self: center; }
+  .scavenge-play-area[data-action-pos="bottom"] .scavenge-side-right { align-self: flex-end; }
   .scavenge-action-btn { width: 170px; min-height: 400px; }
 }
 

@@ -196,8 +196,29 @@ function setJoystickMode(mode) {
   }
 }
 
+// 챙기기 버튼 위치(가로 화면에서 맵 오른쪽 열 안의 세로 위치): top / center / bottom
+const ACTION_POS_KEY = 'taeker60_action_pos';
+
+function getActionPos() {
+  try {
+    const v = localStorage.getItem(ACTION_POS_KEY);
+    return v === 'center' || v === 'bottom' ? v : 'top';
+  } catch (e) {
+    return 'top';
+  }
+}
+
+function setActionPos(pos) {
+  try {
+    localStorage.setItem(ACTION_POS_KEY, pos);
+  } catch (e) {
+    /* 저장 안 돼도 게임 진행엔 지장 없음 */
+  }
+}
+
 function renderTitle() {
   const mode = getJoystickMode();
+  const actionPos = getActionPos();
   app.innerHTML = `
     <div class="title-screen">
       <div class="title-screen-badge">${cdBadge()}</div>
@@ -218,6 +239,15 @@ function renderTitle() {
         <p class="title-joystick-mode-desc" id="joystickModeDesc"></p>
       </div>
 
+      <div class="title-joystick-mode">
+        <span class="title-joystick-mode-label">챙기기 버튼 위치 (가로 화면)</span>
+        <div class="title-joystick-mode-options">
+          <button type="button" class="action-pos-btn joystick-mode-btn${actionPos === 'top' ? ' active' : ''}" data-pos="top">위</button>
+          <button type="button" class="action-pos-btn joystick-mode-btn${actionPos === 'center' ? ' active' : ''}" data-pos="center">가운데</button>
+          <button type="button" class="action-pos-btn joystick-mode-btn${actionPos === 'bottom' ? ' active' : ''}" data-pos="bottom">아래</button>
+        </div>
+      </div>
+
       <button id="titleStartBtn" class="go-btn">시작하기</button>
       ${hasSeenTutorial() ? '<button type="button" id="titleTutorialBtn" class="title-tutorial-btn">튜토리얼 다시 하기</button>' : ''}
       <p class="title-screen-hint">
@@ -233,12 +263,18 @@ function renderTitle() {
   };
   modeDescEl.textContent = modeDescText[mode];
 
-  app.querySelectorAll('.joystick-mode-btn').forEach((btn) => {
+  app.querySelectorAll('.joystick-mode-btn:not(.action-pos-btn)').forEach((btn) => {
     btn.addEventListener('click', () => {
       const picked = btn.dataset.mode;
       setJoystickMode(picked);
-      app.querySelectorAll('.joystick-mode-btn').forEach((b) => b.classList.toggle('active', b === btn));
+      app.querySelectorAll('.joystick-mode-btn:not(.action-pos-btn)').forEach((b) => b.classList.toggle('active', b === btn));
       modeDescEl.textContent = modeDescText[picked];
+    });
+  });
+  app.querySelectorAll('.action-pos-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      setActionPos(btn.dataset.pos);
+      app.querySelectorAll('.action-pos-btn').forEach((b) => b.classList.toggle('active', b === btn));
     });
   });
 
@@ -596,7 +632,7 @@ function renderScavenge() {
     .join('');
 
   app.innerHTML = `
-    <div class="scavenge-play-area">
+    <div class="scavenge-play-area" data-action-pos="${getActionPos()}">
     <div class="scavenge-left-col">
       <div class="scavenge-bag">
         <div class="scavenge-bag-title"><b>가방</b> <i id="scavengeBagCount">0</i>/${window.ScavengeEngine.BAG_CAPACITY}칸</div>
