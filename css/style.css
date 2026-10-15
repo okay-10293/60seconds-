@@ -578,8 +578,9 @@ body.modal-open { overflow: hidden; }
   .scavenge-left-col { order: 1; flex: 0 0 auto; align-self: flex-end; }
   .scavenge-side-left { width: 340px; height: 340px; }
   .scavenge-stage-wrap { order: 2; flex-basis: auto; flex: 1 1 auto; max-width: 760px; }
-  .scavenge-side-right { order: 3; flex: 0 0 auto; align-self: flex-end; }
-  /* 챙기기 버튼은 아래에서 위로 쭉 길게 — 엄지로 어디를 눌러도 되게 */
+  /* 챙기기 버튼은 맵 높이만큼 위까지 쭉 — 줄 전체 높이로 늘려서 엄지로 어디를 눌러도 되게
+     (stretch라 화면 크기에 맞춰 자동으로 맞고, 아주 낮은 화면에서도 최소 400px) */
+  .scavenge-side-right { order: 3; flex: 0 0 auto; align-self: stretch; }
   .scavenge-action-btn { width: 170px; min-height: 400px; }
 }
 
@@ -880,4 +881,14 @@ body.modal-open { overflow: hidden; }
 .step-next-btn.advance-day:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
 
 /* 챙기기 쿨타임 중(0.3초)엔 버튼을 살짝 흐리게 */
-.scavenge-action-btn.cooling { opacity: 0.55; filter: grayscale(0.4); }
+/* 쿨타임(0.3초) 동안 버튼 아래에서 위로 차오르는 표시. 글씨는 채움 위에 보이도록
+   isolation + 음수 z-index 의사요소로 깔아 둔다 */
+.scavenge-action-btn { position: relative; isolation: isolate; overflow: hidden; }
+.scavenge-action-btn.cooling::before {
+  content: '';
+  position: absolute; left: 0; right: 0; bottom: 0; height: 0;
+  background: rgba(242, 184, 28, 0.6);
+  z-index: -1; pointer-events: none;
+  animation: action-cooldown-fill var(--cooldown, 300ms) linear forwards;
+}
+@keyframes action-cooldown-fill { from { height: 0; } to { height: 100%; } }

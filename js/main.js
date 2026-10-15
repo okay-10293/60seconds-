@@ -313,7 +313,7 @@ const TUTORIAL_STEPS = [
   {
     id: 'pick',
     title: '물건을 챙겨 보세요',
-    text: '깜빡이는 물건 가까이 가서 [챙기기]를 눌러 보세요. (PC: Enter) 방은 문으로만 들어가요. 가방은 4칸, 물건마다 차지하는 칸(모서리 숫자)이 달라요.',
+    text: '깜빡이는 물건 가까이 가서 [챙기기]를 눌러 보세요. (PC: Enter 또는 Space) 방은 문으로만 들어가요. 가방은 4칸, 물건마다 차지하는 칸(모서리 숫자)이 달라요.',
     hint: 'item',
     done: (s) => s.carrying.length > 0 || s.collected.length > 0,
   },
@@ -532,7 +532,7 @@ function finishTutorial() {
 // ---------------- 탈출 파트 (조이스틱 2D) ----------------
 
 const ACTION_COOLDOWN_MS = 300; // 챙기기 버튼 쿨타임
-let scavengeLastActionAt = 0;
+let scavengeLastActionAt = -Infinity; // 아직 한 번도 안 눌렀음 (0으로 두면 페이지가 켜진 직후 0.3초는 쿨타임으로 오인함)
 const SCAVENGE_SPEED = 276; // 월드 좌표 단위 / 초 (기존 240에서 15% 빠르게)
 
 function pct(v, total) {
@@ -684,13 +684,17 @@ function renderScavenge() {
     if (sig() !== before) {
       scavengeLastActionAt = now;
       const btn = scavengeDom.actionBtn;
+      // 쿨타임 동안 버튼 아래에서 위로 차오르는 표시 (CSS 애니메이션 길이를 쿨타임과 맞춘다)
+      btn.style.setProperty('--cooldown', `${ACTION_COOLDOWN_MS}ms`);
+      btn.classList.remove('cooling');
+      void btn.offsetWidth; // 애니메이션을 처음부터 다시 시작시키기 위한 강제 리플로우
       btn.classList.add('cooling');
       setTimeout(() => btn.classList.remove('cooling'), ACTION_COOLDOWN_MS);
     }
     scavengeDrawFrame();
   };
   scavengeDom.actionBtn.addEventListener('pointerdown', doAction);
-  // PC: Enter(또는 Space/E)로 챙기기·구하기·넣기. 한글 입력 상태에서도 되도록 e.code 사용.
+  // PC: Enter / Space / E 어느 걸 눌러도 챙기기·구하기·넣기. 한글 입력 상태에서도 되도록 e.code 사용.
   // 키를 꾹 누르고 있어도(반복 입력) 한 번만 동작하도록 e.repeat는 무시한다.
   scavengeKeyHandler = (e) => {
     if (e.code === 'Enter' || e.code === 'NumpadEnter' || e.code === 'Space' || e.code === 'KeyE') {
@@ -707,7 +711,7 @@ function renderScavenge() {
   if (finishBtnEl) finishBtnEl.addEventListener('click', endScavenge);
 
   scavengeLastTs = null;
-  scavengeLastActionAt = 0;
+  scavengeLastActionAt = -Infinity;
   window.ScavengeEngine.updateScavenge(scavengeState);
   scavengeDrawFrame();
   if (tutorialMode) {
