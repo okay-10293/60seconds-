@@ -13,6 +13,11 @@ function checkFlagRequirements(state, flags) {
   return Object.entries(flags).every(([key, val]) => state.flags[key] === val);
 }
 
+function checkAnyItems(state, items) {
+  if (!items) return true;
+  return items.some((id) => window.GameState.hasItem(state, id, 1));
+}
+
 function isEventEligible(state, event) {
   if (event.once && state.flags[`_seen_${event.id}`]) return false;
   if (event.minDay != null && state.day < event.minDay) return false;
@@ -25,15 +30,32 @@ function isEventEligible(state, event) {
     if (cond.minCharacters != null && window.GameState.shelterCharacters(state).length < cond.minCharacters) {
       return false;
     }
+    if (!checkAnyItems(state, cond.anyItems)) return false;
+    const res = state.resources;
+    if (cond.minFood != null && (res.food || 0) < cond.minFood) return false;
+    if (cond.maxFood != null && (res.food || 0) > cond.maxFood) return false;
+    if (cond.minWater != null && (res.water || 0) < cond.minWater) return false;
+    if (cond.maxWater != null && (res.water || 0) > cond.maxWater) return false;
+    if (cond.needInjured && !window.GameState.shelterCharacters(state).some((c) => c.health === 'injured')) return false;
+    if (cond.needCharacter) {
+      const c = window.GameState.getCharacter(state, cond.needCharacter);
+      if (!c || c.health === 'dead' || c.location !== 'shelter') return false;
+    }
   }
   return true;
 }
 
 function isChoiceEligible(state, choice) {
   if (!choice.requires) return true;
+  const r = choice.requires;
+  const res = state.resources;
   return (
-    checkItemRequirements(state, choice.requires.items) &&
-    checkFlagRequirements(state, choice.requires.flags)
+    checkItemRequirements(state, r.items) &&
+    checkAnyItems(state, r.anyItems) &&
+    (!r.character || window.GameState.shelterCharacters(state).some((c) => c.id === r.character)) &&
+    checkFlagRequirements(state, r.flags) &&
+    (r.minFood == null || (res.food || 0) >= r.minFood) &&
+    (r.minWater == null || (res.water || 0) >= r.minWater)
   );
 }
 
@@ -66,7 +88,45 @@ function pickWeightedOutcome(outcomes) {
   return outcomes[outcomes.length - 1];
 }
 
+// 대피소에 있는 생존자 중 대상 고르기 ('all' | 'random' | 'randomN' | 캐릭터 id | 'allExceptSon')
+function pickTargets(state, effect) {
+  const pool = window.GameState.shelterCharacters(state);
+  const t = effect.target || 'all';
+  if (t === 'all') return pool;
+  if (t === 'allExceptSon') return pool.filter((c) => c.id !== 'son');
+  if (t === 'random') return pool.length ? [pool[Math.floor(Math.random() * pool.length)]] : [];
+  if (t === 'randomN') {
+    const shuffled = [...pool].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, effect.count || 1);
+  }
+  return pool.filter((c) => c.id === t);
+}
+
+// 반환값: 효과가 실제로 발동했는지 (확률 판정 실패면 false) — appendText 표시에 쓴다.
 function applyEffect(state, effect) {
+  // 부상/미침: 대상마다 독립적으로 effect.chance 판정
+  if (effect.type === 'injure' || effect.type === 'madden' || effect.type === 'cure') {
+    let fired = false;
+    pickTargets(state, effect).forEach((c) => {
+      if (effect.chance != null && Math.random() >= effect.chance) return;
+      if (effect.type === 'injure') {
+        if (c.health === 'healthy') {
+          c.health = 'injured';
+          c.injuredDays = 0;
+          fired = true;
+        }
+      } else if (effect.type === 'madden') {
+        c.sanity = Math.max(0, c.sanity - 40);
+        fired = true;
+      } else if (c.health === 'injured') {
+        c.health = 'healthy';
+        c.injuredDays = 0;
+        fired = true;
+      }
+    });
+    return fired;
+  }
+  if (effect.chance != null && Math.random() >= effect.chance) return false;
   switch (effect.type) {
     case 'resource': {
       state.resources[effect.key] = Math.max(0, (state.resources[effect.key] || 0) + effect.delta);
@@ -123,6 +183,7 @@ function applyEffect(state, effect) {
     default:
       console.warn('알 수 없는 effect 타입:', effect.type);
   }
+  return true;
 }
 
 // 선택지 실행 -> 결과 텍스트 반환
@@ -132,12 +193,16 @@ function resolveChoice(state, event, choiceIndex) {
     return { resultText: '선택할 수 없는 항목입니다.', effects: [] };
   }
   const outcome = pickWeightedOutcome(choice.outcomes);
-  outcome.effects.forEach((effect) => applyEffect(state, effect));
+  let resultText = outcome.resultText;
+  outcome.effects.forEach((effect) => {
+    const fired = applyEffect(state, effect);
+    if (fired && effect.appendText) resultText += ` ${effect.appendText}`;
+  });
 
   state.flags[`_seen_${event.id}`] = true;
-  window.GameState.addLog(state, `[Day ${state.day}] ${event.title} → ${choice.text} → ${outcome.resultText}`);
+  window.GameState.addLog(state, `[Day ${state.day}] ${event.title} → ${choice.text} → ${resultText}`);
 
-  return outcome;
+  return { ...outcome, resultText };
 }
 
 window.EventEngine = {
