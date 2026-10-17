@@ -40,6 +40,8 @@ let shelterView = 'diary';
 let dayOutcomeText = null; // 어제 있었던 이벤트의 결과 텍스트 (벙커 안 화면에 표시)
 let pendingEvent = null;   // advanceDay로 뽑힌 오늘의 이벤트 (모달로 띄운다)
 let pendingEventOutcome = null; // 이벤트 선택 후 결과 텍스트 (모달에 표시)
+let pendingNextEvent = null;    // 선택 직후 이어서 띄울 후속 이벤트 (문틈 확인 후 선택, 위장 강도 등)
+let pendingNextLabel = null;
 
 function itemIcon(itemId) {
   const attrs = `viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"`;
@@ -1051,7 +1053,7 @@ function renderEventModal() {
 
   const body = pendingEventOutcome
     ? `<p class="event-outcome-text">${pendingEventOutcome}</p>
-       <button class="step-next-btn" id="closeEventBtn">벙커로 돌아가기 →</button>`
+       <button class="step-next-btn" id="closeEventBtn">${pendingNextEvent ? (pendingNextLabel || '계속 →') : (state.phase === 'ending' ? '엔딩 보기 →' : '벙커로 돌아가기 →')}</button>`
     : `<div class="choices">${pendingEvent.choices
         .map((choice, idx) => {
           const eligible = window.EventEngine.isChoiceEligible(state, choice);
@@ -1075,6 +1077,8 @@ function renderEventModal() {
       const outcome = window.EventEngine.resolveChoice(state, pendingEvent, Number(btn.dataset.idx));
       pendingEventOutcome = outcome.resultText;
       dayOutcomeText = outcome.resultText;
+      pendingNextEvent = outcome.nextEvent || null;
+      pendingNextLabel = outcome.nextLabel || null;
       if (tutorialMode) tutorialFlags.chose = true;
       renderShelter();
     });
@@ -1082,7 +1086,15 @@ function renderEventModal() {
   const closeBtn = document.getElementById('closeEventBtn');
   if (closeBtn) {
     closeBtn.addEventListener('click', () => {
-      pendingEvent = null;
+      if (state.phase === 'ending' || state.phase === 'gameover') {
+        pendingEvent = null;
+        pendingEventOutcome = null;
+        pendingNextEvent = null;
+        render();
+        return;
+      }
+      pendingEvent = pendingNextEvent;
+      pendingNextEvent = null;
       pendingEventOutcome = null;
       if (tutorialMode) tutorialFlags.closed = true;
       renderShelter();
@@ -1269,6 +1281,7 @@ function handleAdvanceDay() {
     return;
   }
   pendingEventOutcome = null;
+  pendingNextEvent = null;
   if (result.event) {
     pendingEvent = result.event;
   } else {

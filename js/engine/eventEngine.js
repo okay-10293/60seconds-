@@ -71,10 +71,22 @@ function resolveEventDescription(event) {
 }
 
 // 오늘의 이벤트 후보 중 하나를 랜덤 선택 (없으면 null)
+// 우선순위: 노크(엔딩 조건 충족 시) > 일반 이벤트 + 엔딩 분기 단계 이벤트(가중치 event.weight, 기본 1)
 function pickEventForToday(state) {
-  const eligible = window.EVENTS.filter((e) => isEventEligible(state, e));
-  if (eligible.length === 0) return null;
-  const chosen = eligible[Math.floor(Math.random() * eligible.length)];
+  if (window.EndingQuest) {
+    const knock = window.EndingQuest.pickKnock(state);
+    if (knock) return knock;
+  }
+  const pool = window.EVENTS.filter((e) => isEventEligible(state, e));
+  if (window.EndingQuest) pool.push(...window.EndingQuest.stepCandidates(state));
+  if (pool.length === 0) return null;
+  const total = pool.reduce((sum, e) => sum + (e.weight || 1), 0);
+  let roll = Math.random() * total;
+  let chosen = pool[pool.length - 1];
+  for (const e of pool) {
+    if (roll < (e.weight || 1)) { chosen = e; break; }
+    roll -= e.weight || 1;
+  }
   return resolveEventDescription(chosen);
 }
 
@@ -162,6 +174,15 @@ function applyEffect(state, effect) {
       });
       break;
     }
+    case 'advance': {
+      // 엔딩 분기 진행도 +1 (resolveChoice 가 event.quest.code 를 넘겨준다)
+      if (effect._code) window.EndingQuest.advance(state, effect._code);
+      break;
+    }
+    case 'variant': {
+      window.EndingQuest.setVariant(state, effect.key, effect.value);
+      break;
+    }
     case 'flag': {
       state.flags[effect.key] = effect.value;
       break;
@@ -192,12 +213,22 @@ function resolveChoice(state, event, choiceIndex) {
   if (!choice || !isChoiceEligible(state, choice)) {
     return { resultText: '선택할 수 없는 항목입니다.', effects: [] };
   }
+  // 동적 이벤트(노크/강도): 선택지가 직접 판정하고 {resultText, nextEvent?, nextLabel?} 를 돌려준다
+  if (choice.resolve) {
+    const out = choice.resolve(state, event);
+    window.GameState.addLog(state, `[Day ${state.day}] ${event.title} → ${choice.text} → ${out.resultText}`);
+    return out;
+  }
   const outcome = pickWeightedOutcome(choice.outcomes);
   let resultText = outcome.resultText;
+  let advanced = false;
   outcome.effects.forEach((effect) => {
-    const fired = applyEffect(state, effect);
+    const eff = effect.type === 'advance' ? { ...effect, _code: event.quest && event.quest.code } : effect;
+    const fired = applyEffect(state, eff);
+    if (effect.type === 'advance') advanced = true;
     if (fired && effect.appendText) resultText += ` ${effect.appendText}`;
   });
+  if (event.quest && !advanced) window.EndingQuest.cooldown(state, event.quest);
 
   state.flags[`_seen_${event.id}`] = true;
   window.GameState.addLog(state, `[Day ${state.day}] ${event.title} → ${choice.text} → ${resultText}`);
@@ -208,6 +239,7 @@ function resolveChoice(state, event, choiceIndex) {
 window.EventEngine = {
   isEventEligible,
   isChoiceEligible,
+  applyEffect,
   pickEventForToday,
   pickWeightedOutcome,
   resolveChoice,
