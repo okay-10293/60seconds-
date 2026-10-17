@@ -179,6 +179,14 @@ function applyEffect(state, effect) {
       if (effect._code) window.EndingQuest.advance(state, effect._code);
       break;
     }
+    case 'questAdvance': {
+      // 엔딩 분기 진행도가 정확히 atStep 일 때만 +1 (이벤트에 quest 정보가 없는 일반 이벤트용)
+      const q = state.flags.q;
+      const progress = (q && q.progress && q.progress[effect.code]) || 0;
+      const ready = q && q.ready && q.ready.includes(effect.code);
+      if (!ready && progress === (effect.atStep || 0)) window.EndingQuest.advance(state, effect.code);
+      break;
+    }
     case 'variant': {
       window.EndingQuest.setVariant(state, effect.key, effect.value);
       break;
